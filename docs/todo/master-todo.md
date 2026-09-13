@@ -8,15 +8,15 @@
 
 | Phase | Description | Status |
 | :--- | :--- | :--- |
-| **Phase 0** | **Bootstrap Foundation** | **Completed / Certified** |
-| **Phase 1** | **Reviewer-First Static Portfolio** | **Completed / Certified** |
-| **Phase 2** | **Hero Visual: Authentic Portrait** | **Completed / Certified** *(3D Hologram Cancelled)* |
-| **Phase 3** | **Journey Map** | **Awaiting User Approval** |
-| **Phase 4** | **Go Backend** | Not Started |
-| **Phase 5** | **AI Indexing & Retrieval** | Not Started |
-| **Phase 6** | **AI Reviewer Copilot** | Not Started |
-| **Phase 7** | **Integration & Polish** | Not Started |
-| **Phase 8** | **Production & Launch** | Not Started |
+| **Phase 0** | **Bootstrap Foundation** | **CERTIFIED — Foundation** |
+| **Phase 1** | **Reviewer-First Static Portfolio** | **CERTIFIED — Reviewer-First Portfolio** |
+| **Phase 2** | **Hero Visual: Authentic Portrait** | **CERTIFIED — Authentic Portrait Hero** *(3D Hologram: CANCELLED / SUPERSEDED)* |
+| **Phase 3** | **Journey Map** | **AWAITING USER-APPROVED JOURNEY DATA** |
+| **Phase 4** | **Go Backend** | NOT STARTED |
+| **Phase 5** | **AI Indexing & Retrieval** | NOT STARTED |
+| **Phase 6** | **AI Reviewer Copilot** | NOT STARTED |
+| **Phase 7** | **Integration & Polish** | NOT STARTED |
+| **Phase 8** | **Production & Launch** | NOT STARTED |
 
 ---
 
@@ -80,7 +80,7 @@
   - Built with Next.js `<Image />` (`priority`, `fill`, `sizes`, `object-fit: cover`).
   - Semantic, meaningful alt text (`"Portrait of Nachsyas Arham Mumtaz Nashohi"`).
   - Sleek dark technical frame with `#02060B` canvas, `#07111C` surface, `#173247` border, and subtle `#26B8FF` cyan accents.
-  - Technical corner markers (`┌ PROFILE`, `VERIFIED ┐`, `└ ID:NASHOHI`, `LIVE ┘`) and recruiter-first status pill (`Software Engineer | Reviewer-Ready`).
+  - Technical corner markers (`┌ PROFILE`, `┐`, `└`, `┘`) and clean identity strip (`NACHSYAS ARHAM` / `SOFTWARE ENGINEER`).
   - Graceful image fallback state with user icon and technical prompt if image fails to load.
   - Restrained entrance motion respecting `(prefers-reduced-motion: reduce)`.
 - [x] **Hero Section Integration (`apps/web/features/hero/HeroSection.tsx`)**:
