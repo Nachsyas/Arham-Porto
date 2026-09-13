@@ -1,0 +1,39 @@
+{
+  "repositories": [
+    {
+      "repository": "Nachsyas/EduTrace",
+      "enabled": true,
+      "indexingStatus": "not_indexed",
+      "lastIndexedAt": null,
+      "notes": "Candidate repository. Phase 0 configuration only — zero indexing executed."
+    },
+    {
+      "repository": "Nachsyas/gdgoc-ecommerce",
+      "enabled": true,
+      "indexingStatus": "not_indexed",
+      "lastIndexedAt": null,
+      "notes": "Candidate repository. Phase 0 configuration only — zero indexing executed."
+    },
+    {
+      "repository": "Nachsyas/maritime-ai-dashboard",
+      "enabled": true,
+      "indexingStatus": "not_indexed",
+      "lastIndexedAt": null,
+      "notes": "Candidate repository. Phase 0 configuration only — zero indexing executed."
+    },
+    {
+      "repository": "Nachsyas/smart-kitchen-backend",
+      "enabled": true,
+      "indexingStatus": "not_indexed",
+      "lastIndexedAt": null,
+      "notes": "Candidate repository. Phase 0 configuration only — zero indexing executed."
+    },
+    {
+      "repository": "Nachsyas/smart-kitchen-frontend",
+      "enabled": true,
+      "indexingStatus": "not_indexed",
+      "lastIndexedAt": null,
+      "notes": "Candidate repository. Phase 0 configuration only — zero indexing executed."
+    }
+  ]
+}

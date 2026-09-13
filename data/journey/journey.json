@@ -1,0 +1,136 @@
+{
+  "stops": [
+    {
+      "id": "journey-birthplace",
+      "category": "birthplace",
+      "title": null,
+      "institution": null,
+      "city": null,
+      "region": null,
+      "country": "Indonesia",
+      "coordinates": null,
+      "period": null,
+      "description": null,
+      "image": null,
+      "public": false,
+      "todo": [
+        "TODO_USER_BIRTHPLACE",
+        "TODO_USER_JOURNEY_COORDINATES",
+        "TODO_USER_JOURNEY_PERIOD"
+      ]
+    },
+    {
+      "id": "journey-tk",
+      "category": "tk",
+      "title": null,
+      "institution": null,
+      "city": null,
+      "region": null,
+      "country": "Indonesia",
+      "coordinates": null,
+      "period": null,
+      "description": null,
+      "image": null,
+      "public": false,
+      "todo": [
+        "TODO_USER_TK",
+        "TODO_USER_JOURNEY_COORDINATES",
+        "TODO_USER_JOURNEY_PERIOD"
+      ]
+    },
+    {
+      "id": "journey-sd",
+      "category": "sd",
+      "title": null,
+      "institution": null,
+      "city": null,
+      "region": null,
+      "country": "Indonesia",
+      "coordinates": null,
+      "period": null,
+      "description": null,
+      "image": null,
+      "public": false,
+      "todo": [
+        "TODO_USER_SD",
+        "TODO_USER_JOURNEY_COORDINATES",
+        "TODO_USER_JOURNEY_PERIOD"
+      ]
+    },
+    {
+      "id": "journey-smp",
+      "category": "smp",
+      "title": null,
+      "institution": null,
+      "city": null,
+      "region": null,
+      "country": "Indonesia",
+      "coordinates": null,
+      "period": null,
+      "description": null,
+      "image": null,
+      "public": false,
+      "todo": [
+        "TODO_USER_SMP",
+        "TODO_USER_JOURNEY_COORDINATES",
+        "TODO_USER_JOURNEY_PERIOD"
+      ]
+    },
+    {
+      "id": "journey-sma",
+      "category": "sma",
+      "title": null,
+      "institution": null,
+      "city": null,
+      "region": null,
+      "country": "Indonesia",
+      "coordinates": null,
+      "period": null,
+      "description": null,
+      "image": null,
+      "public": false,
+      "todo": [
+        "TODO_USER_SMA",
+        "TODO_USER_JOURNEY_COORDINATES",
+        "TODO_USER_JOURNEY_PERIOD"
+      ]
+    },
+    {
+      "id": "journey-university",
+      "category": "university",
+      "title": null,
+      "institution": null,
+      "city": null,
+      "region": null,
+      "country": "Indonesia",
+      "coordinates": null,
+      "period": null,
+      "description": null,
+      "image": null,
+      "public": false,
+      "todo": [
+        "TODO_USER_UNIVERSITY_DETAILS",
+        "TODO_USER_JOURNEY_COORDINATES",
+        "TODO_USER_JOURNEY_PERIOD"
+      ]
+    },
+    {
+      "id": "journey-current",
+      "category": "current",
+      "title": null,
+      "institution": null,
+      "city": null,
+      "region": null,
+      "country": "Indonesia",
+      "coordinates": null,
+      "period": null,
+      "description": null,
+      "image": null,
+      "public": false,
+      "todo": [
+        "TODO_USER_CURRENT_CITY",
+        "TODO_USER_JOURNEY_COORDINATES"
+      ]
+    }
+  ]
+}

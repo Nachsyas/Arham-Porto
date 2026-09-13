@@ -1,0 +1,25 @@
+{
+  "name": "arham-porto-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-Powered Personal Portfolio Platform for Nachsyas Arham Mumtaz Nashohi",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "validate:data": "npm run validate --workspace=packages/portfolio-data",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "build:web": "npm run build --workspace=apps/web"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "skills": [
+    {
+      "id": "backend-go",
+      "name": "Backend Engineering with Go",
+      "category": "Backend",
+      "claim": "Building scalable backend services and REST APIs with modern Go standard library.",
+      "evidenceIds": [],
+      "todo": ["TODO_VERIFY_SKILL_EVIDENCE"]
+    },
+    {
+      "id": "frontend-nextjs",
+      "name": "Frontend Engineering with Next.js & TypeScript",
+      "category": "Frontend",
+      "claim": "Developing responsive, accessible, and high-performance user interfaces with React and Next.js.",
+      "evidenceIds": [],
+      "todo": ["TODO_VERIFY_SKILL_EVIDENCE"]
+    },
+    {
+      "id": "ai-rag",
+      "name": "AI Integration & Retrieval-Augmented Generation",
+      "category": "AI / ML",
+      "claim": "Implementing evidence-based RAG workflows with vector search and LLM orchestration.",
+      "evidenceIds": [],
+      "todo": ["TODO_VERIFY_SKILL_EVIDENCE"]
+    },
+    {
+      "id": "database-postgres",
+      "name": "PostgreSQL & Vector Databases",
+      "category": "Database",
+      "claim": "Schema design, relational data management, and pgvector embeddings integration.",
+      "evidenceIds": [],
+      "todo": ["TODO_VERIFY_SKILL_EVIDENCE"]
+    },
+    {
+      "id": "system-design",
+      "name": "System Design & Clean Architecture",
+      "category": "Systems",
+      "claim": "Architecting decoupled, testable, and maintainable software systems.",
+      "evidenceIds": [],
+      "todo": ["TODO_VERIFY_SKILL_EVIDENCE"]
+    },
+    {
+      "id": "devops-docker",
+      "name": "DevOps & Containerization",
+      "category": "DevOps",
+      "claim": "Containerized development with Docker Compose and automated CI workflows.",
+      "evidenceIds": [],
+      "todo": ["TODO_VERIFY_SKILL_EVIDENCE"]
+    }
+  ]
+}

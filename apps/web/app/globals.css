@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-canvas: #02060B;
+  --bg-canvas-soft: #040A12;
+  --bg-surface: #07111C;
+  --bg-surface-elevated: #0A1825;
+  --bg-surface-strong: #0D2030;
+
+  --color-primary: #26B8FF;
+  --color-primary-active: #55C8FF;
+  --color-primary-muted: #123D55;
+
+  --color-hologram: #61D8FF;
+  --color-hologram-soft: #2E8FB5;
+  --color-hologram-faint: #14384A;
+
+  --color-text-primary: #F3F8FC;
+  --color-text-body: #C7D4DD;
+  --color-text-muted: #8395A3;
+
+  --color-border: #173247;
+  --color-border-strong: #25516E;
+
+  --color-success: #5AD6A0;
+  --color-warning: #F0B65A;
+  --color-error: #EF6A73;
+}
+
+body {
+  background-color: var(--bg-canvas);
+  color: var(--color-text-body);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Accessibility: visible focus ring */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

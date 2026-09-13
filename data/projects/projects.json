@@ -1,0 +1,100 @@
+{
+  "projects": [
+    {
+      "id": "edutrace",
+      "title": "EduTrace",
+      "slug": "edutrace",
+      "summary": null,
+      "problem": null,
+      "solution": null,
+      "role": [],
+      "contributions": [],
+      "technologies": [],
+      "githubUrl": "https://github.com/Nachsyas/EduTrace",
+      "demoUrl": null,
+      "image": null,
+      "featured": true,
+      "category": "Full-Stack",
+      "evidenceIds": [],
+      "todo": [
+        "TODO_USER_PROJECT_ROLE",
+        "TODO_USER_PROJECT_CONTRIBUTIONS",
+        "TODO_VERIFY_PROJECT_TECH",
+        "TODO_VERIFY_PROJECT_EVIDENCE",
+        "TODO_USER_PROJECT_SUMMARY"
+      ]
+    },
+    {
+      "id": "gdgoc-ecommerce",
+      "title": "GDGOC E-Commerce",
+      "slug": "gdgoc-ecommerce",
+      "summary": null,
+      "problem": null,
+      "solution": null,
+      "role": [],
+      "contributions": [],
+      "technologies": [],
+      "githubUrl": "https://github.com/Nachsyas/gdgoc-ecommerce",
+      "demoUrl": null,
+      "image": null,
+      "featured": true,
+      "category": "Backend",
+      "evidenceIds": [],
+      "todo": [
+        "TODO_USER_PROJECT_ROLE",
+        "TODO_USER_PROJECT_CONTRIBUTIONS",
+        "TODO_VERIFY_PROJECT_TECH",
+        "TODO_VERIFY_PROJECT_EVIDENCE",
+        "TODO_USER_PROJECT_SUMMARY"
+      ]
+    },
+    {
+      "id": "maritime-ai-dashboard",
+      "title": "Maritime AI Dashboard",
+      "slug": "maritime-ai-dashboard",
+      "summary": null,
+      "problem": null,
+      "solution": null,
+      "role": [],
+      "contributions": [],
+      "technologies": [],
+      "githubUrl": "https://github.com/Nachsyas/maritime-ai-dashboard",
+      "demoUrl": null,
+      "image": null,
+      "featured": true,
+      "category": "AI",
+      "evidenceIds": [],
+      "todo": [
+        "TODO_USER_PROJECT_ROLE",
+        "TODO_USER_PROJECT_CONTRIBUTIONS",
+        "TODO_VERIFY_PROJECT_TECH",
+        "TODO_VERIFY_PROJECT_EVIDENCE",
+        "TODO_USER_PROJECT_SUMMARY"
+      ]
+    },
+    {
+      "id": "smart-kitchen",
+      "title": "Smart Kitchen",
+      "slug": "smart-kitchen",
+      "summary": null,
+      "problem": null,
+      "solution": null,
+      "role": [],
+      "contributions": [],
+      "technologies": [],
+      "githubUrl": "https://github.com/Nachsyas/smart-kitchen-backend",
+      "demoUrl": null,
+      "image": null,
+      "featured": true,
+      "category": "Systems",
+      "evidenceIds": [],
+      "todo": [
+        "TODO_USER_PROJECT_ROLE",
+        "TODO_USER_PROJECT_CONTRIBUTIONS",
+        "TODO_VERIFY_PROJECT_TECH",
+        "TODO_VERIFY_PROJECT_EVIDENCE",
+        "TODO_USER_PROJECT_SUMMARY"
+      ]
+    }
+  ]
+}

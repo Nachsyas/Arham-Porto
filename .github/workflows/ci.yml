@@ -1,0 +1,63 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend & Data Schema
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install dependencies (immutable lockfile)
+        run: npm ci
+
+      - name: Validate canonical portfolio data
+        run: npm run validate:data
+
+      - name: Lint web application
+        run: npm run lint --workspace=apps/web
+
+      - name: Typecheck web application
+        run: npm run typecheck --workspace=apps/web
+
+      - name: Run unit tests
+        run: npm run test --workspace=apps/web
+
+      - name: Build web application
+        run: npm run build --workspace=apps/web
+
+  backend:
+    name: Backend Go API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22.x"
+
+      - name: Run Go tests
+        working-directory: apps/api
+        run: go test -v ./...
+
+      - name: Run Go vet
+        working-directory: apps/api
+        run: go vet ./...

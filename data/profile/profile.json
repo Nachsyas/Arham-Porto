@@ -1,0 +1,23 @@
+{
+  "fullName": "Nachsyas Arham Mumtaz Nashohi",
+  "role": "Software Engineer",
+  "projectName": "Arham Porto",
+  "aiFeature": "Ask Arham AI",
+  "positioning": null,
+  "bio": null,
+  "email": null,
+  "linkedin": null,
+  "github": "https://github.com/Nachsyas",
+  "cvUrl": null,
+  "currentCity": null,
+  "availability": null,
+  "todo": [
+    "TODO_USER_POSITIONING",
+    "TODO_USER_BIO",
+    "TODO_USER_EMAIL",
+    "TODO_USER_LINKEDIN",
+    "TODO_USER_CV",
+    "TODO_USER_CURRENT_CITY",
+    "TODO_USER_AVAILABILITY"
+  ]
+}

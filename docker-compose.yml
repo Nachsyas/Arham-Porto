@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: arham-porto-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-arham_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-arham_password}
+      POSTGRES_DB: ${POSTGRES_DB:-arham_porto}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./apps/api/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - arham-network
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  arham-network:
+    driver: bridge
