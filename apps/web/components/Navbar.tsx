@@ -16,6 +16,7 @@ export default function Navbar({ onOpenQuickReview, hasExperience = false }: Nav
     { label: "Overview", href: "#overview" },
     { label: "Projects", href: "#projects" },
     { label: "Skills", href: "#skills" },
+    { label: "Journey", href: "#journey" },
     ...(hasExperience ? [{ label: "Experience", href: "#experience" }] : []),
     { label: "Contact", href: "#contact" },
   ];

@@ -6,6 +6,7 @@ import QuickReviewDrawer from "@/components/QuickReviewDrawer";
 import HeroSection from "@/features/hero/HeroSection";
 import ProjectsSection from "@/features/projects/ProjectsSection";
 import SkillsSection from "@/features/skills/SkillsSection";
+import JourneySection from "@/features/journey/JourneySection";
 import ExperienceSection from "@/features/experience/ExperienceSection";
 import EducationSection from "@/features/education/EducationSection";
 import ContactSection from "@/features/contact/ContactSection";
@@ -14,6 +15,7 @@ import type {
   Profile,
   Project,
   Skill,
+  JourneyStop,
   ExperienceItem,
   EducationItem,
 } from "arham-porto-schema";
@@ -22,6 +24,7 @@ interface PortfolioAppProps {
   profile: Profile;
   projects: Project[];
   skills: Skill[];
+  journeyStops?: JourneyStop[];
   experiences: ExperienceItem[];
   education: EducationItem[];
 }
@@ -30,6 +33,7 @@ export default function PortfolioApp({
   profile,
   projects,
   skills,
+  journeyStops = [],
   experiences,
   education,
 }: PortfolioAppProps) {
@@ -57,13 +61,16 @@ export default function PortfolioApp({
         {/* 3. Skill & Evidence Explorer (No percentages) */}
         <SkillsSection skills={skills} projects={projects} />
 
-        {/* 4. Professional Experience (Rendered when verified records exist) */}
+        {/* 4. Geographic & Academic Journey Map */}
+        <JourneySection stops={journeyStops} />
+
+        {/* 5. Professional Experience (Rendered when verified records exist) */}
         {experiences.length > 0 && <ExperienceSection experiences={experiences} />}
 
-        {/* 5. Academic Background (Rendered when verified records exist) */}
+        {/* 6. Academic Background (Rendered when verified records exist) */}
         {education.length > 0 && <EducationSection education={education} />}
 
-        {/* 6. Contact Section (Verified Channels Only) */}
+        {/* 7. Contact Section (Verified Channels Only) */}
         <ContactSection profile={profile} />
       </main>
 

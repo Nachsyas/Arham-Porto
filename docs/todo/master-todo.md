@@ -11,7 +11,7 @@
 | **Phase 0** | **Bootstrap Foundation** | **CERTIFIED — Foundation** |
 | **Phase 1** | **Reviewer-First Static Portfolio** | **CERTIFIED — Reviewer-First Portfolio** |
 | **Phase 2** | **Hero Visual: Authentic Portrait** | **CERTIFIED — Authentic Portrait Hero** *(3D Hologram: CANCELLED / SUPERSEDED)* |
-| **Phase 3** | **Journey Map** | **APPROVED — In Progress** |
+| **Phase 3** | **Journey Map** | **CERTIFIED — Interactive Journey Map** |
 | **Phase 4** | **Go Backend** | NOT STARTED |
 | **Phase 5** | **AI Indexing & Retrieval** | NOT STARTED |
 | **Phase 6** | **AI Reviewer Copilot** | NOT STARTED |
@@ -97,7 +97,7 @@
 
 ---
 
-## Phase 3 Checklist — Interactive Indonesia Journey Map (In Progress)
+## Phase 3 Checklist — Interactive Indonesia Journey Map (CERTIFIED)
 > **Approved Data Contract**: Scenario A approved by user. Public route: Karanganyar (Origin) -> Salatiga (Tahfizh & Academic Foundation, 2019–2023) -> Malang (Computer Science, 2023–Present) -> Malang (Current Base). Early education (TK, SD, SMP) remains in schema but is skipped (`public: false`). Zero private coordinates or birth dates.
 
 - [x] **Approved Canonical Data Synchronization**:
@@ -109,17 +109,23 @@
     - Malang Base: `[112.6308, -7.9826]`
   - Zero-trust privacy: Birth year, full birth date, and exact residence omitted from public display.
   - Runtime validation passed: `npm run validate:data` (100% PASS).
-- [ ] **Journey Map Architecture & Implementation**:
-  - Design interactive Indonesia Journey Map section (`apps/web/features/journey/`).
-  - Interactive map visualization (SVG or MapLibre GL JS / lightweight canvas) with canonical dark palette (`#02060B` canvas, `#07111C` surface, `#26B8FF` route lines).
-  - Stop markers with pulsing active pin, route paths, and milestone cards.
-  - Synchronized milestone details panel with smooth transition between the 4 active public stops.
-  - Native page scroll compliance (no wheel hijacking).
-  - Accessibility & reduced-motion support (`prefers-reduced-motion`).
-- [ ] **Testing & Quality Gates**:
-  - Unit & component tests for journey stop rendering, public filtering, and privacy validation.
-  - Lint, typecheck, tests, and build validation.
-- [ ] **Phase 3 Verification & Stop Rule**:
-  - Capture desktop (1440px) and mobile (390px) screenshots to `docs/screenshots/phase3/`.
-  - Generate Phase 3 certification report and stop before Phase 4 (Go Backend).
+- [x] **Journey Map Architecture & Implementation**:
+  - Designed interactive Stylized SVG Geographic Journey Map section (`apps/web/features/journey/`).
+  - Implemented high-contrast Java island outline (`JAVA_ISLAND_PATH`), Madura, Bali, and ambient Indonesia overview based on Natural Earth data (CC0 / Public Domain).
+  - Exact 3 unique geographic map markers (Karanganyar, Salatiga, Malang) with University and Current Base sharing the Malang pin.
+  - Single smooth corridor curve Karanganyar -> Salatiga -> Malang; zero Malang -> Malang route segment.
+  - Initial active state defaults chronologically to Origin — Karanganyar (`origin-karanganyar`).
+  - Interactive storytelling milestone card with Prev/Next buttons, category pill, institution, location, period (no birth year), and description.
+  - Responsive 4-step progress timeline (`Origin`, `MA`, `University`, `Current`).
+  - Added "Journey" (`#journey`) to global navbar with native scrolling (zero scroll hijacking).
+  - Full keyboard accessibility and reduced-motion support (`prefers-reduced-motion: reduce`).
+- [x] **Testing & Quality Gates**:
+  - Created `apps/web/tests/journey-map.test.tsx` covering all 12 mandatory criteria (public filtering, 3 markers vs 4 milestones, shared Malang location, no Malang -> Malang route, card updates, timeline updates, Prev/Next buttons, keyboard navigation, reduced motion, privacy assertion, zero TODOs).
+  - All 29 tests pass across test suite (`npm run test --workspace=apps/web`).
+  - Lint (`npm run lint`), typecheck (`npm run typecheck`), data validation (`npm run validate:data`), and production build (`npm run build`) all pass cleanly.
+  - First Load JS impact kept to just +7 kB (170 kB vs 163 kB baseline).
+- [x] **Phase 3 Verification & Stop Rule**:
+  - Captured desktop (1440px) and mobile (390px) screenshots to `docs/screenshots/phase3/`.
+  - Updated design documentation: `docs/design/journey-map.md`.
+  - Halted execution before Phase 4 (Go Backend) awaiting explicit user approval.
 
