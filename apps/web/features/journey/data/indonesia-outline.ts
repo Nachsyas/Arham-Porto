@@ -41,6 +41,18 @@ export const GEOGRAPHIC_LOCATIONS: Record<string, GeographicLocation> = {
     y: 203.2,
     milestoneIds: ["origin-karanganyar"],
   },
+  jakarta: {
+    id: "jakarta",
+    name: "Jakarta",
+    province: "DKI Jakarta",
+    x: 172.0,
+    y: 72.0,
+    milestoneIds: [
+      "residence-jakarta",
+      "mi-al-hamid-jakarta",
+      "mtsn30-jakarta",
+    ],
+  },
   salatiga: {
     id: "salatiga",
     name: "Salatiga",

@@ -34,33 +34,57 @@
       "todo": []
     },
     {
-      "id": "journey-sd",
-      "category": "sd",
-      "title": null,
+      "id": "residence-jakarta",
+      "category": "residence",
+      "title": "Residence",
       "institution": null,
-      "city": null,
-      "region": null,
+      "city": "Jakarta",
+      "region": "DKI Jakarta",
       "country": "Indonesia",
-      "coordinates": null,
+      "coordinates": [
+        106.8272,
+        -6.1754
+      ],
       "period": null,
-      "description": null,
+      "description": "Formative base and residence in Jakarta, DKI Jakarta.",
       "image": null,
-      "public": false,
+      "public": true,
       "todo": []
     },
     {
-      "id": "journey-smp",
-      "category": "smp",
-      "title": null,
-      "institution": null,
-      "city": null,
-      "region": null,
+      "id": "mi-al-hamid-jakarta",
+      "category": "sd",
+      "title": "Primary Education",
+      "institution": "Madrasah Ibtidaiyah Terpadu Al-Hamid",
+      "city": "Jakarta Timur",
+      "region": "DKI Jakarta",
       "country": "Indonesia",
-      "coordinates": null,
+      "coordinates": [
+        106.9004,
+        -6.225
+      ],
       "period": null,
-      "description": null,
+      "description": "Primary academic foundation at Madrasah Ibtidaiyah Terpadu Al-Hamid, Jakarta Timur.",
       "image": null,
-      "public": false,
+      "public": true,
+      "todo": []
+    },
+    {
+      "id": "mtsn30-jakarta",
+      "category": "smp",
+      "title": "Lower Secondary Education",
+      "institution": "Madrasah Tsanawiyah Negeri 30 Jakarta Timur",
+      "city": "Jakarta Timur",
+      "region": "DKI Jakarta",
+      "country": "Indonesia",
+      "coordinates": [
+        106.9004,
+        -6.225
+      ],
+      "period": null,
+      "description": "Lower secondary academic foundation at MTsN 30 Jakarta Timur.",
+      "image": null,
+      "public": true,
       "todo": []
     },
     {

@@ -11,7 +11,7 @@
 | **Phase 0** | **Bootstrap Foundation** | **CERTIFIED — Foundation** |
 | **Phase 1** | **Reviewer-First Static Portfolio** | **CERTIFIED — Reviewer-First Portfolio** |
 | **Phase 2** | **Hero Visual: Authentic Portrait** | **CERTIFIED — Authentic Portrait Hero** *(3D Hologram: CANCELLED / SUPERSEDED)* |
-| **Phase 3** | **Journey Map** | **CERTIFIED — Interactive Journey Map** |
+| **Phase 3** | **Journey Map** | **RECERTIFIED — Interactive Journey Map (Expanded 7 Milestones)** |
 | **Phase 4** | **Go Backend** | NOT STARTED |
 | **Phase 5** | **AI Indexing & Retrieval** | NOT STARTED |
 | **Phase 6** | **AI Reviewer Copilot** | NOT STARTED |
@@ -97,35 +97,41 @@
 
 ---
 
-## Phase 3 Checklist — Interactive Indonesia Journey Map (CERTIFIED)
-> **Approved Data Contract**: Scenario A approved by user. Public route: Karanganyar (Origin) -> Salatiga (Tahfizh & Academic Foundation, 2019–2023) -> Malang (Computer Science, 2023–Present) -> Malang (Current Base). Early education (TK, SD, SMP) remains in schema but is skipped (`public: false`). Zero private coordinates or birth dates.
+## Phase 3 Checklist — Interactive Indonesia Journey Map (RECERTIFIED)
+> **Recertified Scope (Phase 3 Reopen)**: Expanded to 7 public milestones across 4 unique geographic locations (Karanganyar -> Jakarta -> Salatiga -> Malang). Includes user-approved Jakarta Residence, MI Terpadu Al-Hamid, and MTsN 30 Jakarta Timur. Preserves city-level privacy, null period omission, and zero intra-city route hops.
 
 - [x] **Approved Canonical Data Synchronization**:
-  - Synced approved Scenario A data into `data/journey/journey.json`.
-  - Configured safe public city/campus coordinates:
-    - Karanganyar: `[110.9515, -7.5976]`
-    - Salatiga: `[110.5084, -7.3305]`
-    - UIN Malang: `[112.6081, -7.9525]`
-    - Malang Base: `[112.6308, -7.9826]`
-  - Zero-trust privacy: Birth year, full birth date, and exact residence omitted from public display.
-  - Runtime validation passed: `npm run validate:data` (100% PASS).
+  - Updated `packages/content-schema/src/journey.schema.ts` to support `"residence"` category.
+  - Synced approved 7 milestones in `data/journey/journey.json`:
+    1. `origin-karanganyar`: Karanganyar, Jawa Tengah (Birth year hidden)
+    2. `residence-jakarta`: Jakarta, DKI Jakarta (City-level only, no home address)
+    3. `mi-al-hamid-jakarta`: MI Terpadu Al-Hamid, Jakarta Timur (`period: null`)
+    4. `mtsn30-jakarta`: MTsN 30 Jakarta Timur, Jakarta Timur (`period: null`)
+    5. `ma-assurkati-salatiga`: MA Tahfizhul Qur'an As-Surkati, Salatiga (2019–2023)
+    6. `university-uin-malang`: UIN Maulana Malik Ibrahim Malang, Computer Science (2023–Present)
+    7. `current-base-malang`: Malang, East Java (Present)
+  - Retained `journey-tk` as private (`public: false`).
+  - Zero-trust validation passed: `npm run validate:data` (100% PASS).
 - [x] **Journey Map Architecture & Implementation**:
   - Designed interactive Stylized SVG Geographic Journey Map section (`apps/web/features/journey/`).
-  - Implemented high-contrast Java island outline (`JAVA_ISLAND_PATH`), Madura, Bali, and ambient Indonesia overview based on Natural Earth data (CC0 / Public Domain).
-  - Exact 3 unique geographic map markers (Karanganyar, Salatiga, Malang) with University and Current Base sharing the Malang pin.
-  - Single smooth corridor curve Karanganyar -> Salatiga -> Malang; zero Malang -> Malang route segment.
-  - Initial active state defaults chronologically to Origin — Karanganyar (`origin-karanganyar`).
-  - Interactive storytelling milestone card with Prev/Next buttons, category pill, institution, location, period (no birth year), and description.
-  - Responsive 4-step progress timeline (`Origin`, `MA`, `University`, `Current`).
-  - Added "Journey" (`#journey`) to global navbar with native scrolling (zero scroll hijacking).
-  - Full keyboard accessibility and reduced-motion support (`prefers-reduced-motion: reduce`).
+  - Implemented 4 unique geographic pins: Karanganyar `(478.3, 203.2)`, Jakarta `(172.0, 72.0)`, Salatiga `(445.3, 178.2)`, Malang `(603.4, 239.2)`.
+  - Shared Jakarta marker (Residence, MI, MTs) with dynamic badge updates: `[Residence]`, `[MI Al-Hamid]`, `[MTsN 30]`.
+  - Shared Malang marker (University, Current Base) with dynamic badge updates: `[University]`, `[Current Base]`.
+  - Exactly 3 geographic route segments: Karanganyar $\rightarrow$ Jakarta $\rightarrow$ Salatiga $\rightarrow$ Malang; zero `Jakarta -> Jakarta` and zero `Malang -> Malang` route hops.
+  - Initial active state defaults strictly to Origin — Karanganyar (`origin-karanganyar`).
+  - Storytelling milestone card gracefully omits the period row for MI and MTs without placeholder strings ("Unknown", "TBD", "TODO").
+  - Responsive 7-step timeline (Desktop: horizontal progress bar; Mobile: vertical stacked compact timeline, zero horizontal document overflow).
+  - Recruiter-facing copy updated: *"From Karanganyar to Jakarta, Salatiga, and Malang — a journey through formative education and computer science."* (0 instances of "founder").
+  - Full keyboard accessibility (Arrow Left/Right, Tab, Enter) and screen reader labels.
+  - Reduced-motion support (`prefers-reduced-motion: reduce`).
 - [x] **Testing & Quality Gates**:
-  - Created `apps/web/tests/journey-map.test.tsx` covering all 12 mandatory criteria (public filtering, 3 markers vs 4 milestones, shared Malang location, no Malang -> Malang route, card updates, timeline updates, Prev/Next buttons, keyboard navigation, reduced motion, privacy assertion, zero TODOs).
-  - All 29 tests pass across test suite (`npm run test --workspace=apps/web`).
+  - Updated `apps/web/tests/journey-map.test.tsx` covering all 22 mandatory criteria.
+  - All 39 tests pass across test suite (`npm run test --workspace=apps/web`).
   - Lint (`npm run lint`), typecheck (`npm run typecheck`), data validation (`npm run validate:data`), and production build (`npm run build`) all pass cleanly.
-  - First Load JS impact kept to just +7 kB (170 kB vs 163 kB baseline).
+  - First Load JS impact remains lean at **171 kB** (Route `/` size: 64 kB).
 - [x] **Phase 3 Verification & Stop Rule**:
-  - Captured desktop (1440px) and mobile (390px) screenshots to `docs/screenshots/phase3/`.
+  - Captured 7 desktop (1440px) and 3 mobile (390px) screenshots to `docs/screenshots/phase3/`.
   - Updated design documentation: `docs/design/journey-map.md`.
-  - Halted execution before Phase 4 (Go Backend) awaiting explicit user approval.
+  - Phase 3 RECERTIFIED. Awaiting explicit user approval before starting Phase 4 (Go Backend).
+
 

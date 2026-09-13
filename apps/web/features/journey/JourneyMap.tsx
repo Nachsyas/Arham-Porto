@@ -33,7 +33,7 @@ export default function JourneyMap({
         </div>
         <div className="flex items-center gap-3">
           <span className="hidden sm:inline text-themeText-muted/70">
-            CENTRAL JAVA → EAST JAVA
+            JAKARTA → JAWA TENGAH → JAWA TIMUR
           </span>
           <div className="flex items-center gap-1 text-primary/90">
             <Compass className="h-3 w-3" />
@@ -123,6 +123,18 @@ export default function JourneyMap({
 
           {/* 4. Subtle Regional Labels (Non-intrusive) */}
           <text
+            x="172"
+            y="52"
+            fill="rgba(148, 163, 184, 0.35)"
+            fontSize="10"
+            fontFamily="monospace"
+            letterSpacing="2"
+            textAnchor="middle"
+            aria-hidden="true"
+          >
+            DKI JAKARTA
+          </text>
+          <text
             x="420"
             y="235"
             fill="rgba(148, 163, 184, 0.35)"
@@ -170,7 +182,7 @@ export default function JourneyMap({
         <div className="hidden sm:block">SOURCE: NATURAL EARTH (PUBLIC DOMAIN / CC0)</div>
         <div className="flex items-center gap-1 text-cyan-400/80">
           <MapPin className="h-2.5 w-2.5" />
-          <span>3 UNIQUE LOCATIONS</span>
+          <span>{locations.length} UNIQUE LOCATIONS</span>
         </div>
       </div>
     </div>

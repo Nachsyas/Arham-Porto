@@ -1,7 +1,9 @@
 import type { JourneyStop } from "arham-porto-schema";
 
+export type LocationId = "karanganyar" | "jakarta" | "salatiga" | "malang";
+
 export interface GeographicLocation {
-  id: "karanganyar" | "salatiga" | "malang";
+  id: LocationId;
   name: string;
   province: string;
   x: number;
@@ -11,6 +13,7 @@ export interface GeographicLocation {
 
 export type MilestoneCategory =
   | "birthplace"
+  | "residence"
   | "tk"
   | "sd"
   | "smp"
@@ -27,5 +30,5 @@ export interface PublicMilestone {
   region: string;
   period: string | null;
   description: string | null;
-  locationId: "karanganyar" | "salatiga" | "malang";
+  locationId: LocationId;
 }

@@ -26,10 +26,11 @@ export default function JourneySection({ stops = [] }: JourneySectionProps) {
   const safeIndex = currentIndex >= 0 ? currentIndex : 0;
   const currentMilestone = publicMilestones[safeIndex];
 
-  // 3 unique geographic locations (Karanganyar, Salatiga, Malang)
+  // 4 unique geographic locations (Karanganyar, Jakarta, Salatiga, Malang)
   const uniqueLocations = useMemo(
     () => [
       GEOGRAPHIC_LOCATIONS.karanganyar,
+      GEOGRAPHIC_LOCATIONS.jakarta,
       GEOGRAPHIC_LOCATIONS.salatiga,
       GEOGRAPHIC_LOCATIONS.malang,
     ],
@@ -92,7 +93,7 @@ export default function JourneySection({ stops = [] }: JourneySectionProps) {
               Interactive Journey Map
             </h2>
             <p className="mt-2 text-sm sm:text-base font-body text-themeText-muted max-w-2xl">
-              Chronological academic progression and technical foundations traced across Central and East Java.
+              From Karanganyar to Jakarta, Salatiga, and Malang — a journey through formative education and computer science.
             </p>
           </div>
 

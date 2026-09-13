@@ -81,7 +81,7 @@ export default function JourneyRoute({ activeMilestoneId }: JourneyRouteProps) {
             : "transition-all duration-1000 ease-out animate-[dash_1.5s_ease-out_forwards]"
         }
         style={{
-          strokeDasharray: prefersReducedMotion ? "none" : "600",
+          strokeDasharray: prefersReducedMotion ? "none" : "1200",
           strokeDashoffset: prefersReducedMotion ? "0" : undefined,
         }}
         data-testid="journey-corridor-path"
@@ -89,6 +89,7 @@ export default function JourneyRoute({ activeMilestoneId }: JourneyRouteProps) {
 
       {/* Decorative waypoint indicator rings along the corridor */}
       <circle cx="478.3" cy="203.2" r="3.5" fill="#06b6d4" fillOpacity="0.4" />
+      <circle cx="172.0" cy="72.0" r="3.5" fill="#06b6d4" fillOpacity="0.4" />
       <circle cx="445.3" cy="178.2" r="3.5" fill="#26b8ff" fillOpacity="0.4" />
       <circle cx="603.4" cy="239.2" r="3.5" fill="#38bdf8" fillOpacity="0.4" />
     </g>

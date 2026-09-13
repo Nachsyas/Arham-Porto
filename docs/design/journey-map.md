@@ -1,8 +1,9 @@
 # Design Specification: Interactive Academic Journey Map
 
 - **Project**: Arham Porto
+- **Portfolio Owner**: Nachsyas Arham Mumtaz Nashohi
 - **Feature**: Interactive Geographic Journey Map (`features/journey/`)
-- **Status**: Certified — Phase 3 Production Deliverable
+- **Status**: Recertified — Phase 3 Journey Expansion Deliverable
 - **Classification**: Stylized Geographic Visualization (Java Corridor, Indonesia)
 
 ---
@@ -10,13 +11,13 @@
 ## 1. Engine Selection: Precision / Stylized SVG Map
 
 ### 1.1 Rationale for SVG over MapLibre GL
-During Phase 3 architectural evaluation, the mapping engine was selected as a **Precision / Stylized SVG Geographic Map** rather than MapLibre GL JS:
+During Phase 3 architectural evaluation and subsequent data expansion, the mapping engine remains a **Precision / Stylized SVG Geographic Map**:
 
-1. **Focused Geographic Scope**: The narrative focuses strictly on 3 unique locations across Central and East Java. Free pan/zoom across the entire globe is unnecessary and adds cognitive friction for recruiters.
+1. **Focused Geographic Scope**: The narrative focuses strictly on 4 unique locations across DKI Jakarta, Central Java, and East Java. Free pan/zoom across the entire globe is unnecessary and adds cognitive friction for recruiters.
 2. **Zero External Infrastructure**: Zero tile server requests, zero API keys, and zero third-party telemetry dependencies. The asset is 100% bundled locally at runtime.
 3. **No WebGL / GPU Fragility**: Operates deterministically across all devices, mobile browsers, battery-saver modes, and headless test runners without WebGL context loss.
-4. **Lightweight Bundle Footprint**: Avoided hundreds of kilobytes of mapping engine JavaScript. The entire production bundle increase for Phase 3 was just **7 kB** First Load JS (from 163 kB baseline to 170 kB).
-5. **Deterministic Testing & Accessibility**: SVG markers map directly to real HTML `<button>` elements with keyboard focus, visible rings, and screen-reader labels.
+4. **Lightweight Bundle Footprint**: Avoids heavy mapping engine dependencies. The entire First Load JS remains lean at **171 kB** (only +1 kB over the initial Phase 3 baseline).
+5. **Deterministic Testing & Accessibility**: SVG markers map directly to real semantic HTML `<button>` elements with full keyboard focus, visible rings, and accessible screen-reader labels.
 
 ---
 
@@ -26,81 +27,123 @@ During Phase 3 architectural evaluation, the mapping engine was selected as a **
 - **License**: Public Domain / CC0 (unrestricted commercial and non-commercial use).
 - **Cartographic Disclaimer**: Explicitly labeled in the UI as a **Stylized Geographic Visualization** rather than survey-level cadastral cartography.
 - **Coordinate Projection**: Coordinates from WGS84 are pre-projected into an `800x360` SVG viewBox coordinate space:
+  - **Jakarta** (Residence, MI, MTs): `(172.0, 72.0)`
   - **Karanganyar** (Origin): `(478.3, 203.2)`
   - **Salatiga** (Secondary Education): `(445.3, 178.2)`
   - **Malang** (University & Current Base): `(603.4, 239.2)`
 
 ---
 
-## 3. Core Architectural Model: 3 Unique Locations != 4 Milestones
+## 3. Core Architectural Model: 7 Story Milestones vs. 4 Unique Locations
 
-A fundamental requirement of the Journey architecture is the distinction between geographic points and narrative milestones:
+A fundamental architectural tenet of the Journey system is the explicit separation between **Geographic Locations** and **Narrative Story Milestones**:
 
 ```
-Canonical Journey Stops:
-1. Origin (Karanganyar)
-2. Madrasah Aliyah Tahfizhul Qur'an As-Surkati (Salatiga)
-3. Universitas Islam Negeri Maulana Malik Ibrahim Malang (Malang)
-4. Current Engineering Base (Malang)
+Chronological Story Milestones:
+01. Origin (Karanganyar)
+02. Residence / Formative Base (Jakarta)
+03. Primary Education — MI Terpadu Al-Hamid (Jakarta Timur)
+04. Lower Secondary Education — MTsN 30 (Jakarta Timur)
+05. Secondary Education — MA Tahfizhul Qur'an As-Surkati (Salatiga)
+06. University — UIN Maulana Malik Ibrahim (Malang)
+07. Current Base (Malang)
 
-Geographic Locations:
-Karanganyar (1) ───► Salatiga (2) ───► Malang (3)
+Geographic Route Corridor:
+Karanganyar (1) ───► Jakarta (2) ───► Salatiga (3) ───► Malang (4)
 ```
 
-- **Exactly 3 Geographic Pins**: Karanganyar, Salatiga, Malang.
-- **Shared Malang Location**: Both Higher Education (Computer Science) and Current Base reference the same Malang geographic pin.
-- **No Malang → Malang Route Segment**: The SVG corridor connects Karanganyar $\rightarrow$ Salatiga $\rightarrow$ Malang as a smooth quadratic curve (`M 478.3 203.2 Q 460 185 445.3 178.2 Q 520 180 603.4 239.2`). There is zero redundant Malang $\rightarrow$ Malang segment.
-- **Shared Location State Transition**: Transitioning between University and Current Base preserves geographic focus on Malang, subtly updating the marker badge (`[University]` $\leftrightarrow$ `[Current Base]`) while updating the storytelling card and timeline without replaying route animations.
+### 3.1 Exactly 4 Unique Geographic Pins
+The interactive map renders exactly 4 geographic pins on the Java corridor:
+1. `karanganyar`: Origin
+2. `jakarta`: Shared marker for Residence, MI Al-Hamid, and MTsN 30
+3. `salatiga`: Secondary Education (MA As-Surkati)
+4. `malang`: Shared marker for University (CS) and Current Base
+
+### 3.2 Shared Marker Behavior
+- **Jakarta Shared Marker**:
+  - Clicking the Jakarta marker when coming from another location selects the first Jakarta milestone (`residence-jakarta`).
+  - If a Jakarta milestone is already active, clicking the marker preserves the current Jakarta milestone.
+  - The marker badge dynamically reflects the active milestone: `[Residence]`, `[MI Al-Hamid]`, or `[MTsN 30]`.
+  - Switching between Jakarta milestones (Residence $\leftrightarrow$ MI $\leftrightarrow$ MTs) updates the card and timeline state without replaying the full geographic route animation.
+- **Malang Shared Marker**:
+  - Shared between University (`university-uin-malang`) and Current Base (`current-base-malang`).
+  - Dynamically updates badge: `[University]` $\leftrightarrow$ `[Current Base]`.
+
+### 3.3 Route Rule (Zero Intra-City Hops)
+- The geographic route comprises exactly **3 curved route segments**:
+  $$\text{Karanganyar} \longrightarrow \text{Jakarta} \longrightarrow \text{Salatiga} \longrightarrow \text{Malang}$$
+- SVG Bezier corridor:
+  `M 478.3 203.2 Q 320 100 172 72 Q 310 160 445.3 178.2 Q 520 185 603.4 239.2`
+- **Strictly Forbidden**:
+  - Zero `Jakarta → Jakarta` hops.
+  - Zero `Malang → Malang` hops.
 
 ---
 
 ## 4. Privacy & Truthfulness Protocol
 
-1. **Public vs. Non-Public Filtering**:
-   - `data/journey/journey.json` maintains the full canonical schema.
-   - Early education records (`journey-tk`, `journey-sd`, `journey-smp`) have `public: false` and are strictly filtered out before rendering (`filterPublicMilestones`). They are never injected into the DOM.
-2. **Birth Year & Personal Data Guard**:
-   - No birth year (e.g. 2004) or birth date is rendered.
-   - No residential street address, accommodation, or telephone number is present.
-   - Strictly verified by automated unit tests asserting absence of `2004`, `TODO_USER`, etc.
-3. **No Raw Coordinates Telemetry**:
-   - Recruiters see clear administrative titles: `Karanganyar, Jawa Tengah`, `Salatiga, Jawa Tengah`, `Malang, Jawa Timur`.
-   - Decorative UI badge uses neutral geographic text: `JAVA // INDONESIA`.
+### 4.1 Safe Jakarta City-Level Location
+- The Residence milestone uses city-level Jakarta coordinates `[106.8272, -6.1754]` (`DKI Jakarta, Indonesia`).
+- **Zero Exposure**: No home address, housing complex (e.g. Bambu Kuning), district/neighborhood, or private GPS coordinates are ever exposed publicly or committed.
+- Public display is strictly confined to administrative region: `Jakarta, DKI Jakarta`.
+
+### 4.2 Period Omission for Unconfirmed Education (MI & MTs)
+- Schooling years for MI Terpadu Al-Hamid and MTsN 30 Jakarta Timur are not yet user-confirmed.
+- Both records store `period: null` in `data/journey/journey.json`.
+- **Honest AI & Rendering Guard**:
+  - The UI gracefully omits the period metadata row completely for these stops.
+  - Never renders placeholders such as `"Unknown"`, `"TBD"`, `"TODO"`, or inferred dates.
+
+### 4.3 Birth Year & Identity Protection
+- Birth year (2004) remains strictly hidden.
+- Early childhood education (`journey-tk`) remains `public: false` and is excluded from the DOM.
+- No personal contact numbers, residential details, or unauthorized claims are rendered.
+
+### 4.4 Tone & Recruiter Copy Guard
+- Neutral, evidence-backed copy:
+  *"From Karanganyar to Jakarta, Salatiga, and Malang — a journey through formative education and computer science."*
+- Zero instances of unsupported titles (e.g. "founder").
 
 ---
 
-## 5. Interaction Model & Native Scrolling
+## 5. Interaction Model & Navigation Channels
 
-- **Default Active Milestone**: Origin — Karanganyar (`origin-karanganyar`). The journey unfolds chronologically.
-- **Single Source of Active State**: `activeMilestoneId` is canonical across map pins, storytelling card, and timeline.
-- **Multiple Navigation Channels**:
-  1. Map marker clicks (Karanganyar, Salatiga, Malang toggle).
-  2. Timeline step button clicks (01 Origin, 02 MA, 03 University, 04 Current).
-  3. Previous / Next buttons with boundary disabling.
-  4. Keyboard Arrow keys (Left/Right) for sequential navigation.
-  5. Native keyboard Enter/Space on any marker or timeline button.
-- **Zero Scroll Hijacking**: Document scrolling is 100% native. Viewport is never locked; mouse wheel is never intercepted.
+- **Default State**: Chronological start at Origin (`origin-karanganyar`).
+- **Canonical State Management**: `activeMilestoneId` is the single source of truth across SVG map pins, milestone story card, and timeline.
+- **Multiple Navigation Modalities**:
+  1. Map marker clicks (Karanganyar, Jakarta, Salatiga, Malang).
+  2. Timeline step button clicks (01 Origin through 07 Current Base).
+  3. Previous / Next pagination buttons with boundary disabling.
+  4. Keyboard Left / Right arrow navigation.
+  5. Native keyboard Tab + Enter/Space on any interactive control.
+- **Zero Scroll Hijacking**: Document scrolling is completely native with zero wheel interception.
 
 ---
 
 ## 6. Accessibility & Motion Preferences
 
-- **Semantic HTML Markers**: Real `<button type="button">` elements positioned over the SVG canvas with `aria-pressed`, `aria-label`, visible cyan focus rings, and touch-friendly tap targets.
-- **Reduced Motion (`prefers-reduced-motion: reduce`)**:
-  - Route line renders immediately (`strokeDasharray: none`, `strokeDashoffset: 0`).
-  - Marker radar ping animation (`animate-ping`) is hidden.
-  - Scale transitions are disabled.
-  - Full interaction remains completely operational.
+- **Full Screen-Reader Names**:
+  - Timeline buttons include complete accessible labels via `aria-label`:
+    - *"Origin in Karanganyar"*
+    - *"Residence in Jakarta"*
+    - *"Primary education at Madrasah Ibtidaiyah Terpadu Al-Hamid"*
+    - *"Lower secondary education at Madrasah Tsanawiyah Negeri 30 Jakarta Timur"*
+    - *"Secondary education at Madrasah Aliyah Tahfizhul Qur'an As-Surkati"*
+    - *"Undergraduate education at Universitas Islam Negeri Maulana Malik Ibrahim Malang"*
+    - *"Current base in Malang"*
+- **Reduced Motion Support (`prefers-reduced-motion: reduce`)**:
+  - Connecting corridor stroke renders statically without dash animation.
+  - Radar ping animations (`animate-ping`) are suppressed.
+  - Scale transforms are disabled.
 
 ---
 
 ## 7. Responsive Layout Specifications
 
 - **Desktop (1440px)**:
-  - 12-column grid: 7 columns for SVG Map, 5 columns for Milestone Card.
-  - Full-width interactive horizontal timeline below with step numbers, titles, and active glow fill.
+  - 12-column grid: 7 columns for SVG Map with glowing corridor, 5 columns for Milestone Card.
+  - Horizontal progress bar timeline with 7 steps and glowing cyan progression line.
 - **Mobile (390px)**:
-  - Vertical stack: Header $\rightarrow$ SVG Map $\rightarrow$ Milestone Card $\rightarrow$ Timeline.
-  - Salatiga pin label positioned above the pin to prevent any text collision with Karanganyar on small viewports.
-  - Timeline adapts with concise labels (`Origin`, `MA`, `University`, `Current`).
-  - Zero horizontal overflow or page clipping.
+  - Vertical stack layout avoiding horizontal document overflow.
+  - Vertical compact timeline with connected vertical line and step badges.
+  - Salatiga marker label positioned above the pin to eliminate visual overlap.

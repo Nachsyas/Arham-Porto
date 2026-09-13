@@ -27,8 +27,14 @@ export default function JourneyMilestoneCard({
     switch (category) {
       case "birthplace":
         return "ORIGIN";
+      case "residence":
+        return "RESIDENCE";
+      case "sd":
+        return "PRIMARY EDUCATION";
+      case "smp":
+        return "LOWER SECONDARY EDUCATION";
       case "sma":
-        return "TAHFIZH & ACADEMIC FOUNDATION";
+        return "SECONDARY EDUCATION";
       case "university":
         return "COMPUTER SCIENCE";
       case "current":

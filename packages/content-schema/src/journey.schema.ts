@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const JourneyCategorySchema = z.enum([
   "birthplace",
+  "residence",
   "tk",
   "sd",
   "smp",

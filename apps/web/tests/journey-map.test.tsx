@@ -14,9 +14,9 @@ const mockStops: JourneyStop[] = [
     city: "Karanganyar",
     region: "Jawa Tengah",
     country: "Indonesia",
-    coordinates: [-7.5968, 110.9515],
+    coordinates: [110.9515, -7.5976],
     period: null, // Birth year strictly omitted for privacy
-    description: "Formative upbringing and roots in Karanganyar, Jawa Tengah.",
+    description: "Early formative origin in Karanganyar, Central Java.",
     image: null,
     public: true,
     todo: [],
@@ -24,47 +24,62 @@ const mockStops: JourneyStop[] = [
   {
     id: "journey-tk",
     category: "tk",
-    title: "Pendidikan Kanak-Kanak",
+    title: null,
     institution: null,
-    city: "Karanganyar",
-    region: "Jawa Tengah",
+    city: null,
+    region: null,
     country: "Indonesia",
     coordinates: null,
     period: null,
     description: null,
     image: null,
     public: false, // Early education skipped from public Journey
-    todo: ["TODO_USER_TK"],
+    todo: [],
   },
   {
-    id: "journey-sd",
+    id: "residence-jakarta",
+    category: "residence",
+    title: "Residence",
+    institution: null,
+    city: "Jakarta",
+    region: "DKI Jakarta",
+    country: "Indonesia",
+    coordinates: [106.8272, -6.1754],
+    period: null,
+    description: "Formative base and residence in Jakarta, DKI Jakarta.",
+    image: null,
+    public: true,
+    todo: [],
+  },
+  {
+    id: "mi-al-hamid-jakarta",
     category: "sd",
-    title: "Pendidikan Dasar",
-    institution: null,
-    city: "Karanganyar",
-    region: "Jawa Tengah",
+    title: "Primary Education",
+    institution: "Madrasah Ibtidaiyah Terpadu Al-Hamid",
+    city: "Jakarta Timur",
+    region: "DKI Jakarta",
     country: "Indonesia",
-    coordinates: null,
-    period: null,
-    description: null,
+    coordinates: [106.9004, -6.225],
+    period: null, // Unknown/unconfirmed period: must not be fabricated
+    description: "Primary academic foundation at Madrasah Ibtidaiyah Terpadu Al-Hamid, Jakarta Timur.",
     image: null,
-    public: false,
-    todo: ["TODO_USER_SD"],
+    public: true,
+    todo: [],
   },
   {
-    id: "journey-smp",
+    id: "mtsn30-jakarta",
     category: "smp",
-    title: "Pendidikan Menengah Pertama",
-    institution: null,
-    city: "Karanganyar",
-    region: "Jawa Tengah",
+    title: "Lower Secondary Education",
+    institution: "Madrasah Tsanawiyah Negeri 30 Jakarta Timur",
+    city: "Jakarta Timur",
+    region: "DKI Jakarta",
     country: "Indonesia",
-    coordinates: null,
-    period: null,
-    description: null,
+    coordinates: [106.9004, -6.225],
+    period: null, // Unknown/unconfirmed period: must not be fabricated
+    description: "Lower secondary academic foundation at MTsN 30 Jakarta Timur.",
     image: null,
-    public: false,
-    todo: ["TODO_USER_SMP"],
+    public: true,
+    todo: [],
   },
   {
     id: "ma-assurkati-salatiga",
@@ -74,9 +89,9 @@ const mockStops: JourneyStop[] = [
     city: "Salatiga",
     region: "Jawa Tengah",
     country: "Indonesia",
-    coordinates: [-7.3305, 110.5084],
+    coordinates: [110.5084, -7.3305],
     period: "2019–2023",
-    description: "Rigorous tahfizh curriculum and foundational secondary education in Salatiga, Jawa Tengah.",
+    description: "Secondary education focusing on Quranic memorization (Tahfizh) and foundational academic studies.",
     image: null,
     public: true,
     todo: [],
@@ -84,14 +99,14 @@ const mockStops: JourneyStop[] = [
   {
     id: "university-uin-malang",
     category: "university",
-    title: "Computer Science Undergraduate",
+    title: "Computer Science",
     institution: "Universitas Islam Negeri Maulana Malik Ibrahim Malang",
     city: "Malang",
     region: "Jawa Timur",
     country: "Indonesia",
-    coordinates: [-7.9525, 112.6079],
+    coordinates: [112.6081, -7.9525],
     period: "2023–Present",
-    description: "Undergraduate studies in Computer Science at UIN Maulana Malik Ibrahim Malang, focusing on software engineering, backend systems, and algorithm design.",
+    description: "Undergraduate studies in Computer Science / Informatics Engineering.",
     image: null,
     public: true,
     todo: [],
@@ -99,21 +114,21 @@ const mockStops: JourneyStop[] = [
   {
     id: "current-base-malang",
     category: "current",
-    title: "Current Engineering Base",
+    title: "Current Base",
     institution: null,
     city: "Malang",
     region: "Jawa Timur",
     country: "Indonesia",
-    coordinates: [-7.9839, 112.6214],
+    coordinates: [112.6308, -7.9826],
     period: "Present",
-    description: "Active software engineering base in Malang, Jawa Timur.",
+    description: "Active software engineering home base in Malang, East Java.",
     image: null,
     public: true,
     todo: [],
   },
 ];
 
-describe("Phase 3 Interactive Journey Map", () => {
+describe("Phase 3 Interactive Journey Map (Expanded 7 Milestones)", () => {
   const originalMatchMedia = window.matchMedia;
 
   beforeEach(() => {
@@ -134,153 +149,235 @@ describe("Phase 3 Interactive Journey Map", () => {
     vi.restoreAllMocks();
   });
 
-  // 1. Public filtering
-  it("renders only public milestones and completely excludes private stops (TK, SD, SMP)", () => {
-    const publicStops = filterPublicMilestones(mockStops);
-    expect(publicStops).toHaveLength(4);
-
-    const { container } = render(<JourneySection stops={mockStops} />);
-    expect(container.innerHTML).not.toContain("Pendidikan Kanak-Kanak");
-    expect(container.innerHTML).not.toContain("Pendidikan Dasar");
-    expect(container.innerHTML).not.toContain("Pendidikan Menengah Pertama");
+  // 1. Origin renders
+  it("renders Origin milestone", () => {
+    render(<JourneySection stops={mockStops} />);
+    expect(screen.getByText("ORIGIN")).toBeDefined();
+    expect(screen.getAllByText(/Karanganyar/i).length).toBeGreaterThan(0);
   });
 
-  // 2. Exactly three unique geographic markers
-  it("renders exactly three unique geographic markers on the map", () => {
+  // 2. Jakarta Residence renders
+  it("renders Jakarta Residence milestone when selected", () => {
+    render(<JourneySection stops={mockStops} />);
+    const resStep = screen.getByTestId("timeline-step-residence-jakarta");
+    fireEvent.click(resStep);
+    expect(screen.getByText("RESIDENCE")).toBeDefined();
+    expect(screen.getAllByText(/Jakarta/i).length).toBeGreaterThan(0);
+  });
+
+  // 3. MI Al-Hamid renders
+  it("renders MI Al-Hamid milestone when selected", () => {
+    render(<JourneySection stops={mockStops} />);
+    const miStep = screen.getByTestId("timeline-step-mi-al-hamid-jakarta");
+    fireEvent.click(miStep);
+    expect(screen.getByText("PRIMARY EDUCATION")).toBeDefined();
+    expect(screen.getByText("Madrasah Ibtidaiyah Terpadu Al-Hamid")).toBeDefined();
+  });
+
+  // 4. MTsN 30 Jakarta Timur renders
+  it("renders MTsN 30 Jakarta Timur milestone when selected", () => {
+    render(<JourneySection stops={mockStops} />);
+    const mtsStep = screen.getByTestId("timeline-step-mtsn30-jakarta");
+    fireEvent.click(mtsStep);
+    expect(screen.getByText("LOWER SECONDARY EDUCATION")).toBeDefined();
+    expect(screen.getByText("Madrasah Tsanawiyah Negeri 30 Jakarta Timur")).toBeDefined();
+  });
+
+  // 5. MA As-Surkati renders
+  it("renders MA As-Surkati milestone when selected", () => {
+    render(<JourneySection stops={mockStops} />);
+    const maStep = screen.getByTestId("timeline-step-ma-assurkati-salatiga");
+    fireEvent.click(maStep);
+    expect(screen.getByText("SECONDARY EDUCATION")).toBeDefined();
+    expect(screen.getByText("Madrasah Aliyah Tahfizhul Qur'an As-Surkati")).toBeDefined();
+  });
+
+  // 6. University renders
+  it("renders University milestone when selected", () => {
+    render(<JourneySection stops={mockStops} />);
+    const uinStep = screen.getByTestId("timeline-step-university-uin-malang");
+    fireEvent.click(uinStep);
+    expect(screen.getByText("COMPUTER SCIENCE")).toBeDefined();
+    expect(screen.getByText("Universitas Islam Negeri Maulana Malik Ibrahim Malang")).toBeDefined();
+  });
+
+  // 7. Current Base renders
+  it("renders Current Base milestone when selected", () => {
+    render(<JourneySection stops={mockStops} />);
+    const currentStep = screen.getByTestId("timeline-step-current-base-malang");
+    fireEvent.click(currentStep);
+    expect(screen.getByText("CURRENT BASE")).toBeDefined();
+  });
+
+  // 8. Exactly four geographic map markers exist
+  it("renders exactly four unique geographic markers on the map", () => {
     render(<JourneySection stops={mockStops} />);
 
-    const karanganyarMarker = screen.getByTestId("journey-marker-karanganyar");
-    const salatigaMarker = screen.getByTestId("journey-marker-salatiga");
-    const malangMarker = screen.getByTestId("journey-marker-malang");
+    expect(screen.getByTestId("journey-marker-karanganyar")).toBeDefined();
+    expect(screen.getByTestId("journey-marker-jakarta")).toBeDefined();
+    expect(screen.getByTestId("journey-marker-salatiga")).toBeDefined();
+    expect(screen.getByTestId("journey-marker-malang")).toBeDefined();
 
-    expect(karanganyarMarker).toBeDefined();
-    expect(salatigaMarker).toBeDefined();
-    expect(malangMarker).toBeDefined();
-
-    // Exactly 3 marker buttons exist
     const markers = screen.getAllByTestId(/^journey-marker-/);
-    expect(markers).toHaveLength(3);
+    expect(markers).toHaveLength(4);
   });
 
-  // 3. Four timeline milestones exist
-  it("renders exactly four timeline milestones representing the chronological narrative", () => {
+  // 9. Residence + MI + MTs share Jakarta geography
+  it("ensures Residence, MI, and MTs share the same geographic Jakarta pin", () => {
     render(<JourneySection stops={mockStops} />);
+    const jakartaMarker = screen.getByTestId("journey-marker-jakarta");
 
-    const timelineSteps = screen.getAllByTestId(/^timeline-step-/);
-    expect(timelineSteps).toHaveLength(4);
+    // Residence
+    fireEvent.click(screen.getByTestId("timeline-step-residence-jakarta"));
+    expect(jakartaMarker.getAttribute("aria-pressed")).toBe("true");
 
-    expect(screen.getByTestId("timeline-step-origin-karanganyar")).toBeDefined();
-    expect(screen.getByTestId("timeline-step-ma-assurkati-salatiga")).toBeDefined();
-    expect(screen.getByTestId("timeline-step-university-uin-malang")).toBeDefined();
-    expect(screen.getByTestId("timeline-step-current-base-malang")).toBeDefined();
+    // MI
+    fireEvent.click(screen.getByTestId("timeline-step-mi-al-hamid-jakarta"));
+    expect(jakartaMarker.getAttribute("aria-pressed")).toBe("true");
+
+    // MTs
+    fireEvent.click(screen.getByTestId("timeline-step-mtsn30-jakarta"));
+    expect(jakartaMarker.getAttribute("aria-pressed")).toBe("true");
   });
 
-  // 4. University and Current Base share Malang location
+  // 10. University + Current Base share Malang geography
   it("ensures University and Current Base share the same geographic Malang pin", () => {
     render(<JourneySection stops={mockStops} />);
-
     const malangMarker = screen.getByTestId("journey-marker-malang");
 
-    // Click timeline step for University
-    const uinTimelineStep = screen.getByTestId("timeline-step-university-uin-malang");
-    fireEvent.click(uinTimelineStep);
+    // University
+    fireEvent.click(screen.getByTestId("timeline-step-university-uin-malang"));
     expect(malangMarker.getAttribute("aria-pressed")).toBe("true");
 
-    // Click timeline step for Current Base
-    const currentTimelineStep = screen.getByTestId("timeline-step-current-base-malang");
-    fireEvent.click(currentTimelineStep);
+    // Current Base
+    fireEvent.click(screen.getByTestId("timeline-step-current-base-malang"));
     expect(malangMarker.getAttribute("aria-pressed")).toBe("true");
   });
 
-  // 5. No Malang -> Malang route segment
-  it("does not construct a Malang -> Malang route segment in the corridor SVG curve", () => {
+  // 11. No Jakarta -> Jakarta route segments
+  it("ensures no Jakarta -> Jakarta route segment exists in corridor curve", () => {
     const routePath = getCorridorRoutePath();
-    // Route must connect Karanganyar -> Salatiga -> Malang
-    expect(routePath).toContain("M 478.3 203.2");
-    expect(routePath).toContain("445.3 178.2");
-    expect(routePath).toContain("603.4 239.2");
+    // Jakarta coordinates: x: 172, y: 72
+    const jakartaCoordMatches = (routePath.match(/\b172(\.0)? 72(\.0)?\b/g) || []).length;
+    expect(jakartaCoordMatches).toBe(1);
+  });
 
-    // Must not have a redundant second Malang coordinate pair in the corridor curve
+  // 12. No Malang -> Malang route segment
+  it("ensures no Malang -> Malang route segment exists in corridor curve", () => {
+    const routePath = getCorridorRoutePath();
+    // Malang coordinates: (603.4, 239.2)
     const malangCoordMatches = (routePath.match(/603\.4 239\.2/g) || []).length;
     expect(malangCoordMatches).toBe(1);
   });
 
-  // 6. Clicking marker updates milestone card
-  it("updates active milestone card when clicking map markers", () => {
+  // 13. Clicking Jakarta marker selects Residence when entering Jakarta
+  it("clicking Jakarta marker selects Residence when entering Jakarta from outside", () => {
     render(<JourneySection stops={mockStops} />);
+    // Currently on Origin (Karanganyar)
+    const jakartaMarker = screen.getByTestId("journey-marker-jakarta");
+    fireEvent.click(jakartaMarker);
 
-    // Initially defaults to Origin
-    expect(screen.getByText("ORIGIN")).toBeDefined();
-    expect(screen.getByText("Karanganyar")).toBeDefined();
-
-    // Click Salatiga marker
-    const salatigaMarker = screen.getByTestId("journey-marker-salatiga");
-    fireEvent.click(salatigaMarker);
-
-    expect(screen.getByText("TAHFIZH & ACADEMIC FOUNDATION")).toBeDefined();
-    expect(screen.getByText("Madrasah Aliyah Tahfizhul Qur'an As-Surkati")).toBeDefined();
+    expect(screen.getByText("RESIDENCE")).toBeDefined();
   });
 
-  // 7. Clicking timeline updates milestone card
-  it("updates active milestone card when clicking timeline buttons", () => {
+  // 14. Timeline can select MI
+  it("timeline directly selects MI milestone", () => {
     render(<JourneySection stops={mockStops} />);
-
-    // Click University timeline step
-    const universityStep = screen.getByTestId("timeline-step-university-uin-malang");
-    fireEvent.click(universityStep);
-
-    expect(screen.getByText("COMPUTER SCIENCE")).toBeDefined();
-    expect(screen.getByText("Universitas Islam Negeri Maulana Malik Ibrahim Malang")).toBeDefined();
-    expect(screen.getByText("2023–Present")).toBeDefined();
+    fireEvent.click(screen.getByTestId("timeline-step-mi-al-hamid-jakarta"));
+    expect(screen.getByText("Madrasah Ibtidaiyah Terpadu Al-Hamid")).toBeDefined();
   });
 
-  // 8. Previous / Next buttons work
-  it("steps through milestones sequentially using Previous and Next controls", () => {
+  // 15. Timeline can select MTs
+  it("timeline directly selects MTs milestone", () => {
     render(<JourneySection stops={mockStops} />);
+    fireEvent.click(screen.getByTestId("timeline-step-mtsn30-jakarta"));
+    expect(screen.getByText("Madrasah Tsanawiyah Negeri 30 Jakarta Timur")).toBeDefined();
+  });
 
+  // 16. Previous / Next traverses all seven milestones
+  it("traverses all seven milestones sequentially using Next and Previous", () => {
+    render(<JourneySection stops={mockStops} />);
     const prevBtn = screen.getByRole("button", { name: /previous/i });
     const nextBtn = screen.getByRole("button", { name: /next/i });
 
-    // Initial state: on step 1 (Origin) -> Previous should be disabled
     expect(prevBtn.getAttribute("disabled")).not.toBeNull();
-    expect(nextBtn.getAttribute("disabled")).toBeNull();
+    expect(screen.getByText("ORIGIN")).toBeDefined();
 
-    // Click Next -> advances to step 2 (Salatiga)
+    // 01 Origin -> 02 Residence
     fireEvent.click(nextBtn);
-    expect(screen.getByText("TAHFIZH & ACADEMIC FOUNDATION")).toBeDefined();
-    expect(prevBtn.getAttribute("disabled")).toBeNull();
+    expect(screen.getByText("RESIDENCE")).toBeDefined();
 
-    // Click Next -> advances to step 3 (University)
+    // 02 Residence -> 03 MI
+    fireEvent.click(nextBtn);
+    expect(screen.getByText("PRIMARY EDUCATION")).toBeDefined();
+
+    // 03 MI -> 04 MTs
+    fireEvent.click(nextBtn);
+    expect(screen.getByText("LOWER SECONDARY EDUCATION")).toBeDefined();
+
+    // 04 MTs -> 05 MA
+    fireEvent.click(nextBtn);
+    expect(screen.getByText("SECONDARY EDUCATION")).toBeDefined();
+
+    // 05 MA -> 06 University
     fireEvent.click(nextBtn);
     expect(screen.getByText("COMPUTER SCIENCE")).toBeDefined();
 
-    // Click Next -> advances to step 4 (Current Base)
+    // 06 University -> 07 Current Base
     fireEvent.click(nextBtn);
     expect(screen.getByText("CURRENT BASE")).toBeDefined();
     expect(nextBtn.getAttribute("disabled")).not.toBeNull();
 
-    // Click Previous -> steps back to step 3
+    // Step back: 07 -> 06
     fireEvent.click(prevBtn);
     expect(screen.getByText("COMPUTER SCIENCE")).toBeDefined();
   });
 
-  // 9. Keyboard interaction works
-  it("navigates milestones using keyboard arrow keys", () => {
+  // 17. MI and MTs render no fabricated period
+  it("does not render any fabricated or placeholder period for MI and MTs", () => {
     render(<JourneySection stops={mockStops} />);
 
-    expect(screen.getByText("ORIGIN")).toBeDefined();
+    // Check MI
+    fireEvent.click(screen.getByTestId("timeline-step-mi-al-hamid-jakarta"));
+    const miArticle = screen.getByRole("article", { name: /Milestone details/i });
+    expect(miArticle.textContent).not.toContain("Unknown");
+    expect(miArticle.textContent).not.toContain("TBD");
+    expect(miArticle.textContent).not.toContain("TODO");
 
-    // Press ArrowRight
-    fireEvent.keyDown(window, { key: "ArrowRight" });
-    expect(screen.getByText("TAHFIZH & ACADEMIC FOUNDATION")).toBeDefined();
-
-    // Press ArrowLeft
-    fireEvent.keyDown(window, { key: "ArrowLeft" });
-    expect(screen.getByText("ORIGIN")).toBeDefined();
+    // Check MTs
+    fireEvent.click(screen.getByTestId("timeline-step-mtsn30-jakarta"));
+    const mtsArticle = screen.getByRole("article", { name: /Milestone details/i });
+    expect(mtsArticle.textContent).not.toContain("Unknown");
+    expect(mtsArticle.textContent).not.toContain("TBD");
+    expect(mtsArticle.textContent).not.toContain("TODO");
   });
 
-  // 10. Reduced-motion behavior works
-  it("honors prefers-reduced-motion without breaking map rendering", () => {
+  // 18. Birth year remains hidden
+  it("strictly hides birth year (2004) across all rendered milestones", () => {
+    const { container } = render(<JourneySection stops={mockStops} />);
+    expect(container.innerHTML).not.toContain("2004");
+  });
+
+  // 19. Residential address remains absent
+  it("strictly excludes private residential address or complex name", () => {
+    const { container } = render(<JourneySection stops={mockStops} />);
+    const html = container.innerHTML.toLowerCase();
+    expect(html).not.toContain("bambu kuning");
+    expect(html).not.toContain("cipayung");
+    expect(html).not.toContain("rt ");
+    expect(html).not.toContain("rw ");
+    expect(html).not.toContain("street");
+  });
+
+  // 20. TODO strings remain absent
+  it("strictly asserts no TODO strings leak into the rendered DOM", () => {
+    const { container } = render(<JourneySection stops={mockStops} />);
+    expect(container.innerHTML).not.toContain("TODO_USER");
+    expect(container.innerHTML).not.toContain("TODO_");
+  });
+
+  // 21. Reduced motion remains functional
+  it("honors prefers-reduced-motion without breaking rendering", () => {
     window.matchMedia = vi.fn().mockImplementation((query) => ({
       matches: query === "(prefers-reduced-motion: reduce)",
       media: query,
@@ -298,25 +395,17 @@ describe("Phase 3 Interactive Journey Map", () => {
     expect(corridorPath.getAttribute("style")).toContain("stroke-dasharray: none");
   });
 
-  // 11. Privacy values do not render
-  it("strictly asserts private values (birth year 2004, full birth date, phone, address) do not render", () => {
-    const { container } = render(<JourneySection stops={mockStops} />);
-    const html = container.innerHTML;
+  // 22. Keyboard interaction remains functional
+  it("navigates milestones using keyboard arrow keys", () => {
+    render(<JourneySection stops={mockStops} />);
+    expect(screen.getByText("ORIGIN")).toBeDefined();
 
-    // No birth year 2004
-    expect(html).not.toContain("2004");
-    // No private words
-    expect(html).not.toContain("birth_date");
-    expect(html).not.toContain("telephone");
-    expect(html).not.toContain("phone");
-    expect(html).not.toContain("street");
-    expect(html).not.toContain("residence");
-  });
+    // ArrowRight -> Residence
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(screen.getByText("RESIDENCE")).toBeDefined();
 
-  // 12. No TODO markers render
-  it("strictly asserts no TODO markers leak into the rendered HTML", () => {
-    const { container } = render(<JourneySection stops={mockStops} />);
-    expect(container.innerHTML).not.toContain("TODO_USER");
-    expect(container.innerHTML).not.toContain("TODO_");
+    // ArrowLeft -> Origin
+    fireEvent.keyDown(window, { key: "ArrowLeft" });
+    expect(screen.getByText("ORIGIN")).toBeDefined();
   });
 });

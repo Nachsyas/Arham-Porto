@@ -21,13 +21,20 @@ export default function JourneyMarker({
   const leftPct = (location.x / MAP_DIMENSIONS.width) * 100;
   const topPct = (location.y / MAP_DIMENSIONS.height) * 100;
 
-  // For shared Malang location, detect whether University or Current Base is active
+  // Location state checks
+  const isJakarta = location.id === "jakarta";
   const isMalang = location.id === "malang";
   const isUniversity = activeMilestoneId === "university-uin-malang";
   const isCurrentBase = activeMilestoneId === "current-base-malang";
 
   const handleClick = () => {
-    if (isMalang) {
+    if (isJakarta) {
+      // If no Jakarta milestone is currently active, select the first: residence-jakarta
+      // If a Jakarta milestone is already active, keep the current one (Rule 17)
+      if (!location.milestoneIds.includes(activeMilestoneId)) {
+        onSelectMilestone("residence-jakarta");
+      }
+    } else if (isMalang) {
       // Toggle or cycle between University and Current Base if already on Malang,
       // otherwise default to University
       if (isUniversity) {
@@ -45,7 +52,15 @@ export default function JourneyMarker({
   // Status subtitle for the pin
   let statusBadge = "";
   if (isActive) {
-    if (isMalang) {
+    if (isJakarta) {
+      if (activeMilestoneId === "residence-jakarta") {
+        statusBadge = "Residence";
+      } else if (activeMilestoneId === "mi-al-hamid-jakarta") {
+        statusBadge = "MI Al-Hamid";
+      } else if (activeMilestoneId === "mtsn30-jakarta") {
+        statusBadge = "MTsN 30";
+      }
+    } else if (isMalang) {
       statusBadge = isCurrentBase ? "Current Base" : "University";
     } else if (location.id === "karanganyar") {
       statusBadge = "Origin";
