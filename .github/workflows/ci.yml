@@ -54,10 +54,15 @@ jobs:
         with:
           go-version: "1.22.x"
 
+      - name: Show Go version
+        working-directory: apps/api
+        run: go version
+
       - name: Run Go tests with race detector
         working-directory: apps/api
-        run: go test -v -race ./...
+        run: go test -v -count=1 -race ./...
 
       - name: Run Go vet
         working-directory: apps/api
         run: go vet ./...
+

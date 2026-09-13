@@ -148,10 +148,10 @@
   - Strict isolation: domain entities are never serialized directly to HTTP.
   - Safe DTOs: `ProfileResponse`, `ProjectResponse`, `SkillResponse`, `EvidenceResponse`, `JourneyStopResponse`.
   - Standard response envelopes: `DataEnvelope[T]` and `ListEnvelope[T]` with `Meta.Count`.
-  - Standard error envelope: `ErrorEnvelope` with `code` (`bad_request`, `not_found`, `rate_limited`, `internal_error`, `service_unavailable`) and `message`.
+  - Standard error envelope: `ErrorEnvelope` with certified `code` set (`bad_request`, `not_found`, `method_not_allowed`, `rate_limited`, `internal_error`, `service_unavailable`) and `message`.
   - **Privacy Guard & Minimization**:
     - `ProfileResponse`: Strips all internal `TODO` arrays, private contact fields, unapproved positioning, unpublished bio notes. Serializes strictly approved fields: `full_name`, `role`, `project_name`, `ai_feature`, `github`.
-    - `JourneyStopResponse`: Strictly strips raw `coordinates`, `todo`, private records (`journey-tk`), and the redundant `public` boolean flag.
+    - `JourneyStopResponse`: Strictly strips raw `coordinates`, `todo`, private records (`journey-tk`), redundant `public` boolean flag, and unapproved narrative descriptions. Retains purely factual structured fields (`id`, `category`, `title`, `institution`, `city`, `region`, `country`, `period`).
     - `EvidenceResponse`: Enforces repository-relative paths for `source_path` (e.g. `README.md`, `backend/cmd/api/main.go`). Rejects absolute paths (`/Users/...`, `C:\...`) and path traversal (`..`).
     - `URL Output Safety`: Enforces `https://` on all external URLs. Reject `javascript:`, `file:`, `data:`.
 - [x] **Canonical JSON Repository & Deterministic Path (`apps/api/internal/repository/jsonfile/`)**:
@@ -170,12 +170,12 @@
     - `required + unavailable`: Fails startup cleanly. In test/mock harness: HTTP 503 `{"status":"not_ready","database":"unavailable"}`
 - [x] **Hardened HTTP Delivery & Middleware (`apps/api/internal/delivery/http/`)**:
   - Standard Go 1.22+ `net/http.ServeMux` with pattern matching (`GET /api/v1/projects/{slug}`).
-  - Unsupported methods return `405 Method Not Allowed` with `Allow: GET, HEAD`.
+  - Unsupported methods return `405 Method Not Allowed` with `Allow: GET, HEAD`, `Cache-Control: no-store`, full security headers, and the standard JSON error envelope (`{"error":{"code":"method_not_allowed","message":"method not allowed"}}`).
   - Content-Type: `application/json; charset=utf-8` on all JSON responses and errors.
   - Server timeouts configured: ReadHeaderTimeout 5s, ReadTimeout 10s, WriteTimeout 10s, IdleTimeout 60s, MaxHeaderBytes 1MB.
   - Query parameter strictness: ambiguous repeated keys (`?featured=true&featured=false`, `?category=AI&category=Backend`) return HTTP 400 `bad_request`. Invalid boolean values return HTTP 400.
   - Cache policy: `Cache-Control: public, max-age=60, stale-while-revalidate=300` on public portfolio GETs; `no-store` on probes and errors (400, 404, 405, 429, 500).
-  - Middleware order: `Recovery` $\rightarrow$ `Logger` $\rightarrow$ `SecurityHeaders` $\rightarrow$ `CORS` $\rightarrow$ `RateLimiter` $\rightarrow$ `Router`.
+  - Middleware order: `Recovery` $\rightarrow$ `Logger` $\rightarrow$ `SecurityHeaders` $\rightarrow$ `CORS` $\rightarrow$ `RateLimiter` $\rightarrow$ `MethodNotAllowed` $\rightarrow$ `mux`.
   - Security headers present on ALL responses (200, 204, 400, 404, 405, 429, 500).
   - `RateLimiter`: Normalized client key via `net.SplitHostPort` (stripping ephemeral TCP source ports), bounded memory (`maxEntries = 10,000`), cleanup lifecycle `Close()`, bypass on `/healthz` and `/readyz`.
 - [x] **Testing & Quality Gates**:

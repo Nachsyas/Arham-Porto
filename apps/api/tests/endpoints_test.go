@@ -313,12 +313,89 @@ func TestEndpoints_ListJourney(t *testing.T) {
 	}
 
 	// Verify absence of journey-tk and verify public field is not exposed in public DTO
-	if strings.Contains(rec.Body.String(), `"public":`) {
+	bodyStr := rec.Body.String()
+	if strings.Contains(bodyStr, `"public":`) {
 		t.Error("redundant internal publication-control flag 'public' must not appear in public journey transport DTO")
 	}
+	if strings.Contains(bodyStr, `"description":`) {
+		t.Error("unapproved narrative 'description' field must not be present in public journey transport DTO")
+	}
+
+	// Unapproved narrative strings that MUST NOT appear anywhere in the response
+	forbiddenNarratives := []string{
+		"Early formative",
+		"Formative base",
+		"academic foundation at",
+		"Active software engineering home base",
+		"Informatics Engineering",
+		"Teknik Informatika",
+		"family home",
+		"temporary residence",
+		"study residence",
+		"engineering headquarters",
+		"hometown",
+	}
+	for _, forbidden := range forbiddenNarratives {
+		if strings.Contains(bodyStr, forbidden) {
+			t.Errorf("unapproved narrative text '%s' found in /api/v1/journey response", forbidden)
+		}
+	}
+
+	// Verify specific structured milestones
+	stopsByID := make(map[string]dto.JourneyStopResponse)
 	for _, stop := range resp.Data {
+		stopsByID[stop.ID] = stop
 		if stop.ID == "journey-tk" {
 			t.Error("private stop journey-tk must not be present in public journey endpoint")
+		}
+		if stop.Description != nil {
+			t.Errorf("stop %s has non-nil description: %s", stop.ID, *stop.Description)
+		}
+	}
+
+	// 1. MI Al-Hamid (Primary Education)
+	if mi, exists := stopsByID["mi-al-hamid-jakarta"]; !exists {
+		t.Error("missing stop mi-al-hamid-jakarta")
+	} else {
+		if mi.Category != "sd" || *mi.Title != "Primary Education" || *mi.Institution != "Madrasah Ibtidaiyah Terpadu Al-Hamid" || *mi.City != "Jakarta Timur" || *mi.Region != "DKI Jakarta" || mi.Country != "Indonesia" {
+			t.Errorf("unexpected MI stop data: %+v", mi)
+		}
+		if mi.Period != nil {
+			t.Errorf("MI period should be omitted/nil, got %v", *mi.Period)
+		}
+	}
+
+	// 2. MA As-Surkati
+	if ma, exists := stopsByID["ma-assurkati-salatiga"]; !exists {
+		t.Error("missing stop ma-assurkati-salatiga")
+	} else {
+		if ma.Category != "sma" || *ma.Title != "Tahfizh & Academic Foundation" || *ma.Institution != "Madrasah Aliyah Tahfizhul Qur'an As-Surkati" || *ma.City != "Salatiga" || *ma.Region != "Jawa Tengah" || *ma.Period != "2019–2023" {
+			t.Errorf("unexpected MA stop data: %+v", ma)
+		}
+	}
+
+	// 3. University UIN Malang
+	if uin, exists := stopsByID["university-uin-malang"]; !exists {
+		t.Error("missing stop university-uin-malang")
+	} else {
+		if uin.Category != "university" || *uin.Title != "Computer Science" || *uin.Institution != "Universitas Islam Negeri Maulana Malik Ibrahim Malang" || *uin.City != "Malang" || *uin.Region != "Jawa Timur" || *uin.Period != "2023–Present" {
+			t.Errorf("unexpected University stop data: %+v", uin)
+		}
+	}
+
+	// 4. Residence & Current Base semantic boundary check
+	if res, exists := stopsByID["residence-jakarta"]; !exists {
+		t.Error("missing stop residence-jakarta")
+	} else {
+		if *res.City != "Jakarta" || *res.Region != "DKI Jakarta" {
+			t.Errorf("unexpected Residence location: %s, %s", *res.City, *res.Region)
+		}
+	}
+	if base, exists := stopsByID["current-base-malang"]; !exists {
+		t.Error("missing stop current-base-malang")
+	} else {
+		if *base.City != "Malang" || *base.Region != "Jawa Timur" {
+			t.Errorf("unexpected Current Base location: %s, %s", *base.City, *base.Region)
 		}
 	}
 }
@@ -777,3 +854,120 @@ func TestEndpoints_DumpPublicSnapshots(t *testing.T) {
 		t.Logf("=== SNAPSHOT [%s] ===\n%s\n", ep, rec.Body.String())
 	}
 }
+
+func TestEndpoints_MethodNotAllowed_Projects(t *testing.T) {
+	router := setupFullTestRouter(t, []string{"http://localhost:3000"}, nil)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/projects", nil)
+	req.Header.Set("Origin", "http://localhost:3000")
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+
+	// Status 405
+	if rec.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("expected status 405 Method Not Allowed, got %d", rec.Code)
+	}
+
+	// Allow Header
+	allow := rec.Header().Get("Allow")
+	if !strings.Contains(allow, "GET") {
+		t.Errorf("expected Allow header containing GET, got '%s'", allow)
+	}
+
+	// Content-Type
+	ct := rec.Header().Get("Content-Type")
+	if ct != "application/json; charset=utf-8" {
+		t.Errorf("expected Content-Type 'application/json; charset=utf-8', got '%s'", ct)
+	}
+
+	// Cache-Control
+	cc := rec.Header().Get("Cache-Control")
+	if cc != "no-store" {
+		t.Errorf("expected Cache-Control 'no-store', got '%s'", cc)
+	}
+
+	// Security Headers
+	if xcto := rec.Header().Get("X-Content-Type-Options"); xcto != "nosniff" {
+		t.Errorf("expected X-Content-Type-Options 'nosniff', got '%s'", xcto)
+	}
+	if rp := rec.Header().Get("Referrer-Policy"); rp != "no-referrer" {
+		t.Errorf("expected Referrer-Policy 'no-referrer', got '%s'", rp)
+	}
+	if csp := rec.Header().Get("Content-Security-Policy"); csp != "default-src 'none'; frame-ancestors 'none'" {
+		t.Errorf("expected Content-Security-Policy 'default-src 'none'; frame-ancestors 'none'', got '%s'", csp)
+	}
+	if xfo := rec.Header().Get("X-Frame-Options"); xfo != "DENY" {
+		t.Errorf("expected X-Frame-Options 'DENY', got '%s'", xfo)
+	}
+	if vary := rec.Header().Get("Vary"); !strings.Contains(vary, "Origin") {
+		t.Errorf("expected Vary header to contain 'Origin', got '%s'", vary)
+	}
+
+	// Body envelope: { "error": { "code": "method_not_allowed", "message": "method not allowed" } }
+	var errResp dto.ErrorEnvelope
+	if err := json.NewDecoder(rec.Body).Decode(&errResp); err != nil {
+		t.Fatalf("failed to decode JSON error envelope: %v (raw body: %s)", err, rec.Body.String())
+	}
+	if errResp.Error.Code != "method_not_allowed" {
+		t.Errorf("expected error code 'method_not_allowed', got '%s'", errResp.Error.Code)
+	}
+	if errResp.Error.Message == "" {
+		t.Error("expected non-empty error message")
+	}
+}
+
+func TestEndpoints_MethodNotAllowed_OtherRoutes(t *testing.T) {
+	router := setupFullTestRouter(t, []string{"http://localhost:3000"}, nil)
+
+	testCases := []struct {
+		name   string
+		method string
+		path   string
+	}{
+		{"PUT Profile", http.MethodPut, "/api/v1/profile"},
+		{"DELETE Evidence Item", http.MethodDelete, "/api/v1/evidence/example"},
+		{"POST Journey", http.MethodPost, "/api/v1/journey"},
+		{"PATCH Skills", http.MethodPatch, "/api/v1/skills"},
+		{"POST Healthz", http.MethodPost, "/healthz"},
+		{"POST Readyz", http.MethodPost, "/readyz"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(tc.method, tc.path, nil)
+			req.Header.Set("Origin", "http://localhost:3000")
+			rec := httptest.NewRecorder()
+
+			router.ServeHTTP(rec, req)
+
+			if rec.Code != http.StatusMethodNotAllowed {
+				t.Fatalf("[%s] expected status 405, got %d", tc.name, rec.Code)
+			}
+			if ct := rec.Header().Get("Content-Type"); ct != "application/json; charset=utf-8" {
+				t.Errorf("[%s] expected Content-Type 'application/json; charset=utf-8', got '%s'", tc.name, ct)
+			}
+			if cc := rec.Header().Get("Cache-Control"); cc != "no-store" {
+				t.Errorf("[%s] expected Cache-Control 'no-store', got '%s'", tc.name, cc)
+			}
+			if xcto := rec.Header().Get("X-Content-Type-Options"); xcto != "nosniff" {
+				t.Errorf("[%s] expected X-Content-Type-Options 'nosniff', got '%s'", tc.name, xcto)
+			}
+			if xfo := rec.Header().Get("X-Frame-Options"); xfo != "DENY" {
+				t.Errorf("[%s] expected X-Frame-Options 'DENY', got '%s'", tc.name, xfo)
+			}
+
+			var errResp dto.ErrorEnvelope
+			if err := json.NewDecoder(rec.Body).Decode(&errResp); err != nil {
+				t.Fatalf("[%s] failed to decode JSON error envelope: %v", tc.name, err)
+			}
+			if errResp.Error.Code != "method_not_allowed" {
+				t.Errorf("[%s] expected code 'method_not_allowed', got '%s'", tc.name, errResp.Error.Code)
+			}
+			if errResp.Error.Message == "" {
+				t.Errorf("[%s] expected non-empty error message", tc.name)
+			}
+		})
+	}
+}
+

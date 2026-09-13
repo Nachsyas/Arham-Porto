@@ -39,7 +39,7 @@ Backend REST API documentation for `apps/api`.
 ```json
 {
   "error": {
-    "code": "bad_request | not_found | rate_limited | internal_error | service_unavailable",
+    "code": "bad_request | not_found | method_not_allowed | rate_limited | internal_error | service_unavailable",
     "message": "Human-readable description of error"
   }
 }
@@ -200,8 +200,7 @@ Backend REST API documentation for `apps/api`.
         "title": "Origin",
         "city": "Karanganyar",
         "region": "Jawa Tengah",
-        "country": "Indonesia",
-        "description": "Early formative origin in Karanganyar, Central Java."
+        "country": "Indonesia"
       }
     ],
     "meta": {
@@ -209,7 +208,7 @@ Backend REST API documentation for `apps/api`.
     }
   }
   ```
-- **Privacy Guard**: Raw coordinates, internal TODOs, private records (e.g. `journey-tk`), and the redundant `public` boolean flag are omitted.
+- **Privacy Guard**: Raw coordinates, internal TODOs, private records (e.g. `journey-tk`), redundant `public` flag, and unapproved narrative descriptions are omitted.
 
 ---
 
@@ -220,11 +219,30 @@ Backend REST API documentation for `apps/api`.
 | `GET` | All endpoints above | `200 OK` | Public cache header where applicable |
 | `HEAD` | All endpoints above | `200 OK` | Body discarded by standard library |
 | `OPTIONS` | Any registered path | `204 No Content` | CORS preflight with ACAO and Vary headers |
-| `POST` | Any GET-only endpoint | `405 Method Not Allowed` | Header `Allow: GET, HEAD` |
-| `PUT` | Any GET-only endpoint | `405 Method Not Allowed` | Header `Allow: GET, HEAD` |
-| `DELETE` | Any GET-only endpoint | `405 Method Not Allowed` | Header `Allow: GET, HEAD` |
+| `POST` | Any GET-only endpoint | `405 Method Not Allowed` | Header `Allow: GET, HEAD`, JSON error envelope |
+| `PUT` | Any GET-only endpoint | `405 Method Not Allowed` | Header `Allow: GET, HEAD`, JSON error envelope |
+| `DELETE` | Any GET-only endpoint | `405 Method Not Allowed` | Header `Allow: GET, HEAD`, JSON error envelope |
 | `GET` | Unregistered path | `404 Not Found` | JSON ErrorEnvelope |
 | `GET` | Ambiguous repeated param | `400 Bad Request` | JSON ErrorEnvelope |
+
+### 4.1 Certified 405 Method Not Allowed Response
+```http
+HTTP/1.1 405 Method Not Allowed
+Allow: GET, HEAD
+Content-Type: application/json; charset=utf-8
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+Content-Security-Policy: default-src 'none'; frame-ancestors 'none'
+X-Frame-Options: DENY
+
+{
+  "error": {
+    "code": "method_not_allowed",
+    "message": "method not allowed"
+  }
+}
+```
 
 ---
 

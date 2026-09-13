@@ -116,7 +116,7 @@ PostgreSQL connectivity is managed explicitly via `DATABASE_MODE`:
 ## 7. HTTP Contracts & Query Strictness
 
 - **Content-Type**: Every JSON response (including error envelopes) emits `Content-Type: application/json; charset=utf-8`.
-- **Method Enforcement**: Unsupported HTTP methods on registered routes (e.g. `POST /api/v1/projects`) return `405 Method Not Allowed` with `Allow: GET, HEAD`.
+- **Method Enforcement**: Unsupported HTTP methods on registered routes (e.g. `POST /api/v1/projects`, `PUT /api/v1/profile`, `DELETE /api/v1/evidence/{id}`) return `405 Method Not Allowed` with `Allow: GET, HEAD`, `Cache-Control: no-store`, full security headers, and the standardized JSON error envelope (`{"error":{"code":"method_not_allowed","message":"method not allowed"}}`).
 - **HEAD Support**: Standard Go `http.ServeMux` matches HEAD requests against GET endpoints.
 - **Query Parameter Strictness**:
   - Recognized parameters with ambiguous duplicate keys (e.g. `?featured=true&featured=false` or `?category=AI&category=Backend`) are rejected with `400 Bad Request`.

@@ -27,7 +27,10 @@ func NewRouter(h *Handler, allowedOrigins []string, rl *RateLimiter) http.Handle
 	// 3. SecurityHeaders
 	// 4. CORS
 	// 5. RateLimiter
+	// 6. MethodNotAllowed
 	var handler http.Handler = mux
+
+	handler = MethodNotAllowedMiddleware(handler)
 
 	if rl != nil {
 		handler = RateLimiterMiddleware(rl)(handler)
