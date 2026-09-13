@@ -29,6 +29,16 @@ type Config struct {
 	EmbeddingModel      string
 	EmbeddingDimensions int
 	GeminiAPIKey        string
+
+	// Phase 6 Ask Arham AI Configuration
+	AIMode                  string // disabled, remote
+	AIProvider              string // gemini (rejects fake in production)
+	AIModel                 string // default: gemini-3.8-flash
+	AIThinkingLevel         string // low, medium, high (default: low)
+	AIRequestTimeoutSeconds int    // default: 30
+	AIMaxConcurrentRequests int    // default: 4
+	AIRateLimitPerMinute    int    // default: 5
+	AIMaxEvidenceChars      int    // default: 24000
 }
 
 // Load loads environment variables with safe development fallbacks.
@@ -101,19 +111,72 @@ func Load() *Config {
 
 	geminiAPIKey := os.Getenv("GEMINI_API_KEY")
 
+	// Phase 6 Ask Arham AI Configuration
+	aiMode := strings.ToLower(strings.TrimSpace(os.Getenv("AI_MODE")))
+	if aiMode == "" {
+		aiMode = "disabled"
+	}
+
+	aiProvider := strings.ToLower(strings.TrimSpace(os.Getenv("AI_PROVIDER")))
+	aiModel := strings.TrimSpace(os.Getenv("AI_MODEL"))
+	if aiModel == "" {
+		aiModel = "gemini-3.8-flash"
+	}
+
+	aiThinkingLevel := strings.ToLower(strings.TrimSpace(os.Getenv("AI_THINKING_LEVEL")))
+	if aiThinkingLevel == "" {
+		aiThinkingLevel = "low"
+	}
+
+	aiTimeoutSeconds := 30
+	if timeoutStr := os.Getenv("AI_REQUEST_TIMEOUT_SECONDS"); timeoutStr != "" {
+		if t, err := strconv.Atoi(timeoutStr); err == nil && t > 0 {
+			aiTimeoutSeconds = t
+		}
+	}
+
+	aiMaxConcurrent := 4
+	if concurrentStr := os.Getenv("AI_MAX_CONCURRENT_REQUESTS"); concurrentStr != "" {
+		if c, err := strconv.Atoi(concurrentStr); err == nil && c > 0 {
+			aiMaxConcurrent = c
+		}
+	}
+
+	aiRateLimit := 5
+	if rateLimitStr := os.Getenv("AI_RATE_LIMIT_PER_MINUTE"); rateLimitStr != "" {
+		if r, err := strconv.Atoi(rateLimitStr); err == nil && r > 0 {
+			aiRateLimit = r
+		}
+	}
+
+	aiMaxEvidenceChars := 24000
+	if maxCharsStr := os.Getenv("AI_MAX_EVIDENCE_CHARS"); maxCharsStr != "" {
+		if m, err := strconv.Atoi(maxCharsStr); err == nil && m > 0 {
+			aiMaxEvidenceChars = m
+		}
+	}
+
 	return &Config{
-		AppEnv:              appEnv,
-		Port:                port,
-		AllowedOrigins:      allowedOrigins,
-		DatabaseURL:         dbURL,
-		DatabaseMode:        dbMode,
-		PortfolioDataDir:    dataDir,
-		GitHubToken:         githubToken,
-		EmbeddingMode:       embeddingMode,
-		EmbeddingProvider:   embeddingProvider,
-		EmbeddingModel:      embeddingModel,
-		EmbeddingDimensions: embeddingDimensions,
-		GeminiAPIKey:        geminiAPIKey,
+		AppEnv:                  appEnv,
+		Port:                    port,
+		AllowedOrigins:          allowedOrigins,
+		DatabaseURL:             dbURL,
+		DatabaseMode:            dbMode,
+		PortfolioDataDir:        dataDir,
+		GitHubToken:             githubToken,
+		EmbeddingMode:           embeddingMode,
+		EmbeddingProvider:       embeddingProvider,
+		EmbeddingModel:          embeddingModel,
+		EmbeddingDimensions:     embeddingDimensions,
+		GeminiAPIKey:            geminiAPIKey,
+		AIMode:                  aiMode,
+		AIProvider:              aiProvider,
+		AIModel:                 aiModel,
+		AIThinkingLevel:         aiThinkingLevel,
+		AIRequestTimeoutSeconds: aiTimeoutSeconds,
+		AIMaxConcurrentRequests: aiMaxConcurrent,
+		AIRateLimitPerMinute:    aiRateLimit,
+		AIMaxEvidenceChars:      aiMaxEvidenceChars,
 	}
 }
 

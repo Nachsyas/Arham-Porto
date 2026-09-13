@@ -264,6 +264,74 @@
   - `docs/ai/retrieval-evals.md`: Groundedness benchmark, positive/negative queries, honest reporting separation (structural vs real).
 - [x] **Stop Rule Enforcement**: Halt execution upon Phase 5 certification; await explicit user approval before Phase 6 (Ask Arham AI).
 
+---
 
+## Phase 6 Checklist — Ask Arham AI Grounded Reviewer Copilot (CERTIFIED)
+> **Certified Scope**: Reviewer-oriented copilot grounded exclusively in Phase 5 approved evidence. Gemini Interactions API (`POST /v1beta/interactions`) with fallback to `generateContent` and configurable model `gemini-3.8-flash`. Structured generation schema (`status`, `segments` with `evidence_ids`, `suggested_action_ids`). Claim-level evidence validation (dropping unverified/unknown IDs). No raw model token streaming before server validation. Preflight failure checks returning normal HTTP error envelopes (400, 405, 429, 503) before SSE headers are committed. SSE lifecycle (`status: retrieving` -> `evidence` -> `status: generating` -> `result` -> `done`) with structured in-stream error handling. Server-owned immutable GitHub HTTPS and canonical portfolio citations (zero local file paths). Safe action registry matching verified routes. Strict removal of similarity scores from recruiter-facing UI. Mobile-first accessible panel (`100dvh`, `safe-area-inset-bottom`, polite aria-live announcer, Alt+A shortcut). 100% test passes across Go and TypeScript with zero data races.
 
-
+- [x] **Server Configuration & Safe Action Registry (`apps/api/internal/config/`, `internal/ai/`)**:
+  - `AIMode`, `AIProvider`, `AIModel`, `AIThinkingLevel`, `AIRequestTimeoutSeconds` (30), `AIMaxConcurrentRequests` (4), `AIRateLimitPerMinute` (5), `AIMaxEvidenceChars` (24000).
+  - Safe Action Registry with 8 verified actions mapping to real internal targets (`/projects/edutrace`, `/projects/gdgoc-ecommerce`, `/projects/maritime-ai-dashboard`, `/projects/smart-kitchen`, `/#projects`, `/#skills`, `/#journey`, `/#contact`).
+- [x] **LLM Provider Abstraction & Gemini Interactions Client (`apps/api/internal/llm/`)**:
+  - `provider.go`: Domain contracts (`EvidenceContext`, `GroundedSegment`, `GeneratedAnswer`, `GenerateRequest`, `SourceCitation`, `PublicEvidenceItem`, `GroundedResponse`, `SafeAction`, `LLMProvider`).
+  - `disabled.go`: `DisabledProvider` returning `ErrAIFeatureDisabled`.
+  - `fake.go`: `DeterministicFakeProvider` for automated CI and local harnesses.
+  - `gemini/client.go`: Standard library HTTP client targeting Google Interactions API with fallback to `generateContent`, JSON schema parsing, header authentication (`x-goog-api-key`). Zero Gemini tools enabled.
+- [x] **Grounded Reviewer UseCase (`apps/api/internal/usecase/ask_usecase.go`)**:
+  - Privacy Pre-Guard: Deterministic refusal for requests targeting private personal information (phone number, home address, private coordinates).
+  - Prompt Injection Defense: System prompt boundary ensuring evidence blocks are inert reference data. Rejects prompt leak attempts.
+  - Zero-Evidence Short-Circuit & Top-K Context Budgeting (`AI_MAX_EVIDENCE_CHARS = 24000`).
+  - Server-side Claim Validation: Every segment's `evidence_ids` verified against retrieved evidence; unknown IDs dropped.
+  - Citation Mapping: Builds immutable GitHub HTTPS links or safe canonical labels without local file paths.
+  - Safe Action Resolution: Validates against certified action registry.
+- [x] **Hardened SSE Delivery & HTTP Handler (`apps/api/internal/delivery/http/ai_handler.go`)**:
+  - Strict preflight validation before committing SSE headers (400 bad JSON / length 2..1000, 405 non-POST, 503 AI disabled or concurrency permit exhausted, 429 rate limit).
+  - Concurrency Semaphore Permit: 4 permits, acquired before SSE headers, released on success/failure/timeout/client abort.
+  - Rate Limiter: 5 req/min per normalized client identity.
+  - Flusher implementation on ResponseWriter wrappers in middleware.
+  - SSE headers committed only on success (`text/event-stream`, `Cache-Control: no-store`, `X-Content-Type-Options: nosniff`, `X-Request-ID`).
+  - SSE Event Lifecycle: `status: retrieving` -> `evidence` -> `status: generating` -> `result` -> `done`.
+  - In-stream error handling: Emits safe JSON `event: error` -> `event: done`.
+- [x] **Frontend Reviewer Copilot UI (`apps/web/features/ask-arham/`)**:
+  - `AskArhamLauncher`: Floating button with ping animation, accessible label, and Alt+A shortcut.
+  - `AskArhamPanel`: Responsive drawer / mobile bottom-sheet (`100dvh`, `safe-area-inset-bottom`), Escape key handler, focus management, polite `aria-live` announcer.
+  - `SuggestedQuestions`: 7 recruiter-oriented questions.
+  - `EvidenceList`: Collapsible accordion displaying safe excerpts; strictly ZERO similarity scores.
+  - `SourceList`: Immutable GitHub links and certified canonical portfolio labels without local paths.
+  - `SafeActionButtons`: Verified action buttons with client-side safe routing.
+  - `AskArhamAnswer`: Renders status badges, claim segments with `[E1]` badges, sources, and actions.
+  - `AskArhamInput`: Character counter (2..1000), submit button, stream abort button.
+  - `ask-arham.api.ts`: Fetch ReadableStream SSE consumer handling fragmented chunks, CRLF/LF line endings, and AbortController.
+  - Dynamic import in `PortfolioApp.tsx` (`ssr: false`) keeping initial load overhead minimal.
+- [x] **Testing & Validation Gates**:
+  - `apps/api/internal/llm/provider_test.go`: PASS
+  - `apps/api/internal/llm/gemini/client_test.go`: PASS
+  - `apps/api/internal/usecase/ask_usecase_test.go`: PASS
+  - `apps/api/internal/delivery/http/ai_handler_test.go`: PASS
+  - `apps/web/tests/ask-arham-sse.test.ts`: PASS (11 tests)
+  - `apps/web/tests/ask-arham-ui.test.tsx`: PASS (10 tests)
+  - `go test -count=1 -race ./...`: 100% PASS (0 data races)
+  - `go vet ./...`: 100% PASS (0 warnings)
+  - `npm run validate:data`: 100% PASS (8/8 schemas)
+  - `npm run lint --workspace=apps/web`: 100% PASS
+  - `npm run typecheck --workspace=apps/web`: 100% PASS
+  - `npm run test --workspace=apps/web`: 100% PASS (7 test files, 60 tests)
+  - `npm run build --workspace=apps/web`: 100% PASS
+  - `docker compose config`: 100% PASS
+- [x] **Screenshots & Visual Evidence (`docs/screenshots/phase6/`)**:
+  - `01_desktop_launcher.png`: Floating launcher button on desktop.
+  - `02_desktop_empty_panel.png`: Slide-over panel with suggested recruiter questions.
+  - `03_desktop_grounded_response.png`: Grounded answer with verified evidence badge and claim citations.
+  - `04_desktop_evidence_sources.png`: Expanded evidence excerpts (zero similarity scores) and primary sources.
+  - `05_desktop_refusal.png`: Refusal state for ungrounded question (insufficient evidence guard).
+  - `06_desktop_ai_unavailable.png`: Graceful banner when AI is disabled (HTTP 503).
+  - `07_mobile_panel.png`: Mobile panel sheet at 390px viewport.
+  - `08_mobile_grounded_response.png`: Mobile grounded answer and claim citations.
+  - `09_mobile_sources.png`: Mobile certified sources and contextual actions.
+  - `10_mobile_input.png`: Mobile input field and submit button.
+- [x] **Documentation**:
+  - `docs/ai/ask-arham-architecture.md`: Interactions API, structured output, SSE lifecycle, security boundaries.
+  - `docs/ai/answer-evals.md`: Evaluation methodology, 8 canonical questions, honest reporting separation.
+  - `docs/api/http-api.md`: `POST /api/v1/ai/ask` specification, preflight error contracts, in-stream recovery.
+  - `.env.example`: Non-secret placeholders for all Phase 6 environment variables.
+- [x] **Stop Rule Enforcement**: Halt execution upon Phase 6 certification and push; strictly do NOT proceed to Phase 7 without explicit user approval.

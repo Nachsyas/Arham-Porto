@@ -59,6 +59,12 @@ func (r *responseRecorder) WriteHeader(code int) {
 	r.ResponseWriter.WriteHeader(code)
 }
 
+func (r *responseRecorder) Flush() {
+	if flusher, ok := r.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
 // RecoveryMiddleware catches panics, logs server-side diagnostics, and returns generic 500 JSON with security headers.
 func RecoveryMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -125,8 +131,8 @@ func CORSMiddleware(allowedOrigins []string) func(http.Handler) http.Handler {
 				} else if originSet[origin] {
 					w.Header().Set("Access-Control-Allow-Origin", origin)
 				}
-				w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Accept")
+				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Accept, X-Request-ID")
 			}
 
 			if r.Method == http.MethodOptions {
@@ -288,6 +294,12 @@ func (w *methodNotAllowedInterceptor) Write(b []byte) (int, error) {
 		return len(b), nil
 	}
 	return w.ResponseWriter.Write(b)
+}
+
+func (w *methodNotAllowedInterceptor) Flush() {
+	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
 }
 
 // MethodNotAllowedMiddleware intercepts 405 Method Not Allowed responses and transforms them

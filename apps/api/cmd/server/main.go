@@ -11,8 +11,11 @@ import (
 
 	"github.com/nachsyas/arham-porto/apps/api/internal/config"
 	delivery "github.com/nachsyas/arham-porto/apps/api/internal/delivery/http"
+	geminiEmb "github.com/nachsyas/arham-porto/apps/api/internal/embedding/gemini"
+	"github.com/nachsyas/arham-porto/apps/api/internal/llm/gemini"
 	"github.com/nachsyas/arham-porto/apps/api/internal/repository/jsonfile"
 	"github.com/nachsyas/arham-porto/apps/api/internal/repository/postgres"
+	"github.com/nachsyas/arham-porto/apps/api/internal/retrieval"
 	"github.com/nachsyas/arham-porto/apps/api/internal/usecase"
 )
 
@@ -51,21 +54,69 @@ func main() {
 	evidenceUC := usecase.NewEvidenceUseCase(repo)
 	journeyUC := usecase.NewJourneyUseCase(repo)
 
-	// 5. Initialize bounded in-memory RateLimiter (120 req/min per client IP)
+	// 5. Initialize bounded in-memory RateLimiter (120 req/min per client IP for general API)
 	rateLimiter := delivery.NewRateLimiter(120, time.Minute)
 	defer rateLimiter.Close()
 
-	// 6. Initialize delivery layer
+	// 6. Initialize Phase 6 Ask Arham AI dependencies
+	var askUC usecase.AskUseCase
+	var aiLimiter *delivery.RateLimiter
+
+	if cfg.AIMode == "remote" {
+		if cfg.AIProvider == "fake" {
+			log.Fatalf("[arham-porto-api] Fatal: AI_PROVIDER=fake is strictly prohibited on production server")
+		}
+
+		if cfg.AIProvider == "gemini" {
+			if cfg.GeminiAPIKey == "" {
+				log.Fatalf("[arham-porto-api] Fatal: GEMINI_API_KEY is required when AI_MODE=remote and AI_PROVIDER=gemini")
+			}
+			geminiLLM, err := gemini.NewClient(cfg.GeminiAPIKey, cfg.AIModel, gemini.WithThinkingLevel(cfg.AIThinkingLevel))
+			if err != nil {
+				log.Fatalf("[arham-porto-api] Fatal: failed to initialize Gemini LLM provider: %v", err)
+			}
+
+			// Initialize embedding provider and retrieval service if postgres is available
+			if pgClient.Pool() != nil && cfg.EmbeddingMode == "enabled" {
+				embClient, err := geminiEmb.NewProvider(cfg.GeminiAPIKey, cfg.EmbeddingModel, cfg.EmbeddingDimensions)
+				if err == nil {
+					knowledgeRepo := postgres.NewKnowledgeRepository(pgClient)
+					retrievalSvc := retrieval.NewService(knowledgeRepo, embClient)
+					askUC = usecase.NewAskUseCase(retrievalSvc, geminiLLM, cfg.AIMaxEvidenceChars)
+					log.Printf("[arham-porto-api] Ask Arham AI initialized with provider=%s model=%s", cfg.AIProvider, cfg.AIModel)
+				} else {
+					log.Printf("[arham-porto-api] Warning: failed to initialize embedding client: %v", err)
+				}
+			} else {
+				log.Printf("[arham-porto-api] Warning: database or embeddings not ready; Ask Arham AI will report unavailable")
+			}
+		} else {
+			log.Fatalf("[arham-porto-api] Fatal: unsupported AI_PROVIDER %q", cfg.AIProvider)
+		}
+	} else {
+		log.Println("[arham-porto-api] Ask Arham AI is disabled (AI_MODE=disabled)")
+	}
+
+	aiLimiter = delivery.NewRateLimiter(cfg.AIRateLimitPerMinute, time.Minute)
+	defer aiLimiter.Close()
+
+	// 7. Initialize delivery layer
 	handler := delivery.NewHandler(profileUC, projectUC, skillUC, evidenceUC, journeyUC, pgClient)
+	handler.EnableAI(askUC, cfg.AIMode, aiLimiter, cfg.AIMaxConcurrentRequests, cfg.AIRequestTimeoutSeconds)
 	router := delivery.NewRouter(handler, cfg.AllowedOrigins, rateLimiter)
 
-	// 7. Configure hardened HTTP server
+	// 8. Configure hardened HTTP server
+	writeTimeout := 35 * time.Second
+	if cfg.AIRequestTimeoutSeconds > 30 {
+		writeTimeout = time.Duration(cfg.AIRequestTimeoutSeconds+5) * time.Second
+	}
+
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
 		Handler:           router,
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
-		WriteTimeout:      10 * time.Second,
+		WriteTimeout:      writeTimeout,
 		IdleTimeout:       60 * time.Second,
 		MaxHeaderBytes:    1 << 20, // 1 MB
 	}

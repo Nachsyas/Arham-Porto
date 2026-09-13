@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import QuickReviewDrawer from "@/components/QuickReviewDrawer";
 import HeroSection from "@/features/hero/HeroSection";
@@ -11,6 +12,12 @@ import ExperienceSection from "@/features/experience/ExperienceSection";
 import EducationSection from "@/features/education/EducationSection";
 import ContactSection from "@/features/contact/ContactSection";
 import Footer from "@/components/Footer";
+import { AskArhamLauncher } from "@/features/ask-arham";
+
+const AskArhamPanel = dynamic(
+  () => import("@/features/ask-arham/AskArhamPanel"),
+  { ssr: false }
+);
 import type {
   Profile,
   Project,
@@ -38,6 +45,8 @@ export default function PortfolioApp({
   education,
 }: PortfolioAppProps) {
   const [quickReviewOpen, setQuickReviewOpen] = useState(false);
+  const [askArhamOpen, setAskArhamOpen] = useState(false);
+  const askLauncherRef = useRef<HTMLButtonElement>(null);
 
   return (
     <div className="min-h-screen bg-canvas text-themeText-body selection:bg-primary/20 selection:text-primary">
@@ -83,6 +92,19 @@ export default function PortfolioApp({
         onClose={() => setQuickReviewOpen(false)}
         profile={profile}
         projects={projects}
+      />
+
+      {/* Ask Arham AI Reviewer Copilot */}
+      <AskArhamLauncher
+        ref={askLauncherRef}
+        isOpen={askArhamOpen}
+        onClick={() => setAskArhamOpen(true)}
+      />
+
+      <AskArhamPanel
+        isOpen={askArhamOpen}
+        onClose={() => setAskArhamOpen(false)}
+        returnFocusRef={askLauncherRef}
       />
     </div>
   );

@@ -212,6 +212,64 @@ Backend REST API documentation for `apps/api`.
 
 ---
 
+### 3.3 Ask Arham AI Copilot (Phase 6)
+
+#### `POST /api/v1/ai/ask`
+- **Purpose**: Reviewer-oriented AI assistant grounded exclusively in approved portfolio evidence.
+- **Content-Type**: `application/json; charset=utf-8` (request), `text/event-stream` (response on success).
+- **Cache-Control**: `no-store`
+- **Rate Limit**: 5 req/min per normalized client IP (`AI_RATE_LIMIT_PER_MINUTE=5`).
+- **Concurrency**: Maximum 4 concurrent requests (`AI_MAX_CONCURRENT_REQUESTS=4`).
+- **Request Body**:
+  ```json
+  {
+    "question": "What Go architecture patterns does Arham use in EduTrace?"
+  }
+  ```
+  - `question`: Required string, 2 to 1000 characters.
+
+- **Preflight Failure Contract** (before SSE headers committed):
+  - `400 Bad Request`: Invalid JSON body, question missing, length < 2 or > 1000.
+  - `405 Method Not Allowed`: Request using `GET`, `PUT`, `DELETE`, etc. Header `Allow: POST`.
+  - `429 Too Many Requests`: Rate limit exceeded (`{"error":{"code":"rate_limit_exceeded","message":"..."}}`).
+  - `503 Service Unavailable`: Feature disabled (`AI_MODE=disabled`), vector index not ready, or concurrency semaphore saturated (`{"error":{"code":"service_unavailable","message":"..."}}`).
+
+- **Successful SSE Lifecycle** (`200 OK`):
+  ```http
+  HTTP/1.1 200 OK
+  Content-Type: text/event-stream
+  Cache-Control: no-store
+  X-Content-Type-Options: nosniff
+  X-Request-ID: req_...
+
+  event: status
+  data: {"status":"retrieving"}
+
+  event: evidence
+  data: {"evidence":[{"id":"E1","title":"EduTrace","kind":"github","repository":"Nachsyas/EduTrace","excerpt":"..."}]}
+
+  event: status
+  data: {"status":"generating"}
+
+  event: result
+  data: {"status":"supported","answer":"...","segments":[{"text":"...","evidence_ids":["E1"]}],"sources":[{"id":"E1","kind":"github","label":"EduTrace Repository","url":"https://github.com/..."}],"actions":[{"id":"view-project-edutrace","label":"View EduTrace Case Study"}]}
+
+  event: done
+  data: {}
+  ```
+
+- **In-Stream Failure Contract** (after SSE headers committed):
+  If retrieval, generation, or network timeout occurs after headers are committed, the server emits a structured error event followed by `done`:
+  ```http
+  event: error
+  data: {"code":"service_unavailable","message":"Ask Arham AI is temporarily unavailable.","request_id":"req_..."}
+
+  event: done
+  data: {}
+  ```
+
+---
+
 ## 4. HTTP Method Contract & Status Codes
 
 | Method | Registered Path | Status Code | Notes |

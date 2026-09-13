@@ -28,6 +28,13 @@ type Handler struct {
 	evidenceUC usecase.EvidenceUseCase
 	journeyUC  usecase.JourneyUseCase
 	dbChecker  DBStatusChecker
+
+	// Phase 6 Ask Arham AI dependencies
+	askUC            usecase.AskUseCase
+	aiMode           string
+	aiRateLimiter    *RateLimiter
+	aiSemaphore      chan struct{}
+	aiTimeoutSeconds int
 }
 
 // NewHandler constructs a Handler with all usecases.
@@ -40,13 +47,28 @@ func NewHandler(
 	dbChecker DBStatusChecker,
 ) *Handler {
 	return &Handler{
-		profileUC:  profileUC,
-		projectUC:  projectUC,
-		skillUC:    skillUC,
-		evidenceUC: evidenceUC,
-		journeyUC:  journeyUC,
-		dbChecker:  dbChecker,
+		profileUC:        profileUC,
+		projectUC:        projectUC,
+		skillUC:          skillUC,
+		evidenceUC:       evidenceUC,
+		journeyUC:        journeyUC,
+		dbChecker:        dbChecker,
+		aiMode:           "disabled",
+		aiSemaphore:      make(chan struct{}, 4),
+		aiTimeoutSeconds: 30,
 	}
+}
+
+// EnableAI configures the Ask Arham AI copilot dependencies.
+func (h *Handler) EnableAI(askUC usecase.AskUseCase, aiMode string, aiLimiter *RateLimiter, maxConcurrent, timeoutSecs int) {
+	h.askUC = askUC
+	h.aiMode = aiMode
+	h.aiRateLimiter = aiLimiter
+	if maxConcurrent <= 0 {
+		maxConcurrent = 4
+	}
+	h.aiSemaphore = make(chan struct{}, maxConcurrent)
+	h.aiTimeoutSeconds = timeoutSecs
 }
 
 // Healthz handles liveness probes.
