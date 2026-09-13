@@ -9,9 +9,9 @@
 | Phase | Description | Status |
 | :--- | :--- | :--- |
 | **Phase 0** | **Bootstrap Foundation** | **Completed / Certified** |
-| **Phase 1** | **Reviewer-First Static Portfolio** | **Completed** |
-| **Phase 2** | **3D Wireframe Hologram** | **Awaiting User Approval** |
-| **Phase 3** | **Journey Map** | Not Started |
+| **Phase 1** | **Reviewer-First Static Portfolio** | **Completed / Certified** |
+| **Phase 2** | **3D Wireframe Hologram** | **Completed** |
+| **Phase 3** | **Journey Map** | **Awaiting User Approval** |
 | **Phase 4** | **Go Backend** | Not Started |
 | **Phase 5** | **AI Indexing & Retrieval** | Not Started |
 | **Phase 6** | **AI Reviewer Copilot** | Not Started |
@@ -61,3 +61,27 @@
 - [x] Accessibility & Responsive verification (WCAG 2.2 AA, semantic HTML, skip-to-content, keyboard navigation, mobile touch targets >= 44px)
 - [x] Unit & Component test suite for all Phase 1 components (10 tests passing across 3 test suites)
 - [x] Final Phase 1 Walkthrough & Stop Rule enforcement (halt before Phase 2)
+
+---
+
+## Phase 2 Checklist (Completed)
+- [x] Evidence mapping correction: remapped `evidence-maritime-dashboard-repo` to `ai-ml`, reserved `ai-rag` with empty evidence array, validated with `npm run validate:data`
+- [x] R3F & Three.js dependency integration (`three`, `@types/three`, `@react-three/fiber`, `@react-three/drei`)
+- [x] Modular Hologram feature boundary in `apps/web/features/hologram/`
+- [x] Canonical design tokens & color constants (`#61D8FF`, `#2E8FB5`, `#14384A`, `#26B8FF`)
+- [x] Procedural Seated Human Wireframe Mesh (`SeatedDevelopmentMesh`) with zero-trust posture truthfulness (no fake biometric/facial reconstruction)
+- [x] Future GLB model loading boundary (`/models/arham-wireframe.glb`) isolating `TODO_USER_3D_MODEL`
+- [x] Technical ground projection platform with concentric rings (`RingGeometry`) and cardinal crosshairs
+- [x] Sparse floating depth particles (45 desktop / 20 mobile) with slow vertical drift
+- [x] R3F `useFrame()` render loop with smooth `THREE.MathUtils.damp()` rotation
+- [x] Scroll-driven rotation constrained strictly to [-8°, +8°] Yaw and [-2°, +2°] Pitch
+- [x] Subtle pointer parallax on desktop (disabled on mobile)
+- [x] Lazy loading via Next.js dynamic import (`ssr: false`) with instant HTML Hero text rendering
+- [x] WebGL error boundary and static SVG/2D vector fallback (`HologramFallback`)
+- [x] Accessibility support with ARIA label and reduced motion handling (`prefers-reduced-motion: reduce`)
+- [x] Extensible future AI/Journey state contracts (`mode`, `isAIActive`, `orientationBias`)
+- [x] Comprehensive automated test suite (`apps/web/tests/phase2-hologram.test.tsx`, 6/6 tests passing, total 18/18 tests passing in `apps/web`)
+- [x] Visual validation across Desktop (1440px) and Mobile (390px) viewports with zero console errors
+- [x] Production build verification and bundle analysis
+- [x] Stop Rule enforcement before Phase 3 (Journey Map)
+

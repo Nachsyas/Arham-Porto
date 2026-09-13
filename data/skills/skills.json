@@ -50,14 +50,21 @@
       ]
     },
     {
-      "id": "ai-rag",
-      "name": "AI Systems & Applied Machine Learning",
+      "id": "ai-ml",
+      "name": "Applied Machine Learning & AI APIs",
       "category": "AI / ML",
       "claim": "Integrating predictive models and generative AI endpoints into web applications.",
       "evidenceIds": [
         "evidence-smart-kitchen-backend-repo",
         "evidence-maritime-dashboard-repo"
       ]
+    },
+    {
+      "id": "ai-rag",
+      "name": "Retrieval-Augmented Generation (RAG)",
+      "category": "AI / ML",
+      "claim": "Architecture of grounded retrieval-augmented generation pipelines and vector indexing.",
+      "evidenceIds": []
     }
   ]
 }
