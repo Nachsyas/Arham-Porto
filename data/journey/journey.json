@@ -1,23 +1,22 @@
 {
   "stops": [
     {
-      "id": "journey-birthplace",
+      "id": "origin-karanganyar",
       "category": "birthplace",
-      "title": "Birthplace",
+      "title": "Origin",
       "institution": null,
       "city": "Karanganyar",
-      "region": null,
+      "region": "Jawa Tengah",
       "country": "Indonesia",
-      "coordinates": null,
+      "coordinates": [
+        110.9515,
+        -7.5976
+      ],
       "period": null,
-      "description": null,
+      "description": "Early formative origin in Karanganyar, Central Java.",
       "image": null,
-      "public": false,
-      "todo": [
-        "TODO_USER_CONFIRM_BIRTHPLACE_PUBLIC",
-        "TODO_USER_CONFIRM_BIRTH_PROVINCE",
-        "TODO_USER_APPROVAL_BIRTH_YEAR"
-      ]
+      "public": true,
+      "todo": []
     },
     {
       "id": "journey-tk",
@@ -32,9 +31,7 @@
       "description": null,
       "image": null,
       "public": false,
-      "todo": [
-        "TODO_USER_TK"
-      ]
+      "todo": []
     },
     {
       "id": "journey-sd",
@@ -49,9 +46,7 @@
       "description": null,
       "image": null,
       "public": false,
-      "todo": [
-        "TODO_USER_SD"
-      ]
+      "todo": []
     },
     {
       "id": "journey-smp",
@@ -66,63 +61,61 @@
       "description": null,
       "image": null,
       "public": false,
-      "todo": [
-        "TODO_USER_SMP"
-      ]
+      "todo": []
     },
     {
-      "id": "journey-sma",
+      "id": "ma-assurkati-salatiga",
       "category": "sma",
-      "title": "High School Education",
+      "title": "Tahfizh & Academic Foundation",
       "institution": "Madrasah Aliyah Tahfizhul Qur'an As-Surkati",
       "city": "Salatiga",
-      "region": null,
+      "region": "Jawa Tengah",
       "country": "Indonesia",
-      "coordinates": null,
+      "coordinates": [
+        110.5084,
+        -7.3305
+      ],
       "period": "2019–2023",
-      "description": null,
+      "description": "Secondary education focusing on Quranic memorization (Tahfizh) and foundational academic studies.",
       "image": null,
-      "public": false,
-      "todo": [
-        "TODO_USER_CONFIRM_MA_PUBLIC",
-        "TODO_USER_CONFIRM_MA_PROVINCE"
-      ]
+      "public": true,
+      "todo": []
     },
     {
-      "id": "journey-university",
+      "id": "university-uin-malang",
       "category": "university",
-      "title": "Undergraduate Studies",
+      "title": "Computer Science",
       "institution": "Universitas Islam Negeri Maulana Malik Ibrahim Malang",
       "city": "Malang",
-      "region": null,
+      "region": "Jawa Timur",
       "country": "Indonesia",
-      "coordinates": null,
+      "coordinates": [
+        112.6081,
+        -7.9525
+      ],
       "period": "2023–Present",
-      "description": "Program Studi Computer Science / Teknik Informatika",
+      "description": "Undergraduate studies in Computer Science / Informatics Engineering.",
       "image": null,
-      "public": false,
-      "todo": [
-        "TODO_USER_CONFIRM_UNIVERSITY_PUBLIC",
-        "TODO_USER_CONFIRM_PROGRAM_DISPLAY_NAME",
-        "TODO_USER_CONFIRM_UNIVERSITY_PROVINCE"
-      ]
+      "public": true,
+      "todo": []
     },
     {
-      "id": "journey-current",
+      "id": "current-base-malang",
       "category": "current",
-      "title": "Current Engineering Base",
+      "title": "Current Base",
       "institution": null,
-      "city": null,
-      "region": null,
+      "city": "Malang",
+      "region": "Jawa Timur",
       "country": "Indonesia",
-      "coordinates": null,
-      "period": null,
-      "description": null,
+      "coordinates": [
+        112.6308,
+        -7.9826
+      ],
+      "period": "Present",
+      "description": "Active software engineering home base in Malang, East Java.",
       "image": null,
-      "public": false,
-      "todo": [
-        "TODO_USER_CURRENT_CITY"
-      ]
+      "public": true,
+      "todo": []
     }
   ]
 }

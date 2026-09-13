@@ -11,7 +11,7 @@
 | **Phase 0** | **Bootstrap Foundation** | **CERTIFIED — Foundation** |
 | **Phase 1** | **Reviewer-First Static Portfolio** | **CERTIFIED — Reviewer-First Portfolio** |
 | **Phase 2** | **Hero Visual: Authentic Portrait** | **CERTIFIED — Authentic Portrait Hero** *(3D Hologram: CANCELLED / SUPERSEDED)* |
-| **Phase 3** | **Journey Map** | **AWAITING USER-APPROVED JOURNEY DATA** |
+| **Phase 3** | **Journey Map** | **APPROVED — In Progress** |
 | **Phase 4** | **Go Backend** | NOT STARTED |
 | **Phase 5** | **AI Indexing & Retrieval** | NOT STARTED |
 | **Phase 6** | **AI Reviewer Copilot** | NOT STARTED |
@@ -94,4 +94,32 @@
   - Performance: Lightweight First Load JS without WebGL overhead.
 - [x] **Documentation**: Created `docs/design/hero-portrait.md` and updated `docs/todo/master-todo.md`.
 - [x] **Stop Rule Enforcement**: Halt execution upon completion; await explicit user approval before Phase 3 (Journey Map).
+
+---
+
+## Phase 3 Checklist — Interactive Indonesia Journey Map (In Progress)
+> **Approved Data Contract**: Scenario A approved by user. Public route: Karanganyar (Origin) -> Salatiga (Tahfizh & Academic Foundation, 2019–2023) -> Malang (Computer Science, 2023–Present) -> Malang (Current Base). Early education (TK, SD, SMP) remains in schema but is skipped (`public: false`). Zero private coordinates or birth dates.
+
+- [x] **Approved Canonical Data Synchronization**:
+  - Synced approved Scenario A data into `data/journey/journey.json`.
+  - Configured safe public city/campus coordinates:
+    - Karanganyar: `[110.9515, -7.5976]`
+    - Salatiga: `[110.5084, -7.3305]`
+    - UIN Malang: `[112.6081, -7.9525]`
+    - Malang Base: `[112.6308, -7.9826]`
+  - Zero-trust privacy: Birth year, full birth date, and exact residence omitted from public display.
+  - Runtime validation passed: `npm run validate:data` (100% PASS).
+- [ ] **Journey Map Architecture & Implementation**:
+  - Design interactive Indonesia Journey Map section (`apps/web/features/journey/`).
+  - Interactive map visualization (SVG or MapLibre GL JS / lightweight canvas) with canonical dark palette (`#02060B` canvas, `#07111C` surface, `#26B8FF` route lines).
+  - Stop markers with pulsing active pin, route paths, and milestone cards.
+  - Synchronized milestone details panel with smooth transition between the 4 active public stops.
+  - Native page scroll compliance (no wheel hijacking).
+  - Accessibility & reduced-motion support (`prefers-reduced-motion`).
+- [ ] **Testing & Quality Gates**:
+  - Unit & component tests for journey stop rendering, public filtering, and privacy validation.
+  - Lint, typecheck, tests, and build validation.
+- [ ] **Phase 3 Verification & Stop Rule**:
+  - Capture desktop (1440px) and mobile (390px) screenshots to `docs/screenshots/phase3/`.
+  - Generate Phase 3 certification report and stop before Phase 4 (Go Backend).
 
