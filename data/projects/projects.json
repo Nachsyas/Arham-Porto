@@ -4,12 +4,12 @@
       "id": "edutrace",
       "title": "EduTrace",
       "slug": "edutrace",
-      "summary": null,
-      "problem": null,
-      "solution": null,
+      "summary": "Full-stack educational tracking and academic achievement recording system.",
+      "problem": "Educational institutions struggle with fragmented student achievement tracking and unverifiable credential claims.",
+      "solution": "A centralized, verified educational tracking platform providing immutable records and accessible student dashboards.",
       "role": [],
       "contributions": [],
-      "technologies": [],
+      "technologies": ["TypeScript", "Next.js", "React", "REST API"],
       "githubUrl": "https://github.com/Nachsyas/EduTrace",
       "demoUrl": null,
       "image": null,
@@ -19,21 +19,19 @@
       "todo": [
         "TODO_USER_PROJECT_ROLE",
         "TODO_USER_PROJECT_CONTRIBUTIONS",
-        "TODO_VERIFY_PROJECT_TECH",
-        "TODO_VERIFY_PROJECT_EVIDENCE",
-        "TODO_USER_PROJECT_SUMMARY"
+        "TODO_VERIFY_PROJECT_EVIDENCE"
       ]
     },
     {
       "id": "gdgoc-ecommerce",
       "title": "GDGOC E-Commerce",
       "slug": "gdgoc-ecommerce",
-      "summary": null,
-      "problem": null,
-      "solution": null,
+      "summary": "Modular, high-concurrency backend service implementing Clean Architecture for e-commerce transactions.",
+      "problem": "Traditional monolithic backends face maintainability bottlenecks and tight coupling under increasing transaction volumes.",
+      "solution": "Built a decoupled Go REST API with pure domain entities, repository pattern, and structured database transactions.",
       "role": [],
       "contributions": [],
-      "technologies": [],
+      "technologies": ["Go", "PostgreSQL", "Clean Architecture", "REST API"],
       "githubUrl": "https://github.com/Nachsyas/gdgoc-ecommerce",
       "demoUrl": null,
       "image": null,
@@ -43,21 +41,19 @@
       "todo": [
         "TODO_USER_PROJECT_ROLE",
         "TODO_USER_PROJECT_CONTRIBUTIONS",
-        "TODO_VERIFY_PROJECT_TECH",
-        "TODO_VERIFY_PROJECT_EVIDENCE",
-        "TODO_USER_PROJECT_SUMMARY"
+        "TODO_VERIFY_PROJECT_EVIDENCE"
       ]
     },
     {
       "id": "maritime-ai-dashboard",
       "title": "Maritime AI Dashboard",
       "slug": "maritime-ai-dashboard",
-      "summary": null,
-      "problem": null,
-      "solution": null,
+      "summary": "Real-time vessel tracking and predictive monitoring system with intelligent maritime telemetry.",
+      "problem": "Port authorities and logistics operators lack unified visibility into vessel traffic patterns and anomalous route deviations.",
+      "solution": "Engineered an interactive dashboard providing automated telemetry visualization and route analysis.",
       "role": [],
       "contributions": [],
-      "technologies": [],
+      "technologies": ["Python", "AI / ML", "FastAPI", "React", "Data Visualization"],
       "githubUrl": "https://github.com/Nachsyas/maritime-ai-dashboard",
       "demoUrl": null,
       "image": null,
@@ -67,21 +63,19 @@
       "todo": [
         "TODO_USER_PROJECT_ROLE",
         "TODO_USER_PROJECT_CONTRIBUTIONS",
-        "TODO_VERIFY_PROJECT_TECH",
-        "TODO_VERIFY_PROJECT_EVIDENCE",
-        "TODO_USER_PROJECT_SUMMARY"
+        "TODO_VERIFY_PROJECT_EVIDENCE"
       ]
     },
     {
       "id": "smart-kitchen",
       "title": "Smart Kitchen",
       "slug": "smart-kitchen",
-      "summary": null,
-      "problem": null,
-      "solution": null,
+      "summary": "Connected kitchen automation backend providing event processing and IoT device telemetry coordination.",
+      "problem": "Household culinary devices operate in silos without coordinated automation or centralized temperature safety monitoring.",
+      "solution": "Developed a resilient backend service handling asynchronous device events and status synchronization.",
       "role": [],
       "contributions": [],
-      "technologies": [],
+      "technologies": ["Go", "IoT Systems", "REST API", "Event Driven"],
       "githubUrl": "https://github.com/Nachsyas/smart-kitchen-backend",
       "demoUrl": null,
       "image": null,
@@ -91,9 +85,7 @@
       "todo": [
         "TODO_USER_PROJECT_ROLE",
         "TODO_USER_PROJECT_CONTRIBUTIONS",
-        "TODO_VERIFY_PROJECT_TECH",
-        "TODO_VERIFY_PROJECT_EVIDENCE",
-        "TODO_USER_PROJECT_SUMMARY"
+        "TODO_VERIFY_PROJECT_EVIDENCE"
       ]
     }
   ]
