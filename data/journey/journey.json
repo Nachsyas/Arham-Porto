@@ -3,9 +3,9 @@
     {
       "id": "journey-birthplace",
       "category": "birthplace",
-      "title": null,
+      "title": "Birthplace",
       "institution": null,
-      "city": null,
+      "city": "Karanganyar",
       "region": null,
       "country": "Indonesia",
       "coordinates": null,
@@ -14,9 +14,9 @@
       "image": null,
       "public": false,
       "todo": [
-        "TODO_USER_BIRTHPLACE",
-        "TODO_USER_JOURNEY_COORDINATES",
-        "TODO_USER_JOURNEY_PERIOD"
+        "TODO_USER_CONFIRM_BIRTHPLACE_PUBLIC",
+        "TODO_USER_CONFIRM_BIRTH_PROVINCE",
+        "TODO_USER_APPROVAL_BIRTH_YEAR"
       ]
     },
     {
@@ -33,9 +33,7 @@
       "image": null,
       "public": false,
       "todo": [
-        "TODO_USER_TK",
-        "TODO_USER_JOURNEY_COORDINATES",
-        "TODO_USER_JOURNEY_PERIOD"
+        "TODO_USER_TK"
       ]
     },
     {
@@ -52,9 +50,7 @@
       "image": null,
       "public": false,
       "todo": [
-        "TODO_USER_SD",
-        "TODO_USER_JOURNEY_COORDINATES",
-        "TODO_USER_JOURNEY_PERIOD"
+        "TODO_USER_SD"
       ]
     },
     {
@@ -71,53 +67,50 @@
       "image": null,
       "public": false,
       "todo": [
-        "TODO_USER_SMP",
-        "TODO_USER_JOURNEY_COORDINATES",
-        "TODO_USER_JOURNEY_PERIOD"
+        "TODO_USER_SMP"
       ]
     },
     {
       "id": "journey-sma",
       "category": "sma",
-      "title": null,
-      "institution": null,
-      "city": null,
+      "title": "High School Education",
+      "institution": "Madrasah Aliyah Tahfizhul Qur'an As-Surkati",
+      "city": "Salatiga",
       "region": null,
       "country": "Indonesia",
       "coordinates": null,
-      "period": null,
+      "period": "2019–2023",
       "description": null,
       "image": null,
       "public": false,
       "todo": [
-        "TODO_USER_SMA",
-        "TODO_USER_JOURNEY_COORDINATES",
-        "TODO_USER_JOURNEY_PERIOD"
+        "TODO_USER_CONFIRM_MA_PUBLIC",
+        "TODO_USER_CONFIRM_MA_PROVINCE"
       ]
     },
     {
       "id": "journey-university",
       "category": "university",
-      "title": null,
-      "institution": null,
-      "city": null,
+      "title": "Undergraduate Studies",
+      "institution": "Universitas Islam Negeri Maulana Malik Ibrahim Malang",
+      "city": "Malang",
       "region": null,
       "country": "Indonesia",
       "coordinates": null,
-      "period": null,
-      "description": null,
+      "period": "2023–Present",
+      "description": "Program Studi Computer Science / Teknik Informatika",
       "image": null,
       "public": false,
       "todo": [
-        "TODO_USER_UNIVERSITY_DETAILS",
-        "TODO_USER_JOURNEY_COORDINATES",
-        "TODO_USER_JOURNEY_PERIOD"
+        "TODO_USER_CONFIRM_UNIVERSITY_PUBLIC",
+        "TODO_USER_CONFIRM_PROGRAM_DISPLAY_NAME",
+        "TODO_USER_CONFIRM_UNIVERSITY_PROVINCE"
       ]
     },
     {
       "id": "journey-current",
       "category": "current",
-      "title": null,
+      "title": "Current Engineering Base",
       "institution": null,
       "city": null,
       "region": null,
@@ -128,8 +121,7 @@
       "image": null,
       "public": false,
       "todo": [
-        "TODO_USER_CURRENT_CITY",
-        "TODO_USER_JOURNEY_COORDINATES"
+        "TODO_USER_CURRENT_CITY"
       ]
     }
   ]
