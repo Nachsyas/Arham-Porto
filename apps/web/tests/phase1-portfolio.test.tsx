@@ -5,6 +5,7 @@ import ProjectCard from "../features/projects/ProjectCard";
 import ExperienceSection from "../features/experience/ExperienceSection";
 import EducationSection from "../features/education/EducationSection";
 import SkillsSection from "../features/skills/SkillsSection";
+import QuickReviewDrawer from "../components/QuickReviewDrawer";
 import type { Profile, Project, Skill } from "arham-porto-schema";
 
 const mockProfile: Profile = {
@@ -116,6 +117,40 @@ describe("Phase 1: Reviewer-First Static Portfolio", () => {
 
     // Verify zero TODO_USER strings are rendered to users
     expect(screen.queryByText(/TODO_USER/i)).toBeNull();
+  });
+
+  it("closes QuickReviewDrawer when Escape key is pressed", () => {
+    const handleClose = vi.fn();
+    render(
+      <QuickReviewDrawer
+        isOpen={true}
+        onClose={handleClose}
+        profile={mockProfile}
+        projects={mockProjects}
+      />
+    );
+
+    expect(screen.getByRole("dialog")).toBeDefined();
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(handleClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("omits empty experience and education sections from main public page flow", () => {
+    const { container } = render(
+      <PortfolioApp
+        profile={mockProfile}
+        projects={mockProjects}
+        skills={mockSkills}
+        experiences={[]}
+        education={[]}
+      />
+    );
+
+    // Should not render Experience or Education headings or development roadmap strings on the page
+    expect(screen.queryByText("03 // TIMELINE")).toBeNull();
+    expect(screen.queryByText("04 // ACADEMIA")).toBeNull();
+    expect(container.textContent).not.toContain("PHASE 2 READY");
+    expect(container.textContent).not.toContain("WIREFRAME HOLOGRAM");
   });
 
   it("filters project cards dynamically upon selecting a category tab", () => {

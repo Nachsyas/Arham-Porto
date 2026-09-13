@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, ExternalLink, CheckCircle2, Shield, ArrowRight } from "lucide-react";
 import { GithubIcon } from "@/components/icons/GithubIcon";
@@ -20,19 +20,60 @@ export default function QuickReviewDrawer({
   profile,
   projects,
 }: QuickReviewDrawerProps) {
-  // Close on Escape key press
+  const previousActiveElement = useRef<HTMLElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const drawerRef = useRef<HTMLDivElement | null>(null);
+
+  // Close on Escape key press, restore focus, and trap focus
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+
+      if (e.key === "Tab" && drawerRef.current) {
+        const focusableElements = drawerRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusableElements.length === 0) return;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
     };
+
     if (isOpen) {
+      previousActiveElement.current = document.activeElement as HTMLElement | null;
       document.body.style.overflow = "hidden";
       window.addEventListener("keydown", handleKeyDown);
+
+      // Focus close button on open
+      const timer = setTimeout(() => {
+        closeButtonRef.current?.focus();
+      }, 50);
+
+      return () => {
+        clearTimeout(timer);
+        document.body.style.overflow = "unset";
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    } else if (previousActiveElement.current) {
+      previousActiveElement.current.focus();
+      previousActiveElement.current = null;
     }
-    return () => {
-      document.body.style.overflow = "unset";
-      window.removeEventListener("keydown", handleKeyDown);
-    };
   }, [isOpen, onClose]);
 
   const coreStack = [
@@ -63,6 +104,7 @@ export default function QuickReviewDrawer({
 
           {/* Drawer Panel */}
           <motion.div
+            ref={drawerRef}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -81,6 +123,7 @@ export default function QuickReviewDrawer({
                 </h2>
               </div>
               <button
+                ref={closeButtonRef}
                 type="button"
                 onClick={onClose}
                 aria-label="Close review drawer"

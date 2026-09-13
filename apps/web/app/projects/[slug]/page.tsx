@@ -71,9 +71,9 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
                 {project.category}
               </span>
             )}
-            {project.featured && (
+            {project.evidenceIds && project.evidenceIds.length > 0 && (
               <span className="px-3 py-1 rounded text-xs font-code bg-surfaceElevated border border-border text-themeText-muted flex items-center gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5 text-status-success" /> Verified Case Study
+                <CheckCircle2 className="h-3.5 w-3.5 text-status-success" /> Source Verified
               </span>
             )}
           </div>
@@ -160,10 +160,10 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
         <section className="rounded-card border border-primary/20 bg-primary/5 p-6 space-y-2">
           <div className="flex items-center gap-2 text-primary font-medium text-sm">
             <Shield className="h-4 w-4" />
-            Verification & Ownership Policy
+            Project Source & Attribution
           </div>
           <p className="text-xs text-themeText-muted leading-relaxed">
-            Detailed team attribution, specific PR commit hashes, and benchmark performance metrics are linked directly to approved GitHub repositories. Speculative or unverified contributions are omitted.
+            Architectural artifacts, repository source code, and commit history are accessible directly via GitHub. Unverified claims or external speculations are omitted.
           </p>
         </section>
       </main>

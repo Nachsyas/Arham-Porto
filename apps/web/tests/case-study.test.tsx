@@ -27,7 +27,7 @@ describe("Dynamic Case Study Route (/projects/[slug])", () => {
     render(pageComponent);
 
     expect(screen.getByRole("heading", { name: "EduTrace" })).toBeDefined();
-    expect(screen.getByText(/Full-stack educational tracking/i)).toBeDefined();
+    expect(screen.getByText(/Decentralized academic record ledger/i)).toBeDefined();
     expect(screen.getByText("01 // The Problem & Context")).toBeDefined();
     expect(screen.getByText("02 // Architectural Solution")).toBeDefined();
     expect(screen.getByText("03 // Technology Stack")).toBeDefined();

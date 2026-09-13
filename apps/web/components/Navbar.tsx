@@ -6,16 +6,17 @@ import { Menu, X, FileText, Sparkles } from "lucide-react";
 
 interface NavbarProps {
   onOpenQuickReview: () => void;
+  hasExperience?: boolean;
 }
 
-export default function Navbar({ onOpenQuickReview }: NavbarProps) {
+export default function Navbar({ onOpenQuickReview, hasExperience = false }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
     { label: "Overview", href: "#overview" },
     { label: "Projects", href: "#projects" },
     { label: "Skills", href: "#skills" },
-    { label: "Experience", href: "#experience" },
+    ...(hasExperience ? [{ label: "Experience", href: "#experience" }] : []),
     { label: "Contact", href: "#contact" },
   ];
 

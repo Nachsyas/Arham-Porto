@@ -1,3 +1,44 @@
 {
-  "items": []
+  "items": [
+    {
+      "id": "evidence-edutrace-repo",
+      "type": "github",
+      "title": "EduTrace Repository & Architecture Specification",
+      "skillIds": ["backend-go", "frontend-nextjs", "database-postgres"],
+      "sourceUrl": "https://github.com/Nachsyas/EduTrace",
+      "sourcePath": "README.md",
+      "summary": "Decentralized academic achievement system combining Soulbound Tokens (ERC-5192) via Solidity, Next.js 15 frontend, and analytical backend services with Go and Python.",
+      "verified": true
+    },
+    {
+      "id": "evidence-gdgoc-ecommerce-repo",
+      "type": "github",
+      "title": "GDGOC E-Commerce Clean Architecture Go Backend",
+      "skillIds": ["backend-go", "system-design"],
+      "sourceUrl": "https://github.com/Nachsyas/gdgoc-ecommerce",
+      "sourcePath": "backend/cmd/api/main.go",
+      "summary": "Go REST API implementing strict 4-layer Clean Architecture (Domain, UseCase, Repository, Delivery) using net/http, Swagger documentation, and MongoDB data access.",
+      "verified": true
+    },
+    {
+      "id": "evidence-maritime-dashboard-repo",
+      "type": "github",
+      "title": "Maritime AI Dashboard Codebase",
+      "skillIds": ["frontend-nextjs"],
+      "sourceUrl": "https://github.com/Nachsyas/maritime-ai-dashboard",
+      "sourcePath": "Backend/requirements.txt",
+      "summary": "Maritime analytics platform integrating Python FastAPI data services with a Next.js TypeScript responsive frontend.",
+      "verified": true
+    },
+    {
+      "id": "evidence-smart-kitchen-backend-repo",
+      "type": "github",
+      "title": "Smart Kitchen Go API Service",
+      "skillIds": ["backend-go", "database-postgres", "devops-docker"],
+      "sourceUrl": "https://github.com/Nachsyas/smart-kitchen-backend",
+      "sourcePath": "go.mod",
+      "summary": "Go Fiber backend service integrating GORM PostgreSQL, Google Generative AI integration, cron automation, and containerized Docker deployment.",
+      "verified": true
+    }
+  ]
 }

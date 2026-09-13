@@ -8,14 +8,15 @@ interface SkillsSectionProps {
 }
 
 export default function SkillsSection({ skills, projects }: SkillsSectionProps) {
-  // Map project references by technology or category
-  const getRelevantProjects = (category: string) => {
+  // Map project references by evidence linkage and category
+  const getRelevantProjects = (skill: Skill) => {
     return projects.filter((p) => {
-      if (category === "Backend" && p.category === "Backend") return true;
-      if (category === "Frontend" && p.category === "Full-Stack") return true;
-      if (category === "AI / ML" && p.category === "AI") return true;
-      if (category === "Systems" && p.category === "Systems") return true;
-      if (category === "Database" && p.technologies.some((t) => t.toLowerCase().includes("sql"))) return true;
+      const hasDirectEvidence = p.evidenceIds?.some((id) => skill.evidenceIds?.includes(id));
+      if (hasDirectEvidence) return true;
+      if (skill.category === "Backend" && p.category === "Backend") return true;
+      if (skill.category === "Frontend" && p.category === "Full-Stack") return true;
+      if (skill.category === "AI / ML" && p.category === "AI") return true;
+      if (skill.category === "Systems" && p.category === "Systems") return true;
       return false;
     });
   };
@@ -39,7 +40,8 @@ export default function SkillsSection({ skills, projects }: SkillsSectionProps) 
         {/* Skills Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {skills.map((skill) => {
-            const relevantProjects = getRelevantProjects(skill.category);
+            const relevantProjects = getRelevantProjects(skill);
+            const isVerified = skill.evidenceIds && skill.evidenceIds.length > 0;
 
             return (
               <div
@@ -51,9 +53,11 @@ export default function SkillsSection({ skills, projects }: SkillsSectionProps) 
                     <span className="text-[11px] font-code px-2.5 py-0.5 rounded bg-surfaceElevated border border-border text-primary font-medium">
                       {skill.category}
                     </span>
-                    <span className="text-[10px] font-code text-themeText-muted flex items-center gap-1">
-                      <Shield className="h-3 w-3 text-primary" /> Verified
-                    </span>
+                    {isVerified && (
+                      <span className="text-[10px] font-code text-themeText-muted flex items-center gap-1">
+                        <Shield className="h-3 w-3 text-primary" /> Verified
+                      </span>
+                    )}
                   </div>
 
                   <h3 className="font-display text-lg font-bold text-themeText-primary mb-2">
@@ -86,8 +90,8 @@ export default function SkillsSection({ skills, projects }: SkillsSectionProps) 
                       ))}
                     </div>
                   ) : (
-                    <p className="text-[11px] text-themeText-mutedSoft italic font-body">
-                      Evidence verification linking in progress.
+                    <p className="text-[11px] text-themeText-muted font-body">
+                      Core technical focus
                     </p>
                   )}
                 </div>

@@ -22,11 +22,9 @@ export default function Footer({ profile }: FooterProps) {
           <span>© {currentYear} {profile.projectName}. All rights reserved.</span>
         </div>
 
-        {/* Center: System badges */}
-        <div className="flex flex-wrap items-center justify-center gap-2 font-code text-[11px]">
-          <span className="px-2 py-0.5 rounded bg-surface border border-border">Next.js 15 App Router</span>
-          <span className="px-2 py-0.5 rounded bg-surface border border-border">TypeScript Strict</span>
-          <span className="px-2 py-0.5 rounded bg-surface border border-border">Go Backend</span>
+        {/* Center: Subtle Professional Note */}
+        <div className="text-center font-code text-[11px] text-themeText-mutedSoft">
+          Evidence-backed engineering portfolio
         </div>
 
         {/* Right: Links */}

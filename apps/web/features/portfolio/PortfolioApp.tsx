@@ -38,7 +38,10 @@ export default function PortfolioApp({
   return (
     <div className="min-h-screen bg-canvas text-themeText-body selection:bg-primary/20 selection:text-primary">
       {/* Global Navigation */}
-      <Navbar onOpenQuickReview={() => setQuickReviewOpen(true)} />
+      <Navbar
+        onOpenQuickReview={() => setQuickReviewOpen(true)}
+        hasExperience={experiences.length > 0}
+      />
 
       {/* Main Reviewer Experience */}
       <main id="main-content" className="flex flex-col">
@@ -54,11 +57,11 @@ export default function PortfolioApp({
         {/* 3. Skill & Evidence Explorer (No percentages) */}
         <SkillsSection skills={skills} projects={projects} />
 
-        {/* 4. Professional Experience (Graceful Empty State) */}
-        <ExperienceSection experiences={experiences} />
+        {/* 4. Professional Experience (Rendered when verified records exist) */}
+        {experiences.length > 0 && <ExperienceSection experiences={experiences} />}
 
-        {/* 5. Academic Background (Graceful Empty State) */}
-        <EducationSection education={education} />
+        {/* 5. Academic Background (Rendered when verified records exist) */}
+        {education.length > 0 && <EducationSection education={education} />}
 
         {/* 6. Contact Section (Verified Channels Only) */}
         <ContactSection profile={profile} />
