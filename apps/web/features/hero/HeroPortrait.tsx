@@ -30,7 +30,7 @@ export default function HeroPortrait({
           ┌ PROFILE
         </span>
         <span className="absolute top-2 right-3 text-[9px] font-code text-primary/40 pointer-events-none z-20">
-          VERIFIED ┐
+          ┐
         </span>
 
         {/* Inner Photographic Frame */}
@@ -68,24 +68,23 @@ export default function HeroPortrait({
             </div>
           )}
 
-          {/* Minimalist Telemetry Overlay Strip */}
+          {/* Minimalist Profile Identity Overlay Strip */}
           <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-canvas/95 via-canvas/80 to-transparent border-t border-border/40 backdrop-blur-xs flex items-center justify-between z-10">
-            <span className="flex items-center gap-1.5 text-[11px] font-code text-themeText-muted">
-              <span className="h-2 w-2 rounded-full bg-status-success animate-pulse" />
-              Software Engineer
+            <span className="text-[11px] font-code text-themeText-primary font-medium tracking-wide">
+              NACHSYAS ARHAM
             </span>
-            <span className="text-[10px] font-code text-primary font-medium tracking-wide">
-              Reviewer-Ready
+            <span className="text-[10px] font-code text-primary font-medium tracking-wider uppercase">
+              {role}
             </span>
           </div>
         </div>
 
         {/* Bottom Corner Markers */}
         <span className="absolute bottom-1 left-3 text-[9px] font-code text-themeText-mutedSoft pointer-events-none z-20">
-          └ ID:NASHOHI
+          └
         </span>
         <span className="absolute bottom-1 right-3 text-[9px] font-code text-themeText-mutedSoft pointer-events-none z-20">
-          LIVE ┘
+          ┘
         </span>
       </div>
     </motion.div>

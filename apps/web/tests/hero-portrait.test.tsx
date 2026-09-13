@@ -55,9 +55,10 @@ describe("Hero Portrait Feature", () => {
     const onOpenQuickReview = vi.fn();
     render(<HeroSection profile={mockProfile} onOpenQuickReview={onOpenQuickReview} />);
 
-    // Name typography
-    expect(screen.getByText("NACHSYAS ARHAM")).toBeDefined();
-    expect(screen.getByText("MUMTAZ NASHOHI")).toBeDefined();
+    // Name typography in H1 heading
+    const heading = screen.getByRole("heading", { level: 1 });
+    expect(heading.textContent).toContain("NACHSYAS ARHAM");
+    expect(heading.textContent).toContain("MUMTAZ NASHOHI");
 
     // Role and positioning
     expect(screen.getAllByText("Software Engineer").length).toBeGreaterThan(0);
