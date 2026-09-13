@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { ArrowDown, Sparkles } from "lucide-react";
 import { GithubIcon } from "@/components/icons/GithubIcon";
-import HologramStage from "@/features/hologram/HologramStage";
+import HeroPortrait from "./HeroPortrait";
 import type { Profile } from "arham-porto-schema";
 
 interface HeroSectionProps {
@@ -38,7 +38,7 @@ export default function HeroSection({ profile, onOpenQuickReview }: HeroSectionP
           <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-themeText-primary leading-[1.08]">
             NACHSYAS ARHAM
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-themeText-primary via-primary to-hologram">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-themeText-primary via-primary to-primary-active">
               MUMTAZ NASHOHI
             </span>
           </h1>
@@ -95,9 +95,9 @@ export default function HeroSection({ profile, onOpenQuickReview }: HeroSectionP
           </div>
         </div>
 
-        {/* Right Column: 3D Hologram Stage */}
+        {/* Right Column: Hero Portrait */}
         <div className="lg:col-span-5 flex items-center justify-center">
-          <HologramStage />
+          <HeroPortrait fullName={profile.fullName} role={profile.role} />
         </div>
       </div>
     </section>

@@ -45,7 +45,7 @@ export default function PortfolioApp({
 
       {/* Main Reviewer Experience */}
       <main id="main-content" className="flex flex-col">
-        {/* 1. Hero Identity with Seated Hologram Stage Placeholder */}
+        {/* 1. Hero Identity with Authentic Portrait Stage */}
         <HeroSection
           profile={profile}
           onOpenQuickReview={() => setQuickReviewOpen(true)}

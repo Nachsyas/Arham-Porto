@@ -10,7 +10,7 @@
 | :--- | :--- | :--- |
 | **Phase 0** | **Bootstrap Foundation** | **Completed / Certified** |
 | **Phase 1** | **Reviewer-First Static Portfolio** | **Completed / Certified** |
-| **Phase 2** | **3D Wireframe Hologram** | **Completed** |
+| **Phase 2** | **Hero Visual: Authentic Portrait** | **Completed / Certified** *(3D Hologram Cancelled)* |
 | **Phase 3** | **Journey Map** | **Awaiting User Approval** |
 | **Phase 4** | **Go Backend** | Not Started |
 | **Phase 5** | **AI Indexing & Retrieval** | Not Started |
@@ -64,24 +64,34 @@
 
 ---
 
-## Phase 2 Checklist (Completed)
-- [x] Evidence mapping correction: remapped `evidence-maritime-dashboard-repo` to `ai-ml`, reserved `ai-rag` with empty evidence array, validated with `npm run validate:data`
-- [x] R3F & Three.js dependency integration (`three`, `@types/three`, `@react-three/fiber`, `@react-three/drei`)
-- [x] Modular Hologram feature boundary in `apps/web/features/hologram/`
-- [x] Canonical design tokens & color constants (`#61D8FF`, `#2E8FB5`, `#14384A`, `#26B8FF`)
-- [x] Procedural Seated Human Wireframe Mesh (`SeatedDevelopmentMesh`) with zero-trust posture truthfulness (no fake biometric/facial reconstruction)
-- [x] Future GLB model loading boundary (`/models/arham-wireframe.glb`) isolating `TODO_USER_3D_MODEL`
-- [x] Technical ground projection platform with concentric rings (`RingGeometry`) and cardinal crosshairs
-- [x] Sparse floating depth particles (45 desktop / 20 mobile) with slow vertical drift
-- [x] R3F `useFrame()` render loop with smooth `THREE.MathUtils.damp()` rotation
-- [x] Scroll-driven rotation constrained strictly to [-8°, +8°] Yaw and [-2°, +2°] Pitch
-- [x] Subtle pointer parallax on desktop (disabled on mobile)
-- [x] Lazy loading via Next.js dynamic import (`ssr: false`) with instant HTML Hero text rendering
-- [x] WebGL error boundary and static SVG/2D vector fallback (`HologramFallback`)
-- [x] Accessibility support with ARIA label and reduced motion handling (`prefers-reduced-motion: reduce`)
-- [x] Extensible future AI/Journey state contracts (`mode`, `isAIActive`, `orientationBias`)
-- [x] Comprehensive automated test suite (`apps/web/tests/phase2-hologram.test.tsx`, 6/6 tests passing, total 18/18 tests passing in `apps/web`)
-- [x] Visual validation across Desktop (1440px) and Mobile (390px) viewports with zero console errors
-- [x] Production build verification and bundle analysis
-- [x] Stop Rule enforcement before Phase 3 (Journey Map)
+## Phase 2 Checklist — Hero Visual: Authentic Portrait (Completed)
+> **Product Decision Note**: The 3D Wireframe Hologram concept has been cancelled and superseded by an authentic recruiter-first portrait photo of Nachsyas Arham Mumtaz Nashohi. All WebGL/Three.js dependencies and features have been removed from production.
+
+- [x] **Hologram Cancellation & Cleanup**:
+  - Cancelled 3D wireframe hologram and procedural mesh (`features/hologram/` deleted from production).
+  - Uninstalled Three.js / R3F production packages (`three`, `@types/three`, `@react-three/fiber`, `@react-three/drei`).
+  - Archived Phase 2 hologram specification to `docs/archive/hologram-3d-cancelled.md` (and updated `docs/design/hologram-3d.md` with cancellation notice).
+  - Purged all public holographic terminology (`NODE:AP-01`, `SYS:MATRIX`, `MODE:2D_VECTOR`, "seated development mesh").
+- [x] **Portrait Asset Extraction & Privacy Guard**:
+  - Extracted authentic portrait of Nachsyas Arham Mumtaz Nashohi from user CV into `apps/web/public/images/profile/nachsyas-arham.jpg`.
+  - Zero-Trust Privacy: Absolutely no personal details (full address, phone number, date of birth, or signature) extracted or published.
+  - Tagged temporary extraction with `TODO_USER_HIGH_RES_PROFILE_PHOTO` for future high-resolution replacement.
+- [x] **Hero Portrait Component (`apps/web/features/hero/HeroPortrait.tsx`)**:
+  - Built with Next.js `<Image />` (`priority`, `fill`, `sizes`, `object-fit: cover`).
+  - Semantic, meaningful alt text (`"Portrait of Nachsyas Arham Mumtaz Nashohi"`).
+  - Sleek dark technical frame with `#02060B` canvas, `#07111C` surface, `#173247` border, and subtle `#26B8FF` cyan accents.
+  - Technical corner markers (`┌ PROFILE`, `VERIFIED ┐`, `└ ID:NASHOHI`, `LIVE ┘`) and recruiter-first status pill (`Software Engineer | Reviewer-Ready`).
+  - Graceful image fallback state with user icon and technical prompt if image fails to load.
+  - Restrained entrance motion respecting `(prefers-reduced-motion: reduce)`.
+- [x] **Hero Section Integration (`apps/web/features/hero/HeroSection.tsx`)**:
+  - Desktop 2-column layout (Left: Identity, positioning, CTAs, links; Right: Portrait frame).
+  - Mobile responsive single-column layout (Name -> Role -> Positioning -> CTAs -> Portrait -> Quick Review drawer).
+  - Preserved canonical design tokens and existing Quick Review drawer functionality.
+- [x] **Testing & Verification**:
+  - Replaced hologram tests with comprehensive `apps/web/tests/hero-portrait.test.tsx` (5 tests covering image render, alt text, role pill, corner accents, and fallback behavior).
+  - 100% PASS across full unit test suite (17/17 tests passing in `apps/web`).
+  - Verified zero Three.js/R3F imports in production bundle.
+  - Performance: Lightweight First Load JS without WebGL overhead.
+- [x] **Documentation**: Created `docs/design/hero-portrait.md` and updated `docs/todo/master-todo.md`.
+- [x] **Stop Rule Enforcement**: Halt execution upon completion; await explicit user approval before Phase 3 (Journey Map).
 
