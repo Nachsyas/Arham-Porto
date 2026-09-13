@@ -26,8 +26,8 @@ func FromDomainEvidence(e domain.Evidence) EvidenceResponse {
 		Type:       e.Type,
 		Title:      e.Title,
 		SkillIDs:   skillIDs,
-		SourceURL:  e.SourceURL,
-		SourcePath: e.SourcePath,
+		SourceURL:  SanitizeExternalURL(e.SourceURL),
+		SourcePath: SanitizeSourcePath(e.SourcePath),
 		Summary:    e.Summary,
 		Verified:   e.Verified,
 	}

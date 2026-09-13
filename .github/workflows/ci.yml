@@ -54,9 +54,9 @@ jobs:
         with:
           go-version: "1.22.x"
 
-      - name: Run Go tests
+      - name: Run Go tests with race detector
         working-directory: apps/api
-        run: go test -v ./...
+        run: go test -v -race ./...
 
       - name: Run Go vet
         working-directory: apps/api

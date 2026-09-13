@@ -80,31 +80,32 @@ func Load() *Config {
 	}
 }
 
-// ResolveDataDir resolves and validates the path to canonical data/ directory.
+// ResolveDataDir resolves and validates the path to canonical data/ directory deterministically.
+// If PORTFOLIO_DATA_DIR is set, it uses exactly that directory.
+// If unset, it uses documented deterministic defaults based on server working directory (../../data or data).
+// It does NOT walk upwards searching for data directories.
 func (c *Config) ResolveDataDir() (string, error) {
-	candidates := []string{}
-	if c.PortfolioDataDir != "" {
-		candidates = append(candidates, c.PortfolioDataDir)
-	}
-	candidates = append(candidates,
-		"data",
-		"../data",
-		"../../data",
-		"../../../data",
-		"../../../../data",
-	)
+	var targetDir string
 
-	// Also check current working directory and walk up
-	if cwd, err := os.Getwd(); err == nil {
-		curr := cwd
-		for i := 0; i < 5; i++ {
-			candidates = append(candidates, filepath.Join(curr, "data"))
-			parent := filepath.Dir(curr)
-			if parent == curr {
-				break
-			}
-			curr = parent
+	if c.PortfolioDataDir != "" {
+		targetDir = c.PortfolioDataDir
+	} else {
+		// Documented development fallbacks:
+		// 1. "../../data" (when working directory is apps/api)
+		// 2. "../../../data" (when working directory is apps/api/tests)
+		// 3. "data" (when working directory is repository root)
+		if _, err := os.Stat("../../data/profile/profile.json"); err == nil {
+			targetDir = "../../data"
+		} else if _, err := os.Stat("../../../data/profile/profile.json"); err == nil {
+			targetDir = "../../../data"
+		} else {
+			targetDir = "data"
 		}
+	}
+
+	absDir, err := filepath.Abs(targetDir)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve absolute path for portfolio data directory %q: %w", targetDir, err)
 	}
 
 	requiredFiles := []string{
@@ -115,27 +116,15 @@ func (c *Config) ResolveDataDir() (string, error) {
 		"journey/journey.json",
 	}
 
-	for _, dir := range candidates {
-		absDir, err := filepath.Abs(dir)
-		if err != nil {
-			continue
-		}
-
-		allFound := true
-		for _, reqFile := range requiredFiles {
-			fullPath := filepath.Join(absDir, reqFile)
-			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-				allFound = false
-				break
-			}
-		}
-
-		if allFound {
-			return absDir, nil
+	for _, reqFile := range requiredFiles {
+		fullPath := filepath.Join(absDir, reqFile)
+		info, err := os.Stat(fullPath)
+		if err != nil || info.IsDir() {
+			return "", fmt.Errorf("canonical portfolio data directory at %s is invalid: missing required file %s", absDir, reqFile)
 		}
 	}
 
-	return "", fmt.Errorf("canonical portfolio data directory not found in candidates: %v", candidates)
+	return absDir, nil
 }
 
 

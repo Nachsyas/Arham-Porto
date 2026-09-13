@@ -6,11 +6,47 @@ import (
 	"net"
 	"net/http"
 	"runtime/debug"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/nachsyas/arham-porto/apps/api/internal/delivery/http/dto"
 )
+
+// ExtractClientIP extracts the normalized IP or host from RemoteAddr, discarding ephemeral TCP source ports.
+// It safely handles malformed addresses, missing ports, and IPv6 brackets.
+// It does NOT trust raw spoofable headers (X-Forwarded-For) without a trusted reverse proxy configuration.
+func ExtractClientIP(remoteAddr string) string {
+	host, _, err := net.SplitHostPort(remoteAddr)
+	if err == nil {
+		return strings.Trim(host, "[]")
+	}
+	trimmed := strings.TrimSpace(remoteAddr)
+	return strings.Trim(trimmed, "[]")
+}
+
+// addVaryHeader adds a Vary header value without duplicating existing entries or overwriting.
+func addVaryHeader(w http.ResponseWriter, value string) {
+	existing := w.Header().Get("Vary")
+	if existing == "" {
+		w.Header().Set("Vary", value)
+		return
+	}
+	for _, p := range strings.Split(existing, ",") {
+		if strings.EqualFold(strings.TrimSpace(p), value) {
+			return
+		}
+	}
+	w.Header().Set("Vary", existing+", "+value)
+}
+
+// setSecurityHeaders writes standard security headers to the ResponseWriter.
+func setSecurityHeaders(w http.ResponseWriter) {
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Referrer-Policy", "no-referrer")
+	w.Header().Set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
+	w.Header().Set("X-Frame-Options", "DENY")
+}
 
 // responseRecorder captures the status code of the HTTP response.
 type responseRecorder struct {
@@ -23,13 +59,14 @@ func (r *responseRecorder) WriteHeader(code int) {
 	r.ResponseWriter.WriteHeader(code)
 }
 
-// RecoveryMiddleware catches panics, logs diagnostics on the server, and returns generic 500 JSON.
+// RecoveryMiddleware catches panics, logs server-side diagnostics, and returns generic 500 JSON with security headers.
 func RecoveryMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rec := recover(); rec != nil {
 				log.Printf("[PANIC RECOVERED] path=%s err=%v\nstack:\n%s", r.URL.Path, rec, debug.Stack())
-				w.Header().Set("Content-Type", "application/json")
+				setSecurityHeaders(w)
+				w.Header().Set("Content-Type", "application/json; charset=utf-8")
 				w.Header().Set("Cache-Control", "no-store")
 				w.WriteHeader(http.StatusInternalServerError)
 				_ = json.NewEncoder(w).Encode(dto.NewErrorEnvelope("internal_error", "an internal server error occurred"))
@@ -39,24 +76,20 @@ func RecoveryMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// LoggerMiddleware logs basic privacy-safe HTTP request metrics without logging credentials or bodies.
+// LoggerMiddleware logs privacy-safe HTTP request metrics without logging credentials or request bodies.
 func LoggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		rec := &responseRecorder{ResponseWriter: w, statusCode: http.StatusOK}
 		next.ServeHTTP(rec, r)
 
-		remoteIP, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			remoteIP = r.RemoteAddr
-		}
-
+		clientIP := ExtractClientIP(r.RemoteAddr)
 		log.Printf("[HTTP] %s %s %d %s (client: %s)",
 			r.Method,
 			r.URL.Path,
 			rec.statusCode,
 			time.Since(start),
-			remoteIP,
+			clientIP,
 		)
 	})
 }
@@ -64,15 +97,12 @@ func LoggerMiddleware(next http.Handler) http.Handler {
 // SecurityHeadersMiddleware attaches modern, non-deprecated security headers to every response.
 func SecurityHeadersMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Header().Set("Referrer-Policy", "no-referrer")
-		w.Header().Set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
-		w.Header().Set("X-Frame-Options", "DENY")
+		setSecurityHeaders(w)
 		next.ServeHTTP(w, r)
 	})
 }
 
-// CORSMiddleware handles cross-origin requests using an allowlist with Vary: Origin support.
+// CORSMiddleware handles cross-origin requests using an explicit allowlist and safe Vary: Origin handling.
 func CORSMiddleware(allowedOrigins []string) func(http.Handler) http.Handler {
 	originSet := make(map[string]bool)
 	allowAll := false
@@ -86,7 +116,7 @@ func CORSMiddleware(allowedOrigins []string) func(http.Handler) http.Handler {
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Add("Vary", "Origin")
+			addVaryHeader(w, "Origin")
 
 			origin := r.Header.Get("Origin")
 			if origin != "" {
@@ -100,6 +130,7 @@ func CORSMiddleware(allowedOrigins []string) func(http.Handler) http.Handler {
 			}
 
 			if r.Method == http.MethodOptions {
+				setSecurityHeaders(w)
 				w.WriteHeader(http.StatusNoContent)
 				return
 			}
@@ -109,26 +140,30 @@ func CORSMiddleware(allowedOrigins []string) func(http.Handler) http.Handler {
 	}
 }
 
-// clientBucket tracks request counts for a single IP.
+// clientBucket tracks request counts for a single normalized client IP.
 type clientBucket struct {
 	count     int
 	resetTime time.Time
 }
+
+const defaultMaxRateLimiterEntries = 10000
 
 // RateLimiter manages in-memory rate limiting with bounded memory and periodic cleanup.
 type RateLimiter struct {
 	mu          sync.Mutex
 	limit       int
 	window      time.Duration
+	maxEntries  int
 	clients     map[string]*clientBucket
 	stopCleanup chan struct{}
 }
 
-// NewRateLimiter creates a RateLimiter instance.
+// NewRateLimiter creates a RateLimiter instance with bounded memory.
 func NewRateLimiter(limit int, window time.Duration) *RateLimiter {
 	rl := &RateLimiter{
 		limit:       limit,
 		window:      window,
+		maxEntries:  defaultMaxRateLimiterEntries,
 		clients:     make(map[string]*clientBucket),
 		stopCleanup: make(chan struct{}),
 	}
@@ -137,6 +172,7 @@ func NewRateLimiter(limit int, window time.Duration) *RateLimiter {
 }
 
 // Allow checks if a request from the given IP is allowed.
+// If the memory boundary is reached under high client cardinality, it prunes expired entries immediately.
 func (rl *RateLimiter) Allow(ip string) bool {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
@@ -144,6 +180,19 @@ func (rl *RateLimiter) Allow(ip string) bool {
 	now := time.Now()
 	bucket, exists := rl.clients[ip]
 	if !exists || now.After(bucket.resetTime) {
+		// Enforce bounded memory size
+		if len(rl.clients) >= rl.maxEntries {
+			for k, b := range rl.clients {
+				if now.After(b.resetTime) {
+					delete(rl.clients, k)
+				}
+			}
+			// If still full after pruning, reject new allocations to prevent unbounded growth
+			if len(rl.clients) >= rl.maxEntries {
+				return false
+			}
+		}
+
 		rl.clients[ip] = &clientBucket{
 			count:     1,
 			resetTime: now.Add(rl.window),
@@ -200,13 +249,11 @@ func RateLimiterMiddleware(rl *RateLimiter) func(http.Handler) http.Handler {
 				return
 			}
 
-			remoteIP, _, err := net.SplitHostPort(r.RemoteAddr)
-			if err != nil {
-				remoteIP = r.RemoteAddr
-			}
+			clientIP := ExtractClientIP(r.RemoteAddr)
 
-			if !rl.Allow(remoteIP) {
-				w.Header().Set("Content-Type", "application/json")
+			if !rl.Allow(clientIP) {
+				setSecurityHeaders(w)
+				w.Header().Set("Content-Type", "application/json; charset=utf-8")
 				w.Header().Set("Cache-Control", "no-store")
 				w.WriteHeader(http.StatusTooManyRequests)
 				_ = json.NewEncoder(w).Encode(dto.NewErrorEnvelope("rate_limited", "too many requests, please slow down"))

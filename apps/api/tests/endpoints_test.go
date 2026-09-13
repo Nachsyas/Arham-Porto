@@ -49,8 +49,11 @@ func TestEndpoints_GetProfile(t *testing.T) {
 		t.Errorf("expected public Cache-Control header, got '%s'", cc)
 	}
 
+	bodyStr := rec.Body.String()
+	t.Logf("Profile serialized body: %s", bodyStr)
+
 	var resp dto.DataEnvelope[dto.ProfileResponse]
-	if err := json.NewDecoder(rec.Body).Decode(&resp); err != nil {
+	if err := json.NewDecoder(strings.NewReader(bodyStr)).Decode(&resp); err != nil {
 		t.Fatalf("failed to decode response: %v", err)
 	}
 
@@ -115,8 +118,11 @@ func TestEndpoints_ListProjects(t *testing.T) {
 		t.Fatalf("expected status 200, got %d", rec.Code)
 	}
 
+	bodyStr := rec.Body.String()
+	t.Logf("Projects serialized body: %s", bodyStr)
+
 	var resp dto.ListEnvelope[dto.ProjectResponse]
-	if err := json.NewDecoder(rec.Body).Decode(&resp); err != nil {
+	if err := json.NewDecoder(strings.NewReader(bodyStr)).Decode(&resp); err != nil {
 		t.Fatalf("failed to decode response: %v", err)
 	}
 
@@ -306,13 +312,13 @@ func TestEndpoints_ListJourney(t *testing.T) {
 		t.Fatalf("expected exactly 7 public milestones, got %d", resp.Meta.Count)
 	}
 
-	// Verify absence of journey-tk
+	// Verify absence of journey-tk and verify public field is not exposed in public DTO
+	if strings.Contains(rec.Body.String(), `"public":`) {
+		t.Error("redundant internal publication-control flag 'public' must not appear in public journey transport DTO")
+	}
 	for _, stop := range resp.Data {
 		if stop.ID == "journey-tk" {
 			t.Error("private stop journey-tk must not be present in public journey endpoint")
-		}
-		if !stop.Public {
-			t.Errorf("stop %s is not marked public", stop.ID)
 		}
 	}
 }
@@ -453,5 +459,321 @@ func TestEndpoints_PanicRecovery(t *testing.T) {
 	// Ensure stack trace is NOT exposed to client
 	if strings.Contains(rec.Body.String(), "panic") || strings.Contains(rec.Body.String(), "goroutine") {
 		t.Error("error response must never expose internal stack trace or panic details")
+	}
+}
+
+func TestEndpoints_RateLimiter_PortNormalization(t *testing.T) {
+	// Limiter allows 1 request per minute
+	rl := delivery.NewRateLimiter(1, time.Minute)
+	defer rl.Close()
+
+	router := setupFullTestRouter(t, []string{"*"}, rl)
+
+	// First request from 192.0.2.10:51432 (allowed)
+	req1 := httptest.NewRequest(http.MethodGet, "/api/v1/projects", nil)
+	req1.RemoteAddr = "192.0.2.10:51432"
+	rec1 := httptest.NewRecorder()
+	router.ServeHTTP(rec1, req1)
+	if rec1.Code != http.StatusOK {
+		t.Fatalf("first request expected status 200, got %d", rec1.Code)
+	}
+
+	// Second request from SAME IP but DIFFERENT source port 192.0.2.10:51433
+	// Must share the same rate-limit bucket and be rejected with 429
+	req2 := httptest.NewRequest(http.MethodGet, "/api/v1/projects", nil)
+	req2.RemoteAddr = "192.0.2.10:51433"
+	rec2 := httptest.NewRecorder()
+	router.ServeHTTP(rec2, req2)
+	if rec2.Code != http.StatusTooManyRequests {
+		t.Fatalf("second request from same IP with different port must be throttled with 429, got %d", rec2.Code)
+	}
+
+	// Different IP 192.0.2.20:51432 must have its own bucket (allowed)
+	req3 := httptest.NewRequest(http.MethodGet, "/api/v1/projects", nil)
+	req3.RemoteAddr = "192.0.2.20:51432"
+	rec3 := httptest.NewRecorder()
+	router.ServeHTTP(rec3, req3)
+	if rec3.Code != http.StatusOK {
+		t.Fatalf("request from different IP expected status 200, got %d", rec3.Code)
+	}
+}
+
+func TestEndpoints_MethodNotAllowed(t *testing.T) {
+	router := setupFullTestRouter(t, []string{"*"}, nil)
+
+	// POST on GET-only endpoint
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/projects", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("expected status 405 Method Not Allowed for POST /api/v1/projects, got %d", rec.Code)
+	}
+
+	// PUT on GET-only endpoint
+	req = httptest.NewRequest(http.MethodPut, "/api/v1/profile", nil)
+	rec = httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("expected status 405 Method Not Allowed for PUT /api/v1/profile, got %d", rec.Code)
+	}
+}
+
+func TestEndpoints_QueryParameterStrictness(t *testing.T) {
+	router := setupFullTestRouter(t, []string{"*"}, nil)
+
+	// Valid boolean
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/projects?featured=true", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200 for featured=true, got %d", rec.Code)
+	}
+
+	// Invalid boolean value
+	req = httptest.NewRequest(http.MethodGet, "/api/v1/projects?featured=banana", nil)
+	rec = httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for featured=banana, got %d", rec.Code)
+	}
+
+	// Repeated ambiguous parameter: ?featured=true&featured=false
+	req = httptest.NewRequest(http.MethodGet, "/api/v1/projects?featured=true&featured=false", nil)
+	rec = httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for repeated featured param, got %d", rec.Code)
+	}
+
+	// Repeated ambiguous category: ?category=AI&category=Backend
+	req = httptest.NewRequest(http.MethodGet, "/api/v1/projects?category=AI&category=Backend", nil)
+	rec = httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for repeated category param on projects, got %d", rec.Code)
+	}
+
+	// Repeated ambiguous category on skills: ?category=Backend&category=Frontend
+	req = httptest.NewRequest(http.MethodGet, "/api/v1/skills?category=Backend&category=Frontend", nil)
+	rec = httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for repeated category param on skills, got %d", rec.Code)
+	}
+}
+
+func TestEndpoints_SecurityHeaders_OnErrors(t *testing.T) {
+	router := setupFullTestRouter(t, []string{"*"}, nil)
+
+	assertSecurityHeaders := func(t *testing.T, rec *httptest.ResponseRecorder, context string) {
+		t.Helper()
+		if nosniff := rec.Header().Get("X-Content-Type-Options"); nosniff != "nosniff" {
+			t.Errorf("[%s] expected X-Content-Type-Options 'nosniff', got '%s'", context, nosniff)
+		}
+		if ref := rec.Header().Get("Referrer-Policy"); ref != "no-referrer" {
+			t.Errorf("[%s] expected Referrer-Policy 'no-referrer', got '%s'", context, ref)
+		}
+		if csp := rec.Header().Get("Content-Security-Policy"); !strings.Contains(csp, "default-src 'none'") {
+			t.Errorf("[%s] expected CSP default-src none, got '%s'", context, csp)
+		}
+		if xfo := rec.Header().Get("X-Frame-Options"); xfo != "DENY" {
+			t.Errorf("[%s] expected X-Frame-Options 'DENY', got '%s'", context, xfo)
+		}
+	}
+
+	// 400 Bad Request
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/projects?featured=invalid", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", rec.Code)
+	}
+	assertSecurityHeaders(t, rec, "400 Bad Request")
+	if cc := rec.Header().Get("Cache-Control"); cc != "no-store" {
+		t.Errorf("expected Cache-Control 'no-store' on 400, got '%s'", cc)
+	}
+
+	// 404 Not Found (valid route, missing resource)
+	req = httptest.NewRequest(http.MethodGet, "/api/v1/projects/non-existent-slug-xyz", nil)
+	rec = httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected 404, got %d", rec.Code)
+	}
+	assertSecurityHeaders(t, rec, "404 Not Found")
+	if cc := rec.Header().Get("Cache-Control"); cc != "no-store" {
+		t.Errorf("expected Cache-Control 'no-store' on 404, got '%s'", cc)
+	}
+
+	// 500 Panic Recovery
+	panicHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		panic("simulated disaster")
+	})
+	recovered := delivery.RecoveryMiddleware(panicHandler)
+	req = httptest.NewRequest(http.MethodGet, "/panic", nil)
+	rec = httptest.NewRecorder()
+	recovered.ServeHTTP(rec, req)
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("expected 500, got %d", rec.Code)
+	}
+	assertSecurityHeaders(t, rec, "500 Internal Error")
+	if cc := rec.Header().Get("Cache-Control"); cc != "no-store" {
+		t.Errorf("expected Cache-Control 'no-store' on 500, got '%s'", cc)
+	}
+}
+
+func TestEndpoints_ContentTypeCharset(t *testing.T) {
+	router := setupFullTestRouter(t, []string{"*"}, nil)
+
+	routes := []string{
+		"/api/v1/profile",
+		"/api/v1/projects",
+		"/api/v1/skills",
+		"/api/v1/evidence",
+		"/api/v1/journey",
+	}
+
+	for _, route := range routes {
+		req := httptest.NewRequest(http.MethodGet, route, nil)
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected 200 for %s, got %d", route, rec.Code)
+		}
+
+		ct := rec.Header().Get("Content-Type")
+		if !strings.Contains(ct, "application/json") || !strings.Contains(ct, "charset=utf-8") {
+			t.Errorf("expected 'application/json; charset=utf-8' on %s, got '%s'", route, ct)
+		}
+	}
+}
+
+func TestDTO_Sanitizer_Security(t *testing.T) {
+	// 1. Source Path Security
+	safeRel := "apps/api/cmd/server/main.go"
+	if res := dto.SanitizeSourcePath(&safeRel); res == nil || *res != safeRel {
+		t.Errorf("expected safe relative path to be preserved, got %v", res)
+	}
+
+	unsafePaths := []string{
+		"/Users/user/Documents/secret.txt",
+		"/home/runner/work/arham-porto/secret.key",
+		"C:\\Windows\\system32\\cmd.exe",
+		"../../etc/passwd",
+		"../secret.json",
+		"/etc/shadow",
+		"users/private/key.pem",
+	}
+	for _, p := range unsafePaths {
+		pCopy := p
+		if res := dto.SanitizeSourcePath(&pCopy); res != nil {
+			t.Errorf("SECURITY FAILURE: Unsafe source path %q was not rejected, got %s", p, *res)
+		}
+	}
+
+	// 2. URL Output Security
+	safeURL := "https://github.com/Nachsyas/arham-porto"
+	if res := dto.SanitizeExternalURL(&safeURL); res == nil || *res != safeURL {
+		t.Errorf("expected safe HTTPS URL to be preserved, got %v", res)
+	}
+
+	unsafeURLs := []string{
+		"javascript:alert(document.cookie)",
+		"file:///etc/passwd",
+		"data:text/html,<script>alert(1)</script>",
+		"vbscript:msgbox(1)",
+		"blob:https://example.com/xyz",
+		"http://insecure-site.com",
+		"TODO_USER_URL",
+	}
+	for _, u := range unsafeURLs {
+		uCopy := u
+		if res := dto.SanitizeExternalURL(&uCopy); res != nil {
+			t.Errorf("SECURITY FAILURE: Unsafe external URL %q was not rejected, got %s", u, *res)
+		}
+	}
+
+	// 3. Image URL Security
+	safeImageRel := "/images/hero.webp"
+	if res := dto.SanitizeImageURL(&safeImageRel); res == nil || *res != safeImageRel {
+		t.Errorf("expected safe relative image URL to be preserved, got %v", res)
+	}
+
+	unsafeImages := []string{
+		"javascript:alert(1)",
+		"file:///root/image.png",
+		"data:image/svg+xml;base64,...",
+	}
+	for _, img := range unsafeImages {
+		imgCopy := img
+		if res := dto.SanitizeImageURL(&imgCopy); res != nil {
+			t.Errorf("SECURITY FAILURE: Unsafe image URL %q was not rejected, got %s", img, *res)
+		}
+	}
+}
+
+func TestEndpoints_ProfileApprovedFieldsOnly(t *testing.T) {
+	router := setupFullTestRouter(t, []string{"*"}, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/profile", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+
+	var raw map[string]any
+	if err := json.NewDecoder(rec.Body).Decode(&raw); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	data, ok := raw["data"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected data object in response, got %v", raw)
+	}
+
+	// Approved fields that MUST exist
+	approvedKeys := []string{"full_name", "role", "project_name", "ai_feature", "github"}
+	for _, k := range approvedKeys {
+		val, exists := data[k]
+		if !exists || val == nil || val == "" {
+			t.Errorf("expected approved field '%s' to be populated, got %v", k, val)
+		}
+	}
+
+	// Unapproved, null, or TODO-backed fields that MUST NOT exist in public payload
+	forbiddenKeys := []string{"positioning", "bio", "current_city", "availability", "email", "linkedin", "cvUrl", "todo"}
+	for _, k := range forbiddenKeys {
+		if val, exists := data[k]; exists && val != nil {
+			t.Errorf("SECURITY/PRIVACY VIOLATION: Unapproved field '%s' is present in public profile response with value: %v", k, val)
+		}
+	}
+}
+
+func TestEndpoints_DumpPublicSnapshots(t *testing.T) {
+	router := setupFullTestRouter(t, []string{"*"}, nil)
+
+	endpoints := []string{
+		"/api/v1/profile",
+		"/api/v1/projects",
+		"/api/v1/skills",
+		"/api/v1/evidence",
+		"/api/v1/journey",
+	}
+
+	for _, ep := range endpoints {
+		req := httptest.NewRequest(http.MethodGet, ep, nil)
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("endpoint %s returned status %d", ep, rec.Code)
+		}
+
+		t.Logf("=== SNAPSHOT [%s] ===\n%s\n", ep, rec.Body.String())
 	}
 }

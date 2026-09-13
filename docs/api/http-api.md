@@ -11,6 +11,8 @@ Backend REST API documentation for `apps/api`.
 - **Purity Rule**: `internal/domain` contains zero external dependencies.
 - **DTO Isolation**: Domain entities are never serialized directly to HTTP. Responses pass through public DTO mappers in `internal/delivery/http/dto/`.
 - **Operating Modes**: Explicit `DATABASE_MODE=disabled|optional|required`.
+- **Content-Type**: `application/json; charset=utf-8` on all JSON responses and errors.
+- **Server Timeouts**: ReadHeaderTimeout 5s, ReadTimeout 10s, WriteTimeout 10s, IdleTimeout 60s, MaxHeaderBytes 1MB.
 
 ---
 
@@ -68,8 +70,8 @@ Backend REST API documentation for `apps/api`.
 - **Response** (`200 OK` or `503 Service Unavailable`):
   - When `DATABASE_MODE=disabled`: `200 OK` `{"status":"ready","database":"disabled"}`
   - When `DATABASE_MODE=optional` & DB connected: `200 OK` `{"status":"ready","database":"connected"}`
-  - When `DATABASE_MODE=optional` & DB offline: `200 OK` `{"status":"ready","database":"degraded"}`
-  - When `DATABASE_MODE=required` & DB offline: `503 Service Unavailable` `{"status":"not_ready","database":"unavailable"}`
+  - When `DATABASE_MODE=optional` & DB offline: `200 OK` `{"status":"ready","database":"degraded"}` (remains degraded until restart)
+  - When `DATABASE_MODE=required` & DB offline: Server aborts startup cleanly. In test/mock harness: `503 Service Unavailable` `{"status":"not_ready","database":"unavailable"}`
 
 ---
 
@@ -86,19 +88,18 @@ Backend REST API documentation for `apps/api`.
       "role": "Software Engineer",
       "project_name": "Arham Porto",
       "ai_feature": "Ask Arham AI",
-      "positioning": "Building intelligent, scalable, and human-centered digital systems.",
       "github": "https://github.com/Nachsyas"
     }
   }
   ```
-- **Privacy Guard**: Excludes phone numbers, birth dates, home addresses, coordinates, and internal TODO metadata.
+- **Privacy Boundary**: All unapproved or TODO-backed fields (`positioning`, `bio`, `current_city`, `availability`, `email`, `linkedin`) are safely stripped/omitted. Excludes phone numbers, birth dates, home addresses, and private coordinates.
 
 #### `GET /api/v1/projects`
 - **Description**: Lists engineering case studies and systems.
-- **Query Parameters**:
-  - `category` (optional): Filter by category (`AI`, `Full-Stack`, `Backend`, `Systems`). Returns `400 Bad Request` if unsupported.
-  - `featured` (optional): Filter by boolean (`true` or `false`). Returns `400 Bad Request` if not a valid boolean.
 - **Cache-Control**: `public, max-age=60, stale-while-revalidate=300`
+- **Query Parameters**:
+  - `category` (optional): Filter by category (`AI`, `Full-Stack`, `Backend`, `Systems`). Repeated values return `400 Bad Request`.
+  - `featured` (optional): Filter by boolean (`true` or `false`). Invalid values or repeated values return `400 Bad Request`.
 - **Response** (`200 OK`):
   ```json
   {
@@ -121,20 +122,21 @@ Backend REST API documentation for `apps/api`.
       }
     ],
     "meta": {
-      "count": 1
+      "count": 4
     }
   }
   ```
 
 #### `GET /api/v1/projects/{slug}`
-- **Description**: Retrieves single project by slug.
-- **Path Parameter**: `slug` (alphanumeric with hyphens, $\le$ 64 chars). Returns `400 Bad Request` if malformed.
+- **Description**: Retrieves a single project by slug.
+- **Slug Validation**: Alphanumeric and hyphens only (`^[a-z0-9-]+$`), maximum 64 characters.
 - **Response**: `200 OK` or `404 Not Found`.
 
 #### `GET /api/v1/skills`
-- **Description**: Lists verified skills.
+- **Description**: Lists verified engineering skills and claims.
+- **Cache-Control**: `public, max-age=60, stale-while-revalidate=300`
 - **Query Parameters**:
-  - `category` (optional): Filter by category (`Backend`, `Frontend`, `AI / ML`, `Systems`, `DevOps`, `Database`).
+  - `category` (optional): Filter by category (`Backend`, `Frontend`, `AI / ML`, `Systems`, `DevOps`, `Database`). Repeated values return `400 Bad Request`.
 - **Response** (`200 OK`):
   ```json
   {
@@ -148,13 +150,14 @@ Backend REST API documentation for `apps/api`.
       }
     ],
     "meta": {
-      "count": 1
+      "count": 7
     }
   }
   ```
 
 #### `GET /api/v1/evidence`
-- **Description**: Lists verifiable artifacts.
+- **Description**: Lists verifiable artifacts and citation anchors.
+- **Cache-Control**: `public, max-age=60, stale-while-revalidate=300`
 - **Query Parameters**:
   - `skill_id` (optional): Filter by associated skill ID.
   - `project_id` (optional): Filter by associated project ID.
@@ -174,10 +177,11 @@ Backend REST API documentation for `apps/api`.
       }
     ],
     "meta": {
-      "count": 1
+      "count": 4
     }
   }
   ```
+- **Path Safety**: `source_path` contains strictly repository-relative paths. Absolute local filesystem paths (`/Users/...`, `C:\...`) are never serialized.
 
 #### `GET /api/v1/evidence/{id}`
 - **Description**: Retrieves evidence artifact by ID.
@@ -185,6 +189,7 @@ Backend REST API documentation for `apps/api`.
 
 #### `GET /api/v1/journey`
 - **Description**: Lists public educational and geographical milestones (strictly `public == true`).
+- **Cache-Control**: `public, max-age=60, stale-while-revalidate=300`
 - **Response** (`200 OK`):
   ```json
   {
@@ -196,8 +201,7 @@ Backend REST API documentation for `apps/api`.
         "city": "Karanganyar",
         "region": "Jawa Tengah",
         "country": "Indonesia",
-        "description": "Early formative origin in Karanganyar, Central Java.",
-        "public": true
+        "description": "Early formative origin in Karanganyar, Central Java."
       }
     ],
     "meta": {
@@ -205,20 +209,36 @@ Backend REST API documentation for `apps/api`.
     }
   }
   ```
-- **Privacy Guard**: Raw coordinates, internal TODOs, and private records (e.g. `journey-tk`) are strictly omitted.
+- **Privacy Guard**: Raw coordinates, internal TODOs, private records (e.g. `journey-tk`), and the redundant `public` boolean flag are omitted.
 
 ---
 
-## 4. Middleware Pipeline Order
+## 4. HTTP Method Contract & Status Codes
 
-Outer $\rightarrow$ Inner:
-1. `Recovery`: Catches panics, logs diagnostics on the server, returns generic 500 JSON without leaking stack traces.
-2. `Logger`: Privacy-safe logging (timestamp, method, path, status, latency, IP). No credentials/headers/bodies logged.
-3. `SecurityHeaders`:
-   - `X-Content-Type-Options: nosniff`
-   - `Referrer-Policy: no-referrer`
-   - `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'`
-   - `X-Frame-Options: DENY`
-4. `CORS`: Allowed origins parsed from `ALLOWED_ORIGINS` (default `http://localhost:3000`). Adds `Vary: Origin`. Preflight `OPTIONS` returns `204 No Content`.
-5. `RateLimiter`: Bounded in-memory sliding window (120 req/min per IP) with TTL cleanup. `/healthz` and `/readyz` strictly bypass rate limiting.
-6. `ServeMux`: Standard library route multiplexer.
+| Method | Registered Path | Status Code | Notes |
+| :--- | :--- | :--- | :--- |
+| `GET` | All endpoints above | `200 OK` | Public cache header where applicable |
+| `HEAD` | All endpoints above | `200 OK` | Body discarded by standard library |
+| `OPTIONS` | Any registered path | `204 No Content` | CORS preflight with ACAO and Vary headers |
+| `POST` | Any GET-only endpoint | `405 Method Not Allowed` | Header `Allow: GET, HEAD` |
+| `PUT` | Any GET-only endpoint | `405 Method Not Allowed` | Header `Allow: GET, HEAD` |
+| `DELETE` | Any GET-only endpoint | `405 Method Not Allowed` | Header `Allow: GET, HEAD` |
+| `GET` | Unregistered path | `404 Not Found` | JSON ErrorEnvelope |
+| `GET` | Ambiguous repeated param | `400 Bad Request` | JSON ErrorEnvelope |
+
+---
+
+## 5. Security & Rate Limiting
+
+- **Security Headers**: Injected on all responses (200, 204, 400, 404, 405, 429, 500):
+  - `X-Content-Type-Options: nosniff`
+  - `Referrer-Policy: no-referrer`
+  - `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'`
+  - `X-Frame-Options: DENY`
+- **CORS**:
+  - Validates `Origin` header against `ALLOWED_ORIGINS`.
+  - Appends `Vary: Origin` cleanly without header clobbering.
+- **Rate Limiter**:
+  - Default: 120 req/min per normalized client IP (ephemeral TCP ports stripped via `net.SplitHostPort`).
+  - Max entries bounded at 10,000 to prevent memory exhaustion under spoofed client cardinality.
+  - `/healthz` and `/readyz` bypass rate limiting unconditionally.

@@ -137,7 +137,7 @@
 ---
 
 ## Phase 4 Checklist — Go Backend (CERTIFIED)
-> **Certified Scope**: Production-ready Go Clean Architecture REST API (`apps/api`), Go 1.22+ standard library `net/http.ServeMux` routing, pure Go standard library domain entities, public transport DTO isolation boundary, in-memory indexed canonical JSON repository with fail-fast startup invariant checks, `jackc/pgx/v5` connection pool client, explicit `DATABASE_MODE=disabled|optional|required`, readiness semantics, hardened middleware pipeline (Recovery, Logger, SecurityHeaders, CORS, RateLimiter), and 100% passing concurrency-safe race test suite.
+> **Certified Scope**: Production-ready Go Clean Architecture REST API (`apps/api`), Go 1.22+ runtime compatibility (`go 1.22` in `go.mod`), standard library `net/http.ServeMux` routing, pure Go standard library domain entities, public transport DTO isolation boundary, in-memory indexed canonical JSON repository with deterministic path resolution and zero directory-walking, `jackc/pgx/v5` v5.6.0 connection pool client, explicit `DATABASE_MODE=disabled|optional|required`, readiness semantics, hardened middleware pipeline (Recovery, Logger, SecurityHeaders, CORS with safe Vary header, Bounded RateLimiter with IP port stripping), query parameter strictness, safe source paths, safe URL schemes, security headers on all error responses, and 100% passing concurrency-safe race test suite.
 
 - [x] **Pure Go Domain Layer (`apps/api/internal/domain/`)**:
   - Zero external dependencies: `context`, `errors`, `time` only.
@@ -149,44 +149,48 @@
   - Safe DTOs: `ProfileResponse`, `ProjectResponse`, `SkillResponse`, `EvidenceResponse`, `JourneyStopResponse`.
   - Standard response envelopes: `DataEnvelope[T]` and `ListEnvelope[T]` with `Meta.Count`.
   - Standard error envelope: `ErrorEnvelope` with `code` (`bad_request`, `not_found`, `rate_limited`, `internal_error`, `service_unavailable`) and `message`.
-  - **Privacy Guard**:
-    - `ProfileResponse`: Strips all internal `TODO` arrays, private contact fields, unpublished bio notes.
-    - `JourneyStopResponse`: Strictly strips raw `coordinates`, `todo`, and private metadata; `journey-tk` excluded.
-- [x] **Canonical JSON Repository (`apps/api/internal/repository/jsonfile/`)**:
-  - Configurable deterministic data path (`PORTFOLIO_DATA_DIR` with auto-resolution).
+  - **Privacy Guard & Minimization**:
+    - `ProfileResponse`: Strips all internal `TODO` arrays, private contact fields, unapproved positioning, unpublished bio notes. Serializes strictly approved fields: `full_name`, `role`, `project_name`, `ai_feature`, `github`.
+    - `JourneyStopResponse`: Strictly strips raw `coordinates`, `todo`, private records (`journey-tk`), and the redundant `public` boolean flag.
+    - `EvidenceResponse`: Enforces repository-relative paths for `source_path` (e.g. `README.md`, `backend/cmd/api/main.go`). Rejects absolute paths (`/Users/...`, `C:\...`) and path traversal (`..`).
+    - `URL Output Safety`: Enforces `https://` on all external URLs. Reject `javascript:`, `file:`, `data:`.
+- [x] **Canonical JSON Repository & Deterministic Path (`apps/api/internal/repository/jsonfile/`)**:
+  - Deterministic data path resolution (`PORTFOLIO_DATA_DIR` or fixed documented defaults: `../../data`, `../../../data`, `data`).
+  - Completely removed recursive directory-walking data discovery.
   - Load once at startup, build immutable thread-safe in-memory indexes (slug, ID, category, public).
-  - Fail-fast validation of invariants (duplicate project slug/ID, duplicate skill ID, duplicate evidence ID, invalid category).
+  - Fail-fast validation of invariants (duplicate project slug/ID, duplicate skill ID, duplicate evidence ID, invalid category, missing required files).
   - Zero disk I/O on active HTTP requests.
 - [x] **PostgreSQL Client & Database Modes (`apps/api/internal/repository/postgres/`)**:
-  - Connection pooling using `jackc/pgx/v5/pgxpool`.
+  - Connection pooling using `jackc/pgx/v5/pgxpool` v5.6.0 (Go 1.22 compatible).
   - Explicit operating mode: `DATABASE_MODE=disabled|optional|required`.
   - Readiness semantics:
     - `disabled`: HTTP 200 `{"status":"ready","database":"disabled"}`
     - `optional + connected`: HTTP 200 `{"status":"ready","database":"connected"}`
-    - `optional + degraded`: HTTP 200 `{"status":"ready","database":"degraded"}`
-    - `required + unavailable`: HTTP 503 `{"status":"not_ready","database":"unavailable"}`
+    - `optional + degraded`: HTTP 200 `{"status":"ready","database":"degraded"}` (remains degraded until service restart)
+    - `required + unavailable`: Fails startup cleanly. In test/mock harness: HTTP 503 `{"status":"not_ready","database":"unavailable"}`
 - [x] **Hardened HTTP Delivery & Middleware (`apps/api/internal/delivery/http/`)**:
   - Standard Go 1.22+ `net/http.ServeMux` with pattern matching (`GET /api/v1/projects/{slug}`).
-  - Strict query & path validation: invalid category or boolean parameter returns HTTP 400 `bad_request`.
-  - Cache policy: `Cache-Control: public, max-age=60, stale-while-revalidate=300` on public portfolio GETs; `no-store` on probes and errors.
+  - Unsupported methods return `405 Method Not Allowed` with `Allow: GET, HEAD`.
+  - Content-Type: `application/json; charset=utf-8` on all JSON responses and errors.
+  - Server timeouts configured: ReadHeaderTimeout 5s, ReadTimeout 10s, WriteTimeout 10s, IdleTimeout 60s, MaxHeaderBytes 1MB.
+  - Query parameter strictness: ambiguous repeated keys (`?featured=true&featured=false`, `?category=AI&category=Backend`) return HTTP 400 `bad_request`. Invalid boolean values return HTTP 400.
+  - Cache policy: `Cache-Control: public, max-age=60, stale-while-revalidate=300` on public portfolio GETs; `no-store` on probes and errors (400, 404, 405, 429, 500).
   - Middleware order: `Recovery` $\rightarrow$ `Logger` $\rightarrow$ `SecurityHeaders` $\rightarrow$ `CORS` $\rightarrow$ `RateLimiter` $\rightarrow$ `Router`.
-  - `Recovery`: Catches panics, logs server-side diagnostics, returns generic 500 JSON without stack trace leaks.
-  - `SecurityHeaders`: `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'`, `X-Frame-Options: DENY` (no deprecated `X-XSS-Protection`).
-  - `CORS`: Origin checking against `ALLOWED_ORIGINS`, `Vary: Origin`, OPTIONS 204.
-  - `RateLimiter`: In-memory token bucket / sliding window with TTL cleanup; `/healthz` and `/readyz` strictly bypass throttling.
+  - Security headers present on ALL responses (200, 204, 400, 404, 405, 429, 500).
+  - `RateLimiter`: Normalized client key via `net.SplitHostPort` (stripping ephemeral TCP source ports), bounded memory (`maxEntries = 10,000`), cleanup lifecycle `Close()`, bypass on `/healthz` and `/readyz`.
 - [x] **Testing & Quality Gates**:
   - `apps/api/tests/health_test.go`: Probes across all database modes.
   - `apps/api/tests/repository_test.go`: Canonical JSON loading, invariant enforcement, duplicate slug rejection, filtering.
-  - `apps/api/tests/endpoints_test.go`: All 9 endpoints, filtering, 400/404 handling, CORS, security headers, rate limiting, panic recovery, privacy leakage audit (0 `TODO_` tokens).
+  - `apps/api/tests/endpoints_test.go`: All endpoints, filtering, 400/404/405 handling, CORS, security headers on errors, rate limiting port normalization, panic recovery, privacy leakage audit (0 `TODO_` tokens), exact public profile snapshot verification.
   - `go test -v -race ./...`: 100% PASS (0 data races).
   - `go vet ./...`: 100% PASS (0 warnings).
   - `npm run validate:data`: 100% PASS (8/8 schemas).
   - `npm run test --workspace=apps/web`: 100% PASS (39/39 tests).
   - `docker compose config`: 100% PASS.
-  - Manual `curl` audit verifying all endpoints and status codes (200, 204, 400, 404, 429, 500).
+  - Live server probe audit verifying all endpoints, headers, and status codes (200, 204, 400, 404, 405, 429, 500).
 - [x] **Documentation**:
   - Updated `docs/architecture/backend-clean-architecture.md`.
-  - Created `docs/api/http-api.md`.
+  - Updated `docs/api/http-api.md`.
 - [x] **Stop Rule Enforcement**: Halt execution upon completion; await explicit user approval before Phase 5 (AI Indexing & Retrieval).
 
 

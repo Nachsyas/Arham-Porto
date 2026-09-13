@@ -3,7 +3,7 @@ package dto
 import "github.com/nachsyas/arham-porto/apps/api/internal/domain"
 
 // JourneyStopResponse represents the safe public journey stop DTO.
-// Raw coordinates, internal TODOs, and private metadata are strictly excluded.
+// Raw coordinates, internal TODOs, private metadata, and publication-control flags are strictly excluded.
 type JourneyStopResponse struct {
 	ID          string  `json:"id"`
 	Category    string  `json:"category"`
@@ -15,7 +15,6 @@ type JourneyStopResponse struct {
 	Period      *string `json:"period,omitempty"`
 	Description *string `json:"description,omitempty"`
 	Image       *string `json:"image,omitempty"`
-	Public      bool    `json:"public"`
 }
 
 // FromDomainJourneyStop maps a domain JourneyStop entity to a safe public JourneyStopResponse DTO.
@@ -23,15 +22,14 @@ func FromDomainJourneyStop(s domain.JourneyStop) JourneyStopResponse {
 	return JourneyStopResponse{
 		ID:          s.ID,
 		Category:    s.Category,
-		Title:       s.Title,
-		Institution: s.Institution,
-		City:        s.City,
-		Region:      s.Region,
+		Title:       SanitizeStringPtr(s.Title),
+		Institution: SanitizeStringPtr(s.Institution),
+		City:        SanitizeStringPtr(s.City),
+		Region:      SanitizeStringPtr(s.Region),
 		Country:     s.Country,
-		Period:      s.Period,
-		Description: s.Description,
-		Image:       s.Image,
-		Public:      s.Public,
+		Period:      SanitizeStringPtr(s.Period),
+		Description: SanitizeStringPtr(s.Description),
+		Image:       SanitizeImageURL(s.Image),
 	}
 }
 

@@ -17,19 +17,41 @@ type ProfileResponse struct {
 }
 
 // FromDomainProfile maps a domain Profile to a safe public ProfileResponse.
+// Any field backed by unapproved TODO markers or containing invalid schemes is stripped to nil.
 func FromDomainProfile(p *domain.Profile) ProfileResponse {
 	if p == nil {
 		return ProfileResponse{}
 	}
+
+	var positioning *string
+	if !IsTodoBacked(p.TODO, "POSITIONING") {
+		positioning = SanitizeStringPtr(p.Positioning)
+	}
+
+	var bio *string
+	if !IsTodoBacked(p.TODO, "BIO") {
+		bio = SanitizeStringPtr(p.Bio)
+	}
+
+	var currentCity *string
+	if !IsTodoBacked(p.TODO, "CURRENT_CITY") {
+		currentCity = SanitizeStringPtr(p.CurrentCity)
+	}
+
+	var availability *string
+	if !IsTodoBacked(p.TODO, "AVAILABILITY") {
+		availability = SanitizeStringPtr(p.Availability)
+	}
+
 	return ProfileResponse{
 		FullName:     p.FullName,
 		Role:         p.Role,
 		ProjectName:  p.ProjectName,
 		AIFeature:    p.AIFeature,
-		Positioning:  p.Positioning,
-		Bio:          p.Bio,
-		GitHub:       p.GitHub,
-		CurrentCity:  p.CurrentCity,
-		Availability: p.Availability,
+		Positioning:  positioning,
+		Bio:          bio,
+		GitHub:       SanitizeExternalURL(p.GitHub),
+		CurrentCity:  currentCity,
+		Availability: availability,
 	}
 }

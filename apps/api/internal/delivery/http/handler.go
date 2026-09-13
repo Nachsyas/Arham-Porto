@@ -106,6 +106,15 @@ func (h *Handler) ListProjects(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	q := r.URL.Query()
 
+	if len(q["category"]) > 1 {
+		writeError(w, http.StatusBadRequest, "bad_request", "ambiguous repeated 'category' query parameter")
+		return
+	}
+	if len(q["featured"]) > 1 {
+		writeError(w, http.StatusBadRequest, "bad_request", "ambiguous repeated 'featured' query parameter")
+		return
+	}
+
 	var category *string
 	if cat := strings.TrimSpace(q.Get("category")); cat != "" {
 		if !jsonfile.ValidProjectCategory(cat) {
@@ -163,6 +172,11 @@ func (h *Handler) GetProjectBySlug(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListSkills(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	q := r.URL.Query()
+
+	if len(q["category"]) > 1 {
+		writeError(w, http.StatusBadRequest, "bad_request", "ambiguous repeated 'category' query parameter")
+		return
+	}
 
 	var category *string
 	if cat := strings.TrimSpace(q.Get("category")); cat != "" {
@@ -253,8 +267,14 @@ func (h *Handler) ListJourney(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, dto.NewListEnvelope(res), true)
 }
 
+// NotFound handles requests to unregistered routes with a safe JSON error envelope.
+func (h *Handler) NotFound(w http.ResponseWriter, r *http.Request) {
+	writeError(w, http.StatusNotFound, "not_found", "the requested resource was not found")
+}
+
 func writeJSON(w http.ResponseWriter, status int, data any, cacheable bool) {
-	w.Header().Set("Content-Type", "application/json")
+	setSecurityHeaders(w)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if cacheable {
 		w.Header().Set("Cache-Control", "public, max-age=60, stale-while-revalidate=300")
 	} else {
@@ -265,7 +285,8 @@ func writeJSON(w http.ResponseWriter, status int, data any, cacheable bool) {
 }
 
 func writeError(w http.ResponseWriter, status int, code, message string) {
-	w.Header().Set("Content-Type", "application/json")
+	setSecurityHeaders(w)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(dto.NewErrorEnvelope(code, message))
