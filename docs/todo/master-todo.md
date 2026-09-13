@@ -193,5 +193,77 @@
   - Updated `docs/api/http-api.md`.
 - [x] **Stop Rule Enforcement**: Halt execution upon completion; await explicit user approval before Phase 5 (AI Indexing & Retrieval).
 
+---
+
+## Phase 5 Checklist — AI Indexing & Retrieval Foundation (CERTIFIED)
+> **Certified Scope**: Zero-hallucination evidence acquisition, normalization, chunking, and internal retrieval system. Completely removed deprecated `text-embedding-004`; provider-agnostic embedding abstraction with explicit `Purpose` (`document` vs `query`), verified dimension contract (768 dimensions), and Gemini default model `gemini-embedding-2`. Atomic repository snapshot replacement in PostgreSQL transactions, exact nearest-neighbor search (`<=>` cosine distance) without premature HNSW/ANN, strict model identity filtering, defense-in-depth secret and binary exclusion, read-only network `--dry-run` and offline `--plan-only` modes operating without PostgreSQL, canonical portfolio knowledge adapter with explicit provenance and relational link preservation (`project_id`, `skill_ids`, `evidence_id`), immutable citation generation, and zero public retrieval routes or generative chat features.
+
+- [x] **Database Migrations (`apps/api/migrations/`)**:
+  - `000002_knowledge_index.up.sql`: Created `knowledge_sources` and `knowledge_chunks` with `embedding vector NULL`, `embedding_provider`, `embedding_model`, `embedding_dimensions`, `project_id`, `skill_ids`, `evidence_id`, and exact model filter indexes. Zero HNSW/IVFFlat indexes created (exact cosine search first).
+  - `000002_knowledge_index.down.sql`: Cascading clean rollback.
+- [x] **Pure Go Domain Layer (`apps/api/internal/domain/knowledge.go`)**:
+  - Standard library only (`context`, `time`).
+  - Entities: `KnowledgeSource`, `KnowledgeChunk`, `SourceWithChunks`, `RetrievalResult`, `AICitation`, `RepositoryIndexStatus`.
+  - Interface: `KnowledgeRepository` with `ReplaceRepositorySnapshot`, `SearchSimilar`, `DeleteRepositorySources`, `GetIndexStatus`.
+- [x] **Canonical Allowlist & Manifests (`apps/api/internal/indexing/`)**:
+  - `allowlist.go`: Loads canonical `data/ai/allowlist.json`. Authoritative and strictly read-only (zero runtime mutation).
+  - `manifest.go`: Defined verified source manifests for all 5 allowlisted repositories (`Nachsyas/EduTrace`, `gdgoc-ecommerce`, `maritime-ai-dashboard`, `smart-kitchen-backend`, `smart-kitchen-frontend`).
+  - Defense-in-depth secret exclusion (`.env`, `*.key`, `*.pem`, lockfiles, node_modules, etc.) and binary rejection (`MaxSourceFileBytes = 256 KiB`, NUL bytes, UTF-8 validity).
+- [x] **Text Normalization & Chunking (`apps/api/internal/indexing/`)**:
+  - `normalizer.go`: Global line ending normalization; trims trailing whitespace and collapses excessive blank lines outside code blocks; strictly preserves fenced code blocks verbatim.
+  - `chunker.go`: Heading-aware Markdown chunking and bounded window code chunking; prepends deterministic context header (`Repository`, `Path`, `Section`); generates stable SHA-256 chunk IDs.
+  - `checksum.go`: SHA-256 hex utilities and deterministic ID generators.
+- [x] **Canonical Knowledge Source Adapter (`apps/api/internal/indexing/canonical_source.go`)**:
+  - Adapts `profile`, `projects`, `skills`, `evidence`, and public `journey` stops.
+  - Strict privacy minimization: zero coordinates, zero TODOs, zero private contact details.
+  - Explicit provenance (`canonical_profile`, `canonical_project`, `canonical_skill`, `canonical_evidence`, `canonical_journey`).
+  - Preserves relational identifiers (`project_id`, `skill_ids`, `evidence_id`).
+- [x] **Hardened Standard Library GitHub Client (`apps/api/internal/github/`)**:
+  - Standard library `net/http` client with 15s timeout.
+  - Base URL pinned to `https://api.github.com` in production; test constructor accepts `httptest.Server`.
+  - Redirect safety: allowlist check against GitHub hosts (`api.github.com`, `raw.githubusercontent.com`, `github.com`).
+  - Commit SHA validation: strictly enforces 40 hex characters.
+  - Bounded responses (256 KiB), binary detection, secret exclusion, 403/429 rate limit detection.
+  - Immutable citation URL generator: `https://github.com/<owner>/<repo>/blob/<sha>/<path>`.
+- [x] **Embedding Abstraction & Gemini Provider (`apps/api/internal/embedding/`)**:
+  - `provider.go`: Explicit `Purpose` contract (`PurposeDocument`, `PurposeQuery`) and `ValidateVector` (768 dimensions, rejects NaN/Inf).
+  - `disabled.go`: `DisabledProvider` for `EMBEDDING_MODE=disabled`.
+  - `fake.go`: `DeterministicFakeProvider` generating unit-normalized vectors for CI structural testing.
+  - `gemini/client.go`: Standard library HTTP client for `gemini-embedding-2` with explicit 768 dimensions, Purpose translation (`RETRIEVAL_DOCUMENT` vs `RETRIEVAL_QUERY`), $N \rightarrow N$ batch validation, and API key header authentication (never logged).
+- [x] **PostgreSQL pgvector Repository (`apps/api/internal/repository/postgres/knowledge_repo.go`)**:
+  - `ReplaceRepositorySnapshot`: Atomic single-transaction snapshot replacement (delete superseded state + insert new sources & chunks). Rollback on any failure preserves previous healthy state.
+  - `SearchSimilar`: Exact nearest-neighbor cosine distance (`<=>`) with strict model identity filtering (`embedding_provider = $2 AND embedding_model = $3 AND embedding_dimensions = $4`).
+  - Score semantics: `Distance` (`<=>`) and `Similarity` (`1.0 - Distance`). Bounded limit (default 5, max 20).
+  - `DeleteRepositorySources`: Purges stored index state for a repository even if revoked from the allowlist.
+  - `GetIndexStatus`: Distinguishes `vector_ready` vs `metadata_only`.
+- [x] **Indexer CLI & Services (`apps/api/cmd/indexer/`, `internal/indexing/`, `internal/retrieval/`)**:
+  - Indexer CLI supporting `--all-approved`, `--repo`, `--dry-run`, `--plan-only`, `--status`, `--delete-repo`.
+  - Mutually incompatible flag validations and non-zero exit codes on failure.
+  - `--plan-only`: Fully offline mode (0 network, 0 DB).
+  - `--dry-run`: Read-only network mode (0 embedding calls, 0 DB writes, does not require PostgreSQL).
+  - Internal retrieval service (`internal/retrieval/service.go`) with query embedding and model identity filtering.
+  - Strictly zero public retrieval routes (`/api/v1/search`, `/api/v1/ai`) and zero generative LLM operations.
+- [x] **Testing & Validation Gates**:
+  - `apps/api/internal/indexing/normalizer_test.go`: Verbatim fenced code preservation, blank line collapsing.
+  - `apps/api/internal/indexing/chunker_test.go`: Markdown heading segmentation, code windowing, context prepending.
+  - `apps/api/internal/indexing/canonical_source_test.go`: Public canonical extraction, zero coordinates, zero TODOs.
+  - `apps/api/internal/indexing/service_test.go`: Repository snapshot atomicity, idempotency, transaction failure rollback, atomic commit replacement, deletion.
+  - `apps/api/internal/github/client_test.go`: 11 test cases covering SHA resolution, 404, rate limit, timeout, oversized, malformed SHA, path traversal, secret exclusion, binary rejection, unauthorized redirect.
+  - `apps/api/internal/embedding/provider_test.go`: Vector dimension validation (768, NaN, Inf, short, long) and fake provider determinism.
+  - `apps/api/internal/embedding/gemini/client_test.go`: Batch $N \rightarrow N$ semantics, purpose translation, dimensions.
+  - `apps/api/internal/retrieval/service_test.go`: Model identity filtering, purpose query invocation, empty query rejection.
+  - `go test -count=1 -race ./...`: 100% PASS (0 data races).
+  - `go vet ./...`: 100% PASS (0 warnings).
+  - `npm run validate:data`: 100% PASS (8/8 schemas).
+  - `npm run test --workspace=apps/web`: 100% PASS (39/39 tests).
+  - `docker compose config`: 100% PASS.
+  - Live dry-run verified: 5 repositories, 17 files selected, 85 chunks formed, 40,694 bytes, 0 DB mutations, 0 embedding calls.
+- [x] **Documentation**:
+  - `docs/ai/indexing-pipeline.md`: Architecture, untrusted external boundary, canonical adapter, dry-run, atomic snapshots.
+  - `docs/ai/retrieval-architecture.md`: Model identity vector space segregation, explicit purpose contract, 768 dimensions, exact search first, citations, Phase 6 boundary.
+  - `docs/ai/retrieval-evals.md`: Groundedness benchmark, positive/negative queries, honest reporting separation (structural vs real).
+- [x] **Stop Rule Enforcement**: Halt execution upon Phase 5 certification; await explicit user approval before Phase 6 (Ask Arham AI).
+
+
 
 

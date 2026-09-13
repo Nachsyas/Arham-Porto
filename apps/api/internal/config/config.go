@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -19,9 +20,15 @@ type Config struct {
 	AppEnv           string
 	Port             string
 	AllowedOrigins   []string
-	DatabaseURL      string
-	DatabaseMode     string // disabled, optional, required
-	PortfolioDataDir string
+	DatabaseURL         string
+	DatabaseMode        string // disabled, optional, required
+	PortfolioDataDir    string
+	GitHubToken         string
+	EmbeddingMode       string // disabled, enabled
+	EmbeddingProvider   string // gemini, fake, disabled
+	EmbeddingModel      string
+	EmbeddingDimensions int
+	GeminiAPIKey        string
 }
 
 // Load loads environment variables with safe development fallbacks.
@@ -72,14 +79,41 @@ func Load() *Config {
 	}
 
 	dataDir := os.Getenv("PORTFOLIO_DATA_DIR")
+	githubToken := os.Getenv("GITHUB_TOKEN")
+
+	embeddingMode := strings.ToLower(strings.TrimSpace(os.Getenv("EMBEDDING_MODE")))
+	if embeddingMode == "" {
+		embeddingMode = "disabled"
+	}
+
+	embeddingProvider := strings.ToLower(strings.TrimSpace(os.Getenv("EMBEDDING_PROVIDER")))
+	embeddingModel := strings.TrimSpace(os.Getenv("EMBEDDING_MODEL"))
+	if embeddingModel == "" {
+		embeddingModel = "gemini-embedding-2"
+	}
+
+	embeddingDimensions := 768
+	if dimsStr := os.Getenv("EMBEDDING_DIMENSIONS"); dimsStr != "" {
+		if d, err := strconv.Atoi(dimsStr); err == nil && d > 0 {
+			embeddingDimensions = d
+		}
+	}
+
+	geminiAPIKey := os.Getenv("GEMINI_API_KEY")
 
 	return &Config{
-		AppEnv:           appEnv,
-		Port:             port,
-		AllowedOrigins:   allowedOrigins,
-		DatabaseURL:      dbURL,
-		DatabaseMode:     dbMode,
-		PortfolioDataDir: dataDir,
+		AppEnv:              appEnv,
+		Port:                port,
+		AllowedOrigins:      allowedOrigins,
+		DatabaseURL:         dbURL,
+		DatabaseMode:        dbMode,
+		PortfolioDataDir:    dataDir,
+		GitHubToken:         githubToken,
+		EmbeddingMode:       embeddingMode,
+		EmbeddingProvider:   embeddingProvider,
+		EmbeddingModel:      embeddingModel,
+		EmbeddingDimensions: embeddingDimensions,
+		GeminiAPIKey:        geminiAPIKey,
 	}
 }
 

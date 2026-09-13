@@ -140,3 +140,10 @@ func (c *Client) Close() {
 	}
 }
 
+// Pool returns the underlying pgxpool.Pool (or nil if not connected).
+func (c *Client) Pool() *pgxpool.Pool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.pool
+}
+
