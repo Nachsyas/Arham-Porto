@@ -8,7 +8,7 @@ import (
 
 // EvidenceUseCase specifies operations for accessing evidence data.
 type EvidenceUseCase interface {
-	ListEvidence(ctx context.Context) ([]domain.Evidence, error)
+	ListEvidence(ctx context.Context, skillID *string, projectID *string) ([]domain.Evidence, error)
 	GetEvidenceByID(ctx context.Context, id string) (*domain.Evidence, error)
 }
 
@@ -21,11 +21,11 @@ func NewEvidenceUseCase(repo domain.EvidenceRepository) EvidenceUseCase {
 	return &evidenceUseCase{repo: repo}
 }
 
-func (u *evidenceUseCase) ListEvidence(ctx context.Context) ([]domain.Evidence, error) {
+func (u *evidenceUseCase) ListEvidence(ctx context.Context, skillID *string, projectID *string) ([]domain.Evidence, error) {
 	if u.repo == nil {
 		return []domain.Evidence{}, nil
 	}
-	return u.repo.ListEvidence(ctx)
+	return u.repo.ListEvidence(ctx, skillID, projectID)
 }
 
 func (u *evidenceUseCase) GetEvidenceByID(ctx context.Context, id string) (*domain.Evidence, error) {
@@ -34,3 +34,4 @@ func (u *evidenceUseCase) GetEvidenceByID(ctx context.Context, id string) (*doma
 	}
 	return u.repo.GetEvidenceByID(ctx, id)
 }
+

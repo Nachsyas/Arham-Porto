@@ -31,3 +31,4 @@ func (u *profileUseCase) GetProfile(ctx context.Context) (*domain.Profile, error
 	}
 	return u.repo.GetProfile(ctx)
 }
+

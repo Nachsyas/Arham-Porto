@@ -4,21 +4,39 @@ import (
 	"net/http"
 )
 
-// NewRouter registers HTTP routes using Go 1.22+ standard library net/http.
-func NewRouter(h *Handler, allowedOrigin string) http.Handler {
+// NewRouter registers HTTP routes using Go standard library net/http.ServeMux and wires the middleware stack.
+func NewRouter(h *Handler, allowedOrigins []string, rl *RateLimiter) http.Handler {
 	mux := http.NewServeMux()
 
-	// Health and readiness probes
+	// Probes
 	mux.HandleFunc("GET /healthz", h.Healthz)
 	mux.HandleFunc("GET /readyz", h.Readyz)
 
-	// API v1 endpoints (Phase 0 skeleton)
+	// API v1 Endpoints
 	mux.HandleFunc("GET /api/v1/profile", h.GetProfile)
+	mux.HandleFunc("GET /api/v1/projects", h.ListProjects)
+	mux.HandleFunc("GET /api/v1/projects/{slug}", h.GetProjectBySlug)
+	mux.HandleFunc("GET /api/v1/skills", h.ListSkills)
+	mux.HandleFunc("GET /api/v1/evidence", h.ListEvidence)
+	mux.HandleFunc("GET /api/v1/evidence/{id}", h.GetEvidenceByID)
+	mux.HandleFunc("GET /api/v1/journey", h.ListJourney)
 
-	// Apply middleware stack
-	handler := RecoveryMiddleware(mux)
-	handler = CORSMiddleware(allowedOrigin)(handler)
+	// Middleware composition (outer -> inner)
+	// 1. Recovery
+	// 2. Logger
+	// 3. SecurityHeaders
+	// 4. CORS
+	// 5. RateLimiter
+	var handler http.Handler = mux
+
+	if rl != nil {
+		handler = RateLimiterMiddleware(rl)(handler)
+	}
+
+	handler = CORSMiddleware(allowedOrigins)(handler)
+	handler = SecurityHeadersMiddleware(handler)
 	handler = LoggerMiddleware(handler)
+	handler = RecoveryMiddleware(handler)
 
 	return handler
 }

@@ -9,11 +9,12 @@ type Skill struct {
 	Name        string   `json:"name"`
 	Category    string   `json:"category"`
 	Claim       *string  `json:"claim,omitempty"`
-	EvidenceIDs []string `json:"evidence_ids"`
+	EvidenceIDs []string `json:"evidenceIds"`
 	TODO        []string `json:"todo,omitempty"`
 }
 
 // SkillRepository defines storage access for skills.
 type SkillRepository interface {
-	ListSkills(ctx context.Context) ([]Skill, error)
+	ListSkills(ctx context.Context, category *string) ([]Skill, error)
 }
+

@@ -12,7 +12,7 @@
 | **Phase 1** | **Reviewer-First Static Portfolio** | **CERTIFIED — Reviewer-First Portfolio** |
 | **Phase 2** | **Hero Visual: Authentic Portrait** | **CERTIFIED — Authentic Portrait Hero** *(3D Hologram: CANCELLED / SUPERSEDED)* |
 | **Phase 3** | **Journey Map** | **RECERTIFIED — Interactive Journey Map (Expanded 7 Milestones)** |
-| **Phase 4** | **Go Backend** | NOT STARTED |
+| **Phase 4** | **Go Backend** | **CERTIFIED — Clean Architecture REST API** |
 | **Phase 5** | **AI Indexing & Retrieval** | NOT STARTED |
 | **Phase 6** | **AI Reviewer Copilot** | NOT STARTED |
 | **Phase 7** | **Integration & Polish** | NOT STARTED |
@@ -133,5 +133,61 @@
   - Captured 7 desktop (1440px) and 3 mobile (390px) screenshots to `docs/screenshots/phase3/`.
   - Updated design documentation: `docs/design/journey-map.md`.
   - Phase 3 RECERTIFIED. Awaiting explicit user approval before starting Phase 4 (Go Backend).
+
+---
+
+## Phase 4 Checklist — Go Backend (CERTIFIED)
+> **Certified Scope**: Production-ready Go Clean Architecture REST API (`apps/api`), Go 1.22+ standard library `net/http.ServeMux` routing, pure Go standard library domain entities, public transport DTO isolation boundary, in-memory indexed canonical JSON repository with fail-fast startup invariant checks, `jackc/pgx/v5` connection pool client, explicit `DATABASE_MODE=disabled|optional|required`, readiness semantics, hardened middleware pipeline (Recovery, Logger, SecurityHeaders, CORS, RateLimiter), and 100% passing concurrency-safe race test suite.
+
+- [x] **Pure Go Domain Layer (`apps/api/internal/domain/`)**:
+  - Zero external dependencies: `context`, `errors`, `time` only.
+  - Canonical entities: `Profile`, `Project`, `Skill`, `Evidence`, `JourneyStop`.
+  - Defined storage contracts: `ProfileRepository`, `ProjectRepository`, `SkillRepository`, `EvidenceRepository`, `JourneyRepository`.
+  - Maintained canonical Journey categories (`birthplace`, `residence`, `tk`, `sd`, `smp`, `sma`, `university`, `current`).
+- [x] **Public Transport DTO Boundary (`apps/api/internal/delivery/http/dto/`)**:
+  - Strict isolation: domain entities are never serialized directly to HTTP.
+  - Safe DTOs: `ProfileResponse`, `ProjectResponse`, `SkillResponse`, `EvidenceResponse`, `JourneyStopResponse`.
+  - Standard response envelopes: `DataEnvelope[T]` and `ListEnvelope[T]` with `Meta.Count`.
+  - Standard error envelope: `ErrorEnvelope` with `code` (`bad_request`, `not_found`, `rate_limited`, `internal_error`, `service_unavailable`) and `message`.
+  - **Privacy Guard**:
+    - `ProfileResponse`: Strips all internal `TODO` arrays, private contact fields, unpublished bio notes.
+    - `JourneyStopResponse`: Strictly strips raw `coordinates`, `todo`, and private metadata; `journey-tk` excluded.
+- [x] **Canonical JSON Repository (`apps/api/internal/repository/jsonfile/`)**:
+  - Configurable deterministic data path (`PORTFOLIO_DATA_DIR` with auto-resolution).
+  - Load once at startup, build immutable thread-safe in-memory indexes (slug, ID, category, public).
+  - Fail-fast validation of invariants (duplicate project slug/ID, duplicate skill ID, duplicate evidence ID, invalid category).
+  - Zero disk I/O on active HTTP requests.
+- [x] **PostgreSQL Client & Database Modes (`apps/api/internal/repository/postgres/`)**:
+  - Connection pooling using `jackc/pgx/v5/pgxpool`.
+  - Explicit operating mode: `DATABASE_MODE=disabled|optional|required`.
+  - Readiness semantics:
+    - `disabled`: HTTP 200 `{"status":"ready","database":"disabled"}`
+    - `optional + connected`: HTTP 200 `{"status":"ready","database":"connected"}`
+    - `optional + degraded`: HTTP 200 `{"status":"ready","database":"degraded"}`
+    - `required + unavailable`: HTTP 503 `{"status":"not_ready","database":"unavailable"}`
+- [x] **Hardened HTTP Delivery & Middleware (`apps/api/internal/delivery/http/`)**:
+  - Standard Go 1.22+ `net/http.ServeMux` with pattern matching (`GET /api/v1/projects/{slug}`).
+  - Strict query & path validation: invalid category or boolean parameter returns HTTP 400 `bad_request`.
+  - Cache policy: `Cache-Control: public, max-age=60, stale-while-revalidate=300` on public portfolio GETs; `no-store` on probes and errors.
+  - Middleware order: `Recovery` $\rightarrow$ `Logger` $\rightarrow$ `SecurityHeaders` $\rightarrow$ `CORS` $\rightarrow$ `RateLimiter` $\rightarrow$ `Router`.
+  - `Recovery`: Catches panics, logs server-side diagnostics, returns generic 500 JSON without stack trace leaks.
+  - `SecurityHeaders`: `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'`, `X-Frame-Options: DENY` (no deprecated `X-XSS-Protection`).
+  - `CORS`: Origin checking against `ALLOWED_ORIGINS`, `Vary: Origin`, OPTIONS 204.
+  - `RateLimiter`: In-memory token bucket / sliding window with TTL cleanup; `/healthz` and `/readyz` strictly bypass throttling.
+- [x] **Testing & Quality Gates**:
+  - `apps/api/tests/health_test.go`: Probes across all database modes.
+  - `apps/api/tests/repository_test.go`: Canonical JSON loading, invariant enforcement, duplicate slug rejection, filtering.
+  - `apps/api/tests/endpoints_test.go`: All 9 endpoints, filtering, 400/404 handling, CORS, security headers, rate limiting, panic recovery, privacy leakage audit (0 `TODO_` tokens).
+  - `go test -v -race ./...`: 100% PASS (0 data races).
+  - `go vet ./...`: 100% PASS (0 warnings).
+  - `npm run validate:data`: 100% PASS (8/8 schemas).
+  - `npm run test --workspace=apps/web`: 100% PASS (39/39 tests).
+  - `docker compose config`: 100% PASS.
+  - Manual `curl` audit verifying all endpoints and status codes (200, 204, 400, 404, 429, 500).
+- [x] **Documentation**:
+  - Updated `docs/architecture/backend-clean-architecture.md`.
+  - Created `docs/api/http-api.md`.
+- [x] **Stop Rule Enforcement**: Halt execution upon completion; await explicit user approval before Phase 5 (AI Indexing & Retrieval).
+
 
 

@@ -13,17 +13,18 @@ type Project struct {
 	Role          []string `json:"role"`
 	Contributions []string `json:"contributions"`
 	Technologies  []string `json:"technologies"`
-	GitHubURL     *string  `json:"github_url,omitempty"`
-	DemoURL       *string  `json:"demo_url,omitempty"`
+	GitHubURL     *string  `json:"githubUrl,omitempty"`
+	DemoURL       *string  `json:"demoUrl,omitempty"`
 	Image         *string  `json:"image,omitempty"`
 	Featured      bool     `json:"featured"`
 	Category      *string  `json:"category,omitempty"`
-	EvidenceIDs   []string `json:"evidence_ids"`
+	EvidenceIDs   []string `json:"evidenceIds"`
 	TODO          []string `json:"todo,omitempty"`
 }
 
 // ProjectRepository defines storage access for projects.
 type ProjectRepository interface {
-	ListProjects(ctx context.Context) ([]Project, error)
+	ListProjects(ctx context.Context, category *string, featured *bool) ([]Project, error)
 	GetProjectBySlug(ctx context.Context, slug string) (*Project, error)
 }
+

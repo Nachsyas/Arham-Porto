@@ -8,7 +8,7 @@ import (
 
 // ProjectUseCase specifies operations for accessing project data.
 type ProjectUseCase interface {
-	ListProjects(ctx context.Context) ([]domain.Project, error)
+	ListProjects(ctx context.Context, category *string, featured *bool) ([]domain.Project, error)
 	GetProjectBySlug(ctx context.Context, slug string) (*domain.Project, error)
 }
 
@@ -21,11 +21,11 @@ func NewProjectUseCase(repo domain.ProjectRepository) ProjectUseCase {
 	return &projectUseCase{repo: repo}
 }
 
-func (u *projectUseCase) ListProjects(ctx context.Context) ([]domain.Project, error) {
+func (u *projectUseCase) ListProjects(ctx context.Context, category *string, featured *bool) ([]domain.Project, error) {
 	if u.repo == nil {
 		return []domain.Project{}, nil
 	}
-	return u.repo.ListProjects(ctx)
+	return u.repo.ListProjects(ctx, category, featured)
 }
 
 func (u *projectUseCase) GetProjectBySlug(ctx context.Context, slug string) (*domain.Project, error) {
@@ -34,3 +34,4 @@ func (u *projectUseCase) GetProjectBySlug(ctx context.Context, slug string) (*do
 	}
 	return u.repo.GetProjectBySlug(ctx, slug)
 }
+

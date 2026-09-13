@@ -3,6 +3,7 @@ package domain
 import "context"
 
 // JourneyStop represents an educational or geographical checkpoint.
+// Categories match canonical schema: birthplace, residence, tk, sd, smp, sma, university, current.
 type JourneyStop struct {
 	ID          string    `json:"id"`
 	Category    string    `json:"category"`
@@ -21,5 +22,6 @@ type JourneyStop struct {
 
 // JourneyRepository defines storage access for journey stops.
 type JourneyRepository interface {
-	ListStops(ctx context.Context) ([]JourneyStop, error)
+	ListStops(ctx context.Context, publicOnly bool) ([]JourneyStop, error)
 }
+
