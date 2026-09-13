@@ -77,7 +77,7 @@ describe("Phase 2: 3D Wireframe Hologram Feature", () => {
     render(<HologramFallback reason="WebGL unsupported" />);
 
     const fallbackContainer = screen.getByRole("img", {
-      name: /static 3d wireframe fallback representation/i,
+      name: /static 3d seated wireframe fallback placeholder/i,
     });
     expect(fallbackContainer).toBeDefined();
     expect(screen.getByText("SYSTEM ARCHITECTURE")).toBeDefined();
@@ -89,7 +89,7 @@ describe("Phase 2: 3D Wireframe Hologram Feature", () => {
 
     // In jsdom without WebGL, HologramStage safely renders the fallback
     const stageOrFallback = await screen.findByRole("img", {
-      name: /static 3d wireframe fallback/i,
+      name: /static 3d seated wireframe fallback/i,
     });
     expect(stageOrFallback).toBeDefined();
   });

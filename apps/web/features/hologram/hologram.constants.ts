@@ -39,6 +39,9 @@ export const HOLOGRAM_CONSTANTS = {
   ASSETS: {
     PRODUCTION_MODEL: "/models/arham-wireframe.glb",
     STATUS_FLAG: "TODO_USER_3D_MODEL",
+    // Explicit model mode: "procedural" (default) or "gltf"
+    // Controlled by NEXT_PUBLIC_HOLOGRAM_MODEL_MODE or default procedural mesh
+    MODEL_MODE: (process.env.NEXT_PUBLIC_HOLOGRAM_MODEL_MODE === "gltf" ? "gltf" : "procedural") as "procedural" | "gltf",
   },
 } as const;
 

@@ -109,13 +109,13 @@ export default function HologramStage({
       <div
         className="relative w-full max-w-md aspect-square rounded-2xl border border-border bg-gradient-to-b from-surfaceElevated/60 to-surface/40 flex flex-col items-center justify-center shadow-2xl overflow-hidden group"
         role="region"
-        aria-label="Decorative 3D wireframe representation of the portfolio owner"
+        aria-label="Decorative 3D seated wireframe avatar used as a portfolio visual."
       >
         {/* Technical Viewport Coordinate Markers */}
         <span className="absolute top-3 left-3 text-[10px] font-code text-primary/50 pointer-events-none z-10">┌ SYS:MATRIX</span>
         <span className="absolute top-3 right-3 text-[10px] font-code text-primary/50 pointer-events-none z-10">NODE:AP-01 ┐</span>
-        <span className="absolute bottom-10 left-3 text-[10px] font-code text-themeText-mutedSoft pointer-events-none z-10">└ LAT: -7.25</span>
-        <span className="absolute bottom-10 right-3 text-[10px] font-code text-themeText-mutedSoft pointer-events-none z-10">LON: 112.75 ┘</span>
+        <span className="absolute bottom-10 left-3 text-[10px] font-code text-themeText-mutedSoft pointer-events-none z-10">└ SYS:3D_STAGE</span>
+        <span className="absolute bottom-10 right-3 text-[10px] font-code text-themeText-mutedSoft pointer-events-none z-10">SCALE:1.0 ┘</span>
 
         {/* 3D WebGL Canvas Viewport */}
         <div className="relative w-full h-full flex-1">

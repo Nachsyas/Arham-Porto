@@ -13,7 +13,7 @@ interface HologramModelProps {
 
 /**
  * Procedural Seated Human Wireframe Mesh.
- * Used as the canonical development 3D model until production scan (arham-wireframe.glb) is provided.
+ * Used as the canonical procedural development mesh until production asset (arham-wireframe.glb) is provided.
  * Represents a seated engineer posture: head, shoulders, torso, forward thighs, downward shins, arms resting forward.
  */
 export function SeatedDevelopmentMesh({ isAIActive = false, intensity = 1 }: { isAIActive?: boolean; intensity?: number }) {
@@ -160,16 +160,70 @@ export function SeatedDevelopmentMesh({ isAIActive = false, intensity = 1 }: { i
   );
 }
 
+interface GLTFErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback: React.ReactNode;
+}
+
+interface GLTFErrorBoundaryState {
+  hasError: boolean;
+}
+
+class GLTFErrorBoundary extends React.Component<GLTFErrorBoundaryProps, GLTFErrorBoundaryState> {
+  constructor(props: GLTFErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): GLTFErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[GLTFErrorBoundary] GLTF asset failed to load, falling back to procedural mesh:", error.message);
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
+
 /**
  * Production GLB Model Component.
- * Dynamically mounts when /models/arham-wireframe.glb is provided by user.
+ * Dynamically mounts when NEXT_PUBLIC_HOLOGRAM_MODEL_MODE=gltf is configured
+ * and the user drops /models/arham-wireframe.glb.
  */
 function ProductionGLBModel({ url, isAIActive = false }: { url: string; isAIActive?: boolean }) {
   const { scene } = useGLTF(url);
 
-  // Apply wireframe shader / material to loaded GLB meshes
-  useMemo(() => {
-    scene.traverse((child) => {
+  // Normalize scale, center geometry, and apply canonical wireframe materials
+  const normalizedScene = useMemo(() => {
+    const clone = scene.clone(true);
+    const box = new THREE.Box3().setFromObject(clone);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+
+    // Center X & Z, offset Y so bottom aligns with the platform plinth
+    clone.position.x = -center.x;
+    clone.position.z = -center.z;
+    clone.position.y = -box.min.y - 0.75;
+
+    // Normalize scale so height matches canonical viewport (~1.4 units)
+    const maxDim = Math.max(size.x, size.y, size.z);
+    if (maxDim > 0) {
+      const scaleFactor = 1.4 / maxDim;
+      clone.scale.setScalar(scaleFactor);
+    }
+
+    // Material replacement: wireframe mode
+    clone.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
         mesh.material = new THREE.MeshBasicMaterial({
@@ -180,15 +234,18 @@ function ProductionGLBModel({ url, isAIActive = false }: { url: string; isAIActi
         });
       }
     });
+
+    return clone;
   }, [scene, isAIActive]);
 
-  return <primitive object={scene} />;
+  return <primitive object={normalizedScene} />;
 }
 
 /**
  * HologramModel Boundary:
- * Automatically serves production GLB if available, otherwise renders the high-fidelity
- * procedural seated development wireframe mesh.
+ * Controlled explicitly by HOLOGRAM_CONSTANTS.ASSETS.MODEL_MODE ("procedural" | "gltf").
+ * Default is "procedural" to eliminate speculative 404 network requests in production.
+ * If set to "gltf", wraps production GLB in a resilient error boundary with procedural fallback.
  */
 export default function HologramModel({
   mode = "idle",
@@ -197,10 +254,18 @@ export default function HologramModel({
 }: HologramModelProps) {
   const isAI = isAIActive || mode === "active";
 
-  // Production model path from constants
-  const modelUrl = HOLOGRAM_CONSTANTS.ASSETS.PRODUCTION_MODEL;
+  if (HOLOGRAM_CONSTANTS.ASSETS.MODEL_MODE === "gltf") {
+    return (
+      <GLTFErrorBoundary fallback={<SeatedDevelopmentMesh isAIActive={isAI} intensity={intensity} />}>
+        <React.Suspense fallback={<SeatedDevelopmentMesh isAIActive={isAI} intensity={intensity} />}>
+          <ProductionGLBModel
+            url={HOLOGRAM_CONSTANTS.ASSETS.PRODUCTION_MODEL}
+            isAIActive={isAI}
+          />
+        </React.Suspense>
+      </GLTFErrorBoundary>
+    );
+  }
 
-  // We default to the procedural seated wireframe until user drops the GLB
-  // This satisfies the Critical Truthfulness Rule and guarantees zero broken textures
   return <SeatedDevelopmentMesh isAIActive={isAI} intensity={intensity} />;
 }

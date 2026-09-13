@@ -12,7 +12,7 @@ export default function HologramFallback({ reason }: HologramFallbackProps) {
     <div
       className="relative w-full h-full min-h-[380px] max-w-md aspect-square rounded-2xl border border-border bg-gradient-to-b from-surfaceElevated/60 to-surface/40 p-6 flex flex-col items-center justify-center shadow-2xl overflow-hidden"
       role="img"
-      aria-label="Static 3D wireframe fallback representation of the portfolio owner"
+      aria-label="Static 3D seated wireframe fallback placeholder used as a portfolio visual."
     >
       {/* Technical Viewport Coordinate Markers */}
       <span className="absolute top-3 left-3 text-[10px] font-code text-primary/50">┌ SYS:STATIC</span>

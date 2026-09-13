@@ -33,11 +33,14 @@ export function useHologramScroll(): HologramScrollState {
     checkMobile();
     window.addEventListener("resize", checkMobile);
 
-    // Track scroll
+    // Track scroll within Hero / early overview scope only
     const handleScroll = () => {
+      const heroEl = document.getElementById("overview");
+      const heroHeight = heroEl ? heroEl.offsetHeight : Math.max(window.innerHeight * 0.8, 600);
       const scrollY = window.scrollY;
-      const heroHeight = Math.max(window.innerHeight * 0.8, 600);
-      // Normalized progress [0, 1] across Hero view
+
+      // Normalized progress [0, 1] strictly bounded to Hero viewport
+      // Once Hero leaves the viewport, rotation completely stabilizes and does not rotate offscreen
       const progress = Math.min(Math.max(scrollY / heroHeight, 0), 1);
       setScrollProgress(progress);
     };

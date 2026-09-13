@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { ArrowDown, Sparkles } from "lucide-react";
 import { GithubIcon } from "@/components/icons/GithubIcon";
-import { HologramStage } from "@/features/hologram";
+import HologramStage from "@/features/hologram/HologramStage";
 import type { Profile } from "arham-porto-schema";
 
 interface HeroSectionProps {
