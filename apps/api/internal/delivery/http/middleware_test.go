@@ -81,6 +81,40 @@ func TestResolveClientIP(t *testing.T) {
 			},
 			expectedIP: "10.0.0.4",
 		},
+		{
+			name:           "cloudrun mode extracts rightmost valid IP when X-Forwarded-For contains spoofed chain",
+			trustProxyMode: "cloudrun",
+			remoteAddr:     "169.254.1.1:8080",
+			headers: map[string]string{
+				"X-Forwarded-For": "203.0.113.1, 198.51.100.25",
+			},
+			expectedIP: "198.51.100.25",
+		},
+		{
+			name:           "cloudrun mode skips link-local or loopback IP at end of chain",
+			trustProxyMode: "cloudrun",
+			remoteAddr:     "10.0.0.5:8080",
+			headers: map[string]string{
+				"X-Forwarded-For": "203.0.113.55, 127.0.0.1",
+			},
+			expectedIP: "203.0.113.55",
+		},
+		{
+			name:           "cloudrun mode falls back to RemoteAddr if X-Forwarded-For is empty",
+			trustProxyMode: "cloudrun",
+			remoteAddr:     "192.168.1.100:12345",
+			headers:        map[string]string{},
+			expectedIP:     "192.168.1.100",
+		},
+		{
+			name:           "cloudrun mode falls back to RemoteAddr if X-Forwarded-For has only malformed entries",
+			trustProxyMode: "cloudrun",
+			remoteAddr:     "192.168.1.101:12345",
+			headers: map[string]string{
+				"X-Forwarded-For": "not-an-ip, still-not-ip",
+			},
+			expectedIP: "192.168.1.101",
+		},
 	}
 
 	for _, tc := range testCases {

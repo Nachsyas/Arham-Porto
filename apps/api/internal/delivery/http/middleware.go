@@ -28,10 +28,27 @@ func ExtractClientIP(remoteAddr string) string {
 // ResolveClientIP extracts the client IP address based on the configured trust proxy mode (Gate #15).
 // In direct mode (default), it strictly extracts the normalized host from RemoteAddr,
 // ignoring spoofable headers like X-Forwarded-For and X-Real-IP.
+// In cloudrun mode, Google Front End (GFE) appends the client IP to X-Forwarded-For before forwarding
+// to the Cloud Run container. To protect against spoofing from attacker-supplied initial X-Forwarded-For values,
+// it parses the rightmost valid non-internal IP from X-Forwarded-For, safely falling back to RemoteAddr.
 // In railway mode, it extracts the Railway edge-provided X-Real-IP header, validates that it
 // is a syntactically valid IP address (IPv4 or IPv6), and safely falls back to RemoteAddr if missing or malformed.
 func ResolveClientIP(r *http.Request, trustProxyMode string) string {
-	if trustProxyMode == "railway" {
+	switch trustProxyMode {
+	case "cloudrun":
+		xff := r.Header.Get("X-Forwarded-For")
+		if xff != "" {
+			parts := strings.Split(xff, ",")
+			for i := len(parts) - 1; i >= 0; i-- {
+				candidate := strings.TrimSpace(parts[i])
+				if ip := net.ParseIP(candidate); ip != nil {
+					if !ip.IsLoopback() && !ip.IsLinkLocalUnicast() && !ip.IsUnspecified() {
+						return candidate
+					}
+				}
+			}
+		}
+	case "railway":
 		xRealIP := strings.TrimSpace(r.Header.Get("X-Real-IP"))
 		if xRealIP != "" {
 			if ip := net.ParseIP(xRealIP); ip != nil {

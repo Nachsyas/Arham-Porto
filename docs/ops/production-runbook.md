@@ -24,7 +24,7 @@ Certified Baseline: **Phase 8 Operations**
    - **Backend Go API**
 4. Once CI passes:
    - Vercel automatically deploys the frontend from `apps/web`.
-   - Railway builds the container, executes `/app/migrate`, and activates `/app/server` once `/readyz` responds with HTTP 200.
+   - Google Cloud Run receives the updated container image, verifies `/readyz` healthcheck, and shifts traffic.
 
 ---
 
@@ -35,23 +35,23 @@ If a frontend defect is detected in production:
 1. Open the **Vercel Dashboard** $\rightarrow$ **Arham Porto** $\rightarrow$ **Deployments**.
 2. Locate the previous successful production deployment.
 3. Click **Instant Rollback** (or click the three dots $\rightarrow$ **Promote to Production**).
-4. Traffic is immediately redirected to the previous healthy build within seconds.
+4. Traffic is immediately redirected to the previous healthy build.
 
-### 2.2 Backend API Rollback (Railway)
+### 2.2 Backend API Rollback (Google Cloud Run)
 If a backend regression or container failure occurs:
-1. Open the **Railway Dashboard** $\rightarrow$ **Arham Porto** $\rightarrow$ **API Service** $\rightarrow$ **Deployments**.
-2. Find the last healthy deployment.
-3. Click the deployment $\rightarrow$ **Rollback to this deployment**.
-4. Railway will immediately route incoming HTTPS traffic back to the chosen deployment replica.
+1. Open Google Cloud Console $\rightarrow$ **Cloud Run** $\rightarrow$ `arham-porto-api` $\rightarrow$ **Revisions**.
+2. Identify the last certified healthy revision.
+3. Select **Manage Traffic** $\rightarrow$ route 100% of traffic to that revision.
+4. Traffic shifts instantly with zero downtime.
 
 ### 2.3 Database Migration Safeguards
 - Schema migrations must **NEVER** be rolled back destructively in production.
-- If a migration fails during the Railway pre-deploy step:
-  1. The pre-deploy command `/app/migrate` exits with non-zero status.
-  2. Railway cancels the new deployment and keeps the previous container online.
-  3. Inspect logs via Railway or CLI:
+- If a migration fails during the pre-deploy or release step:
+  1. The migration command `/app/migrate` exits with non-zero status.
+  2. The Cloud Run revision is not activated.
+  3. Inspect logs via Cloud Logging:
      ```bash
-     railway logs --service api
+     gcloud logging read 'resource.type="cloud_run_revision" AND severity>=ERROR' --limit 20
      ```
   4. Fix the migration script forward in a new commit, test locally against a clone, and push to `main`.
 
@@ -60,40 +60,36 @@ If a backend regression or container failure occurs:
 ## 3. Incident Response & Troubleshooting
 
 ### 3.1 Database Unavailable (`/readyz` returning 503)
-**Symptom**: Railway container restarts or healthcheck fails; `/readyz` returns `{"status":"not_ready","database":"unavailable"}`.
+**Symptom**: Cloud Run instances fail healthchecks; `/readyz` returns `{"status":"not_ready","database":"unavailable"}`.
 **Actions**:
-1. Check Railway PostgreSQL service status:
-   - Ensure the database container is in the `Running` state.
-   - Verify connection credentials in `DATABASE_URL`.
+1. Check Supabase project status:
+   - Ensure the database is active and not paused.
+   - Verify connection pooler settings (Transaction pooler port 6543 or Session pooler port 5432).
 2. Inspect connection pool saturation:
-   - Check Railway CPU/Memory metrics for the database.
-   - Verify that client connections are within limits (default pool size: 10 connections).
+   - Check Supabase metrics for active connections.
+   - Ensure Cloud Run container max concurrency is aligned with database pool limits.
 3. If PostgreSQL is recovering:
-   - The Go API automatically retries connections using exponential backoff.
-   - Once the database accepts connections, `/readyz` returns HTTP 200 without requiring an API restart.
+   - The Go API automatically retries connections with exponential backoff.
+   - Once the database accepts connections, `/readyz` returns HTTP 200 without requiring container restarts.
 
 ### 3.2 Gemini API Outage or Quota Exhaustion
 **Symptom**: Ask Arham returns HTTP 503 with code `service_unavailable`; core portfolio pages remain operational.
 **Actions**:
-1. Verify Google AI Studio operational status and billing quota.
-2. Check API container logs for rate limit or quota responses:
-   ```bash
-   railway logs --service api | grep "Ask Arham"
-   ```
+1. Verify Google AI Studio operational status and quota in Google Cloud Console.
+2. Check Cloud Run logs for rate limit or quota responses.
 3. If necessary, temporarily disable the AI copilot without redeploying code:
-   - In Railway API service settings, set `AI_MODE=disabled`.
+   - Update Cloud Run environment variable `AI_MODE=disabled`.
    - The API will gracefully inform visitors that Ask Arham is resting while preserving 100% of portfolio navigation.
 
 ### 3.3 Gemini API Key Rotation
 To rotate `GEMINI_API_KEY` without service downtime:
 1. Generate a new API key in Google AI Studio.
-2. In the Railway Dashboard:
-   - Navigate to **Variables** for the API service.
-   - Update `GEMINI_API_KEY` with the new value.
-3. Railway performs a rolling restart of the container.
+2. In Google Cloud Secret Manager / Cloud Run:
+   - Update the `GEMINI_API_KEY` secret with the new value.
+3. Cloud Run automatically performs a rolling restart or deploy new revision referencing the secret.
 4. Verify functionality:
    ```bash
-   curl -X POST https://<railway-domain>/api/v1/ai/ask \
+   curl -X POST https://<cloud-run-domain>/api/v1/ai/ask \
      -H "Content-Type: application/json" \
      -d '{"question":"What does Arham specialize in?"}'
    ```
@@ -105,9 +101,9 @@ To rotate `GEMINI_API_KEY` without service downtime:
 
 ### 4.1 Running a Full Re-Index
 When new projects or skills are approved in canonical data:
-1. Run a one-off task in Railway:
+1. Run a one-off Cloud Run Job or administrative container execution:
    ```bash
-   railway run /app/indexer --all-approved
+   /app/indexer --all-approved
    ```
 2. Monitor output logs:
    - Confirms canonical source extraction.
@@ -115,7 +111,7 @@ When new projects or skills are approved in canonical data:
    - Validates that `knowledge_sources` and `knowledge_chunks` are in `vector_ready` state.
 
 ### 4.2 Checking Vector Index Health
-To inspect the production vector index directly via SQL:
+To inspect the production vector index directly in Supabase SQL Editor:
 ```sql
 -- Check total embedded chunks
 SELECT embedding_model, COUNT(*) 

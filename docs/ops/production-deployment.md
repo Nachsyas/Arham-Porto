@@ -19,17 +19,17 @@ Certified Baseline: **Phase 8 Production Architecture**
               │
               │ HTTPS + CORS (Restricted Origin)
               ▼
-    [ Railway Platform ]
+    [ Google Cloud Run ]
     Go API Service (apps/api)
     Multi-stage Container (/app/server)
-    Trusted Proxy (TRUST_PROXY_MODE=railway)
+    Trusted Proxy (TRUST_PROXY_MODE=cloudrun)
               │
       ┌───────┴────────────────────────┐
       ▼                                ▼
-[ Railway PostgreSQL 16 ]     [ Google Gemini API ]
-  - pgvector extension         - gemini-3.8-flash (Reasoning)
-  - schema_migrations          - gemini-embedding-2 (Retrieval)
-  - knowledge_sources/chunks   - Zero-Trust Grounding Guards
+[ Supabase PostgreSQL 16 ]     [ Google Gemini API ]
+  - pgvector extension          - gemini-3.8-flash (Reasoning)
+  - schema_migrations           - gemini-embedding-2 (Retrieval)
+  - knowledge_sources/chunks    - Zero-Trust Grounding Guards
 ```
 
 ---
@@ -41,8 +41,8 @@ The production deployment maintains strict isolation between presentation, appli
 | Service | Hosting Provider | Deployment Unit | Responsibility |
 | :--- | :--- | :--- | :--- |
 | **Frontend** | Vercel | Next.js 15 Monorepo Workspace (`apps/web`) | SSR/SSG Portfolio, Case Studies, SSE Chat Client |
-| **API Backend** | Railway | Docker Image (`apps/api/Dockerfile`) | Clean Architecture REST API, Proxy Rate Limiter, SSE Streaming |
-| **Database** | Railway | PostgreSQL 16 with `pgvector` template | Relational storage & exact cosine vector similarity search |
+| **API Backend** | Google Cloud Run | Docker Image (`apps/api/Dockerfile`) | Clean Architecture REST API, Proxy Rate Limiter, SSE Streaming |
+| **Database** | Supabase | PostgreSQL 16 with `pgvector` extension | Relational storage & exact cosine vector similarity search |
 | **AI Generation** | Google AI Studio | Gemini Interactions API (`v1beta/interactions`) | Structured, evidence-grounded responses |
 
 ---
@@ -56,19 +56,19 @@ The production deployment maintains strict isolation between presentation, appli
 
 | Variable Name | Required | Description | Example / Allowed Values |
 | :--- | :--- | :--- | :--- |
-| `NEXT_PUBLIC_API_BASE_URL` | **Yes** | Public HTTPS URL of the Railway Go API | `https://api.arhamporto.com` or Railway generated domain |
-| `NEXT_PUBLIC_SITE_URL` | **Yes** | Public canonical origin of the frontend | `https://arhamporto.com` or `https://arham-porto.vercel.app` |
+| `NEXT_PUBLIC_API_BASE_URL` | **Yes** | Public HTTPS URL of the Cloud Run Go API | `https://<service-hash>-<region>.a.run.app` |
+| `NEXT_PUBLIC_SITE_URL` | **Yes** | Public canonical origin of the frontend | `https://arham-porto.vercel.app` |
 
-### 3.2 Railway Backend Go API (`apps/api`)
+### 3.2 Google Cloud Run Backend Go API (`apps/api`)
 
 | Variable Name | Required | Description | Production Value |
 | :--- | :--- | :--- | :--- |
-| `PORT` | **Yes** | Port injected by Railway runtime | Injected dynamically by Railway |
+| `PORT` | **Yes** | Port injected by Cloud Run runtime | Default `8080` (dynamically set by Cloud Run) |
 | `APP_ENV` | **Yes** | Application environment | `production` |
 | `ALLOWED_ORIGINS` | **Yes** | Exact allowed frontend origins for CORS | Exact Vercel domain (e.g. `https://arham-porto.vercel.app`) |
-| `DATABASE_URL` | **Yes** | PostgreSQL connection string | Railway private reference `${{Postgres.DATABASE_URL}}` |
+| `DATABASE_URL` | **Yes** | PostgreSQL connection string | Supabase connection secret |
 | `DATABASE_MODE` | **Yes** | Database readiness requirement | `required` |
-| `TRUST_PROXY_MODE` | **Yes** | Edge proxy client IP resolution | `railway` |
+| `TRUST_PROXY_MODE` | **Yes** | Edge proxy client IP resolution | `cloudrun` |
 | `PORTFOLIO_DATA_DIR` | **Yes** | Path to canonical portfolio content | `/app/data` |
 | `MIGRATIONS_DIR` | **Yes** | Path to database schema migrations | `/app/migrations` |
 | `AI_MODE` | **Yes** | Ask Arham AI operational mode | `remote` (or `disabled` if key pending) |
@@ -83,37 +83,36 @@ The production deployment maintains strict isolation between presentation, appli
 | `EMBEDDING_PROVIDER` | **Yes** | Embedding provider | `gemini` |
 | `EMBEDDING_MODEL` | **Yes** | Embedding model name | `gemini-embedding-2` |
 | `EMBEDDING_DIMENSIONS` | **Yes** | Vector dimensions | `768` |
-| `GEMINI_API_KEY` | **Yes** | Google Gemini Auth API Key | Injected as a Railway secret |
-| `GITHUB_TOKEN` | Optional | GitHub API read-only token | Injected as a Railway secret (for indexing) |
+| `GEMINI_API_KEY` | **Yes** | Google Gemini Auth API Key | Injected via Secret Manager / Cloud Run secret |
+| `GITHUB_TOKEN` | Optional | GitHub API read-only token | Injected via Secret Manager / Cloud Run secret |
 
 ---
 
-## 4. Railway PostgreSQL & pgvector Provisioning
+## 4. Supabase Database & pgvector Provisioning
 
-1. Provision PostgreSQL using the **pgvector** template on Railway.
-2. Ensure the database resides in the same Railway project and region as the API service.
-3. Validate that `pgvector` is installed by running:
-   ```sql
-   SELECT extname FROM pg_extension WHERE extname = 'vector';
-   ```
-   If not yet installed, the initial migration automatically executes:
+1. Use Supabase PostgreSQL 16.
+2. Enable the `vector` extension:
    ```sql
    CREATE EXTENSION IF NOT EXISTS vector;
    ```
+3. Verify that `vector` is active:
+   ```sql
+   SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';
+   ```
+4. Do not continue production indexing until `pgvector` extension existence is confirmed.
 
 ---
 
-## 5. Automated Pre-Deploy Migrations
+## 5. Pre-Deploy Migrations
 
-The Go API container includes a dedicated, dependency-free migration binary:
+The Go API container includes a dedicated, zero-dependency migration binary:
 - **Binary Path**: `/app/migrate`
-- **Execution**: Configured as Railway's `preDeployCommand` in `railway.json`.
 - **Workflow**:
-  1. Railway builds the production image from `apps/api/Dockerfile`.
-  2. Prior to routing traffic to the new deployment, `/app/migrate` runs.
-  3. Applies migrations from `/app/migrations` in deterministic version order (`000001_...`, `000002_...`).
+  1. Build container image from `apps/api/Dockerfile`.
+  2. Execute `/app/migrate` against production Supabase before routing public traffic.
+  3. Execute migration command twice; the second execution must be idempotent and report that schema is up-to-date.
   4. Records successful migrations in the `schema_migrations` table.
-  5. If any migration fails, deployment halts non-zero and the previous healthy deployment remains active.
+  5. If any migration fails, deployment halts immediately.
 
 ---
 
@@ -122,8 +121,8 @@ The Go API container includes a dedicated, dependency-free migration binary:
 > [!WARNING]
 > Indexing is strictly an administrative command and NEVER executes on application startup.
 
-Once the database is migrated and `GEMINI_API_KEY` is configured:
-1. Execute a one-off administrative task in Railway:
+Once the Supabase database is healthy, `pgvector` confirmed, migrations completed, and `GEMINI_API_KEY` configured:
+1. Execute a controlled one-time administrative indexing job:
    ```bash
    /app/indexer --all-approved
    ```
@@ -138,10 +137,10 @@ Once the database is migrated and `GEMINI_API_KEY` is configured:
 
 ## 7. Trusted Proxy & Rate Limiting
 
-- **Railway Proxy Configuration**:
-  - Railway edge proxies terminate SSL and forward the real client IP in the `X-Real-IP` HTTP header.
-  - Setting `TRUST_PROXY_MODE=railway` instructs the API to validate and extract the client identity from `X-Real-IP`.
-  - In `direct` mode (local testing), `X-Real-IP` is strictly ignored to prevent header spoofing.
+- **Google Cloud Run Forwarding Behavior**:
+  - Google Cloud Run terminates TLS at Google Front End (GFE) and appends the connecting client IP to the `X-Forwarded-For` HTTP header chain.
+  - Setting `TRUST_PROXY_MODE=cloudrun` instructs the API to parse the rightmost valid, non-internal client IP from `X-Forwarded-For`, preventing header spoofing from malicious initial values.
+  - In `direct` mode (local testing), proxy headers are strictly ignored and `RemoteAddr` is used.
 - **Rate Limiting**:
   - General API endpoints: 120 requests/minute per client IP.
   - Ask Arham AI copilot: 5 requests/minute per client IP.
@@ -156,15 +155,16 @@ Once the database is migrated and `GEMINI_API_KEY` is configured:
 - **`/readyz` (Readiness)**:
   - Verifies PostgreSQL connectivity.
   - Returns `200 OK` when `DATABASE_MODE=required` and database is connected.
-  - Used as Railway's deployment healthcheck (`healthcheckPath: "/readyz"`).
+  - Used for Cloud Run startup and liveness probes.
 
 ---
 
 ## 9. AI Degraded State & Failure Recovery
 
 - If the Gemini API key is missing or invalid:
+  - Core portfolio deployment continues with `AI_MODE=disabled`.
   - The API continues serving core portfolio data (`/api/v1/profile`, `/api/v1/projects`, `/api/v1/skills`, etc.).
-  - `/api/v1/ai/ask` responds with HTTP 503 Service Unavailable and a clear JSON error envelope.
-  - The frontend UI displays an informative "Ask Arham is temporarily unavailable" notice without breaking page navigation.
+  - `/api/v1/ai/ask` responds with HTTP 503 Service Unavailable with a standard JSON error envelope.
+  - Status reports: `CORE PORTFOLIO LIVE; ASK ARHAM AI PENDING PRODUCTION ACTIVATION`.
 - If PostgreSQL becomes unreachable:
-  - `/readyz` fails, preventing unready deployments from receiving traffic.
+  - `/readyz` fails, preventing unready instances from receiving traffic.

@@ -31,7 +31,7 @@ type Config struct {
 	GeminiAPIKey        string
 
 	// Production Edge Proxy Mode
-	TrustProxyMode string // direct, railway (default: direct)
+	TrustProxyMode string // direct, cloudrun, railway (default: direct)
 
 	// Phase 6 Ask Arham AI Configuration
 	AIMode                  string // disabled, remote
@@ -160,7 +160,7 @@ func Load() *Config {
 	}
 
 	trustProxyMode := strings.ToLower(strings.TrimSpace(os.Getenv("TRUST_PROXY_MODE")))
-	if trustProxyMode != "railway" {
+	if trustProxyMode != "cloudrun" && trustProxyMode != "railway" {
 		trustProxyMode = "direct"
 	}
 
