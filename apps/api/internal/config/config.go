@@ -29,14 +29,17 @@ type Config struct {
 	EmbeddingModel      string
 	EmbeddingDimensions int
 	GeminiAPIKey        string
+	GroqAPIKey          string
+	CloudflareAIToken   string
+	CloudflareAccountID string
 
 	// Production Edge Proxy Mode
 	TrustProxyMode string // direct, cloudrun, railway (default: direct)
 
 	// Phase 6 Ask Arham AI Configuration
 	AIMode                  string // disabled, remote
-	AIProvider              string // gemini (rejects fake in production)
-	AIModel                 string // default: gemini-3.8-flash
+	AIProvider              string // groq, gemini (rejects fake in production)
+	AIModel                 string // default: openai/gpt-oss-20b (groq) or gemini-3.8-flash (gemini)
 	AIThinkingLevel         string // low, medium, high (default: low)
 	AIRequestTimeoutSeconds int    // default: 30
 	AIMaxConcurrentRequests int    // default: 4
@@ -102,7 +105,11 @@ func Load() *Config {
 	embeddingProvider := strings.ToLower(strings.TrimSpace(os.Getenv("EMBEDDING_PROVIDER")))
 	embeddingModel := strings.TrimSpace(os.Getenv("EMBEDDING_MODEL"))
 	if embeddingModel == "" {
-		embeddingModel = "gemini-embedding-2"
+		if embeddingProvider == "cloudflare" {
+			embeddingModel = "@cf/baai/bge-base-en-v1.5"
+		} else {
+			embeddingModel = "gemini-embedding-2"
+		}
 	}
 
 	embeddingDimensions := 768
@@ -113,6 +120,9 @@ func Load() *Config {
 	}
 
 	geminiAPIKey := os.Getenv("GEMINI_API_KEY")
+	groqAPIKey := os.Getenv("GROQ_API_KEY")
+	cloudflareAIToken := os.Getenv("CLOUDFLARE_AI_TOKEN")
+	cloudflareAccountID := strings.TrimSpace(os.Getenv("CLOUDFLARE_ACCOUNT_ID"))
 
 	// Phase 6 Ask Arham AI Configuration
 	aiMode := strings.ToLower(strings.TrimSpace(os.Getenv("AI_MODE")))
@@ -123,7 +133,11 @@ func Load() *Config {
 	aiProvider := strings.ToLower(strings.TrimSpace(os.Getenv("AI_PROVIDER")))
 	aiModel := strings.TrimSpace(os.Getenv("AI_MODEL"))
 	if aiModel == "" {
-		aiModel = "gemini-3.8-flash"
+		if aiProvider == "groq" {
+			aiModel = "openai/gpt-oss-20b"
+		} else {
+			aiModel = "gemini-3.8-flash"
+		}
 	}
 
 	aiThinkingLevel := strings.ToLower(strings.TrimSpace(os.Getenv("AI_THINKING_LEVEL")))
@@ -177,6 +191,9 @@ func Load() *Config {
 		EmbeddingModel:          embeddingModel,
 		EmbeddingDimensions:     embeddingDimensions,
 		GeminiAPIKey:            geminiAPIKey,
+		GroqAPIKey:              groqAPIKey,
+		CloudflareAIToken:        cloudflareAIToken,
+		CloudflareAccountID:      cloudflareAccountID,
 		TrustProxyMode:          trustProxyMode,
 		AIMode:                  aiMode,
 		AIProvider:              aiProvider,

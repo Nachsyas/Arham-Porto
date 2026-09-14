@@ -12,6 +12,7 @@ import (
 	"github.com/nachsyas/arham-porto/apps/api/internal/config"
 	"github.com/nachsyas/arham-porto/apps/api/internal/domain"
 	"github.com/nachsyas/arham-porto/apps/api/internal/embedding"
+	"github.com/nachsyas/arham-porto/apps/api/internal/embedding/cloudflare"
 	"github.com/nachsyas/arham-porto/apps/api/internal/embedding/gemini"
 	"github.com/nachsyas/arham-porto/apps/api/internal/github"
 	"github.com/nachsyas/arham-porto/apps/api/internal/indexing"
@@ -118,7 +119,14 @@ func main() {
 	// Mode E: Full Ingestion & Indexing
 	var embProvider embedding.Provider
 	if cfg.EmbeddingMode == "enabled" {
-		if cfg.EmbeddingProvider == "gemini" {
+		if cfg.EmbeddingProvider == "cloudflare" {
+			p, err := cloudflare.NewProvider(cfg.CloudflareAIToken, cfg.CloudflareAccountID, cfg.EmbeddingModel, cfg.EmbeddingDimensions)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Failed initializing Cloudflare provider: %v\n", err)
+				os.Exit(1)
+			}
+			embProvider = p
+		} else if cfg.EmbeddingProvider == "gemini" {
 			p, err := gemini.NewProvider(cfg.GeminiAPIKey, cfg.EmbeddingModel, cfg.EmbeddingDimensions)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Failed initializing Gemini provider: %v\n", err)
@@ -128,7 +136,7 @@ func main() {
 		} else if cfg.EmbeddingProvider == "fake" {
 			embProvider = embedding.NewDeterministicFakeProvider(cfg.EmbeddingDimensions)
 		} else {
-			fmt.Fprintf(os.Stderr, "Unknown EMBEDDING_PROVIDER: %q (expected 'gemini', 'fake', or 'disabled')\n", cfg.EmbeddingProvider)
+			fmt.Fprintf(os.Stderr, "Unknown EMBEDDING_PROVIDER: %q (expected 'cloudflare', 'gemini', 'fake', or 'disabled')\n", cfg.EmbeddingProvider)
 			os.Exit(1)
 		}
 	} else {

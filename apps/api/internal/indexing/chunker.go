@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	MaxChunkCharSize = 1500
-	ChunkOverlapSize = 200
+	MaxChunkCharSize = 1200
+	ChunkOverlapSize = 150
 )
 
 // ChunkDocument segments a normalized source document into deterministic KnowledgeChunks.
@@ -170,6 +170,30 @@ func splitLongText(text string, maxLen, overlap int) []string {
 	for _, p := range paras {
 		pTrim := strings.TrimSpace(p)
 		if pTrim == "" {
+			continue
+		}
+
+		if len(pTrim) > maxLen {
+			if len(currentParas) > 0 {
+				result = append(result, strings.Join(currentParas, "\n\n"))
+				currentParas = nil
+				currentLen = 0
+			}
+			words := strings.Fields(pTrim)
+			var curWords []string
+			curWordLen := 0
+			for _, w := range words {
+				if curWordLen+len(w)+1 > maxLen && len(curWords) > 0 {
+					result = append(result, strings.Join(curWords, " "))
+					curWords = nil
+					curWordLen = 0
+				}
+				curWords = append(curWords, w)
+				curWordLen += len(w) + 1
+			}
+			if len(curWords) > 0 {
+				result = append(result, strings.Join(curWords, " "))
+			}
 			continue
 		}
 

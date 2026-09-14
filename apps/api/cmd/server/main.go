@@ -12,8 +12,12 @@ import (
 
 	"github.com/nachsyas/arham-porto/apps/api/internal/config"
 	delivery "github.com/nachsyas/arham-porto/apps/api/internal/delivery/http"
+	"github.com/nachsyas/arham-porto/apps/api/internal/embedding"
+	"github.com/nachsyas/arham-porto/apps/api/internal/embedding/cloudflare"
 	geminiEmb "github.com/nachsyas/arham-porto/apps/api/internal/embedding/gemini"
-	"github.com/nachsyas/arham-porto/apps/api/internal/llm/gemini"
+	"github.com/nachsyas/arham-porto/apps/api/internal/llm"
+	geminiLLM "github.com/nachsyas/arham-porto/apps/api/internal/llm/gemini"
+	"github.com/nachsyas/arham-porto/apps/api/internal/llm/groq"
 	"github.com/nachsyas/arham-porto/apps/api/internal/repository/jsonfile"
 	"github.com/nachsyas/arham-porto/apps/api/internal/repository/postgres"
 	"github.com/nachsyas/arham-porto/apps/api/internal/retrieval"
@@ -43,8 +47,9 @@ func main() {
 	pgClient := postgres.NewClient(cfg.DatabaseURL, cfg.DatabaseMode)
 	if err := pgClient.Connect(context.Background()); err != nil {
 		if cfg.DatabaseMode == config.DatabaseModeRequired {
-			log.Fatalf("[arham-porto-api] Fatal: PostgreSQL is required but failed to connect: %v", err)
+			log.Fatalf("[arham-porto-api] Fatal: database connection required in mode %s: %v", cfg.DatabaseMode, err)
 		}
+		log.Printf("[arham-porto-api] Warning: database connection failed in mode %s: %v", cfg.DatabaseMode, err)
 	}
 	defer pgClient.Close()
 
@@ -59,7 +64,7 @@ func main() {
 	rateLimiter := delivery.NewRateLimiter(120, time.Minute)
 	defer rateLimiter.Close()
 
-	// 6. Initialize Phase 6 Ask Arham AI dependencies
+	// 6. Initialize Ask Arham AI dependencies
 	var askUC usecase.AskUseCase
 	var aiLimiter *delivery.RateLimiter
 
@@ -68,31 +73,64 @@ func main() {
 			log.Fatalf("[arham-porto-api] Fatal: AI_PROVIDER=fake is strictly prohibited on production server")
 		}
 
-		if cfg.AIProvider == "gemini" {
+		var llmProvider llm.LLMProvider
+		switch cfg.AIProvider {
+		case "groq":
+			if cfg.GroqAPIKey == "" {
+				log.Fatalf("[arham-porto-api] Fatal: GROQ_API_KEY is required when AI_MODE=remote and AI_PROVIDER=groq")
+			}
+			client, err := groq.NewClient(cfg.GroqAPIKey, cfg.AIModel, groq.WithReasoningEffort(cfg.AIThinkingLevel))
+			if err != nil {
+				log.Fatalf("[arham-porto-api] Fatal: failed to initialize Groq LLM provider: %v", err)
+			}
+			llmProvider = client
+		case "gemini":
 			if cfg.GeminiAPIKey == "" {
 				log.Fatalf("[arham-porto-api] Fatal: GEMINI_API_KEY is required when AI_MODE=remote and AI_PROVIDER=gemini")
 			}
-			geminiLLM, err := gemini.NewClient(cfg.GeminiAPIKey, cfg.AIModel, gemini.WithThinkingLevel(cfg.AIThinkingLevel))
+			client, err := geminiLLM.NewClient(cfg.GeminiAPIKey, cfg.AIModel, geminiLLM.WithThinkingLevel(cfg.AIThinkingLevel))
 			if err != nil {
 				log.Fatalf("[arham-porto-api] Fatal: failed to initialize Gemini LLM provider: %v", err)
 			}
+			llmProvider = client
+		default:
+			log.Fatalf("[arham-porto-api] Fatal: unsupported AI_PROVIDER %q", cfg.AIProvider)
+		}
 
-			// Initialize embedding provider and retrieval service if postgres is available
-			if pgClient.Pool() != nil && cfg.EmbeddingMode == "enabled" {
-				embClient, err := geminiEmb.NewProvider(cfg.GeminiAPIKey, cfg.EmbeddingModel, cfg.EmbeddingDimensions)
-				if err == nil {
-					knowledgeRepo := postgres.NewKnowledgeRepository(pgClient)
-					retrievalSvc := retrieval.NewService(knowledgeRepo, embClient)
-					askUC = usecase.NewAskUseCase(retrievalSvc, geminiLLM, cfg.AIMaxEvidenceChars)
-					log.Printf("[arham-porto-api] Ask Arham AI initialized with provider=%s model=%s", cfg.AIProvider, cfg.AIModel)
+		// Initialize embedding provider and retrieval service if postgres is available
+		if pgClient.Pool() != nil && cfg.EmbeddingMode == "enabled" {
+			var embClient embedding.Provider
+			var embErr error
+
+			switch cfg.EmbeddingProvider {
+			case "cloudflare":
+				if cfg.CloudflareAIToken == "" || cfg.CloudflareAccountID == "" {
+					log.Printf("[arham-porto-api] Warning: CLOUDFLARE_AI_TOKEN and CLOUDFLARE_ACCOUNT_ID are required when EMBEDDING_PROVIDER=cloudflare")
 				} else {
-					log.Printf("[arham-porto-api] Warning: failed to initialize embedding client: %v", err)
+					embClient, embErr = cloudflare.NewProvider(cfg.CloudflareAIToken, cfg.CloudflareAccountID, cfg.EmbeddingModel, cfg.EmbeddingDimensions)
 				}
-			} else {
-				log.Printf("[arham-porto-api] Warning: database or embeddings not ready; Ask Arham AI will report unavailable")
+			case "gemini":
+				if cfg.GeminiAPIKey == "" {
+					log.Printf("[arham-porto-api] Warning: GEMINI_API_KEY is required when EMBEDDING_PROVIDER=gemini")
+				} else {
+					embClient, embErr = geminiEmb.NewProvider(cfg.GeminiAPIKey, cfg.EmbeddingModel, cfg.EmbeddingDimensions)
+				}
+			case "fake":
+				log.Fatalf("[arham-porto-api] Fatal: EMBEDDING_PROVIDER=fake is strictly prohibited on production server")
+			default:
+				log.Printf("[arham-porto-api] Warning: unsupported EMBEDDING_PROVIDER %q", cfg.EmbeddingProvider)
+			}
+
+			if embErr == nil && embClient != nil && llmProvider != nil {
+				knowledgeRepo := postgres.NewKnowledgeRepository(pgClient)
+				retrievalSvc := retrieval.NewService(knowledgeRepo, embClient)
+				askUC = usecase.NewAskUseCase(retrievalSvc, llmProvider, cfg.AIMaxEvidenceChars)
+				log.Printf("[arham-porto-api] Ask Arham AI initialized with llm_provider=%s model=%s emb_provider=%s emb_model=%s", cfg.AIProvider, cfg.AIModel, cfg.EmbeddingProvider, cfg.EmbeddingModel)
+			} else if embErr != nil {
+				log.Printf("[arham-porto-api] Warning: failed to initialize embedding client: %v", embErr)
 			}
 		} else {
-			log.Fatalf("[arham-porto-api] Fatal: unsupported AI_PROVIDER %q", cfg.AIProvider)
+			log.Printf("[arham-porto-api] Warning: database or embeddings not ready; Ask Arham AI will report unavailable")
 		}
 	} else {
 		log.Println("[arham-porto-api] Ask Arham AI is disabled (AI_MODE=disabled)")
