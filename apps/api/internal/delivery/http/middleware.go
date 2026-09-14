@@ -25,6 +25,23 @@ func ExtractClientIP(remoteAddr string) string {
 	return strings.Trim(trimmed, "[]")
 }
 
+// ResolveClientIP extracts the client IP address based on the configured trust proxy mode (Gate #15).
+// In direct mode (default), it strictly extracts the normalized host from RemoteAddr,
+// ignoring spoofable headers like X-Forwarded-For and X-Real-IP.
+// In railway mode, it extracts the Railway edge-provided X-Real-IP header, validates that it
+// is a syntactically valid IP address (IPv4 or IPv6), and safely falls back to RemoteAddr if missing or malformed.
+func ResolveClientIP(r *http.Request, trustProxyMode string) string {
+	if trustProxyMode == "railway" {
+		xRealIP := strings.TrimSpace(r.Header.Get("X-Real-IP"))
+		if xRealIP != "" {
+			if ip := net.ParseIP(xRealIP); ip != nil {
+				return xRealIP
+			}
+		}
+	}
+	return ExtractClientIP(r.RemoteAddr)
+}
+
 // addVaryHeader adds a Vary header value without duplicating existing entries or overwriting.
 func addVaryHeader(w http.ResponseWriter, value string) {
 	existing := w.Header().Get("Vary")
@@ -246,7 +263,11 @@ func (rl *RateLimiter) Close() {
 }
 
 // RateLimiterMiddleware throttles incoming requests while excluding health and readiness probes.
-func RateLimiterMiddleware(rl *RateLimiter) func(http.Handler) http.Handler {
+func RateLimiterMiddleware(rl *RateLimiter, trustProxyMode ...string) func(http.Handler) http.Handler {
+	mode := "direct"
+	if len(trustProxyMode) > 0 && trustProxyMode[0] != "" {
+		mode = trustProxyMode[0]
+	}
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Probes bypass rate limiting
@@ -255,7 +276,7 @@ func RateLimiterMiddleware(rl *RateLimiter) func(http.Handler) http.Handler {
 				return
 			}
 
-			clientIP := ExtractClientIP(r.RemoteAddr)
+			clientIP := ResolveClientIP(r, mode)
 
 			if !rl.Allow(clientIP) {
 				setSecurityHeaders(w)

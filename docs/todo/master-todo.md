@@ -13,10 +13,10 @@
 | **Phase 2** | **Hero Visual: Authentic Portrait** | **CERTIFIED — Authentic Portrait Hero** *(3D Hologram: CANCELLED / SUPERSEDED)* |
 | **Phase 3** | **Journey Map** | **RECERTIFIED — Interactive Journey Map (Expanded 7 Milestones)** |
 | **Phase 4** | **Go Backend** | **CERTIFIED — Clean Architecture REST API** |
-| **Phase 5** | **AI Indexing & Retrieval** | NOT STARTED |
-| **Phase 6** | **AI Reviewer Copilot** | NOT STARTED |
-| **Phase 7** | **Integration & Polish** | NOT STARTED |
-| **Phase 8** | **Production & Launch** | NOT STARTED |
+| **Phase 5** | **AI Indexing & Retrieval** | **CERTIFIED — Evidence Indexing & pgvector Retrieval Foundation** |
+| **Phase 6** | **AI Reviewer Copilot** | **CERTIFIED — Grounded Ask Arham AI Reviewer Copilot** |
+| **Phase 7** | **Integration & Polish** | **DEFERRED — Post-Launch Enhancement** |
+| **Phase 8** | **Production & Launch** | **IN PROGRESS — Vercel, Railway, pgvector, Gemini AI Fast-Launch** |
 
 ---
 

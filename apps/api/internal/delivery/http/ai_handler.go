@@ -72,8 +72,8 @@ func (h *Handler) AskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// AI Rate Limiter check (Correction 15, 37)
-	clientIP := ExtractClientIP(r.RemoteAddr)
+	// AI Rate Limiter check (Correction 15, 37, Gate #15)
+	clientIP := ResolveClientIP(r, h.trustProxyMode)
 	if h.aiRateLimiter != nil && !h.aiRateLimiter.Allow(clientIP) {
 		writeError(w, http.StatusTooManyRequests, "rate_limited", "AI rate limit exceeded. Please try again in a minute.")
 		return

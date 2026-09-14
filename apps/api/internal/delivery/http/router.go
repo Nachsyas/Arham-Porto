@@ -5,7 +5,13 @@ import (
 )
 
 // NewRouter registers HTTP routes using Go standard library net/http.ServeMux and wires the middleware stack.
-func NewRouter(h *Handler, allowedOrigins []string, rl *RateLimiter) http.Handler {
+func NewRouter(h *Handler, allowedOrigins []string, rl *RateLimiter, trustProxyMode ...string) http.Handler {
+	mode := "direct"
+	if len(trustProxyMode) > 0 && trustProxyMode[0] != "" {
+		mode = trustProxyMode[0]
+	}
+	h.SetTrustProxyMode(mode)
+
 	mux := http.NewServeMux()
 
 	// Probes
@@ -34,7 +40,7 @@ func NewRouter(h *Handler, allowedOrigins []string, rl *RateLimiter) http.Handle
 	handler = MethodNotAllowedMiddleware(handler)
 
 	if rl != nil {
-		handler = RateLimiterMiddleware(rl)(handler)
+		handler = RateLimiterMiddleware(rl, mode)(handler)
 	}
 
 	handler = CORSMiddleware(allowedOrigins)(handler)

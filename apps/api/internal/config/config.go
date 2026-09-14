@@ -30,6 +30,9 @@ type Config struct {
 	EmbeddingDimensions int
 	GeminiAPIKey        string
 
+	// Production Edge Proxy Mode
+	TrustProxyMode string // direct, railway (default: direct)
+
 	// Phase 6 Ask Arham AI Configuration
 	AIMode                  string // disabled, remote
 	AIProvider              string // gemini (rejects fake in production)
@@ -43,9 +46,9 @@ type Config struct {
 
 // Load loads environment variables with safe development fallbacks.
 func Load() *Config {
-	port := os.Getenv("API_PORT")
+	port := os.Getenv("PORT")
 	if port == "" {
-		port = os.Getenv("PORT")
+		port = os.Getenv("API_PORT")
 	}
 	if port == "" {
 		port = "8080"
@@ -156,6 +159,11 @@ func Load() *Config {
 		}
 	}
 
+	trustProxyMode := strings.ToLower(strings.TrimSpace(os.Getenv("TRUST_PROXY_MODE")))
+	if trustProxyMode != "railway" {
+		trustProxyMode = "direct"
+	}
+
 	return &Config{
 		AppEnv:                  appEnv,
 		Port:                    port,
@@ -169,6 +177,7 @@ func Load() *Config {
 		EmbeddingModel:          embeddingModel,
 		EmbeddingDimensions:     embeddingDimensions,
 		GeminiAPIKey:            geminiAPIKey,
+		TrustProxyMode:          trustProxyMode,
 		AIMode:                  aiMode,
 		AIProvider:              aiProvider,
 		AIModel:                 aiModel,

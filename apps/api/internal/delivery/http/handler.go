@@ -35,6 +35,9 @@ type Handler struct {
 	aiRateLimiter    *RateLimiter
 	aiSemaphore      chan struct{}
 	aiTimeoutSeconds int
+
+	// Production Edge Proxy Mode
+	trustProxyMode string
 }
 
 // NewHandler constructs a Handler with all usecases.
@@ -56,6 +59,16 @@ func NewHandler(
 		aiMode:           "disabled",
 		aiSemaphore:      make(chan struct{}, 4),
 		aiTimeoutSeconds: 30,
+		trustProxyMode:   "direct",
+	}
+}
+
+// SetTrustProxyMode configures the edge proxy IP resolution mode (direct or railway).
+func (h *Handler) SetTrustProxyMode(mode string) {
+	if mode == "railway" {
+		h.trustProxyMode = "railway"
+	} else {
+		h.trustProxyMode = "direct"
 	}
 }
 

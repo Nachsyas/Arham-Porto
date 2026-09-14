@@ -20,9 +20,34 @@ const inter = Inter({
   display: "swap",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://arham-porto.vercel.app";
+
 export const metadata: Metadata = {
-  title: "Nachsyas Arham Mumtaz Nashohi | Software Engineer",
-  description: "Personal engineering portfolio and technical case-study platform for Nachsyas Arham Mumtaz Nashohi.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Nachsyas Arham Mumtaz Nashohi | Software Engineer",
+    template: "%s | Arham Porto",
+  },
+  description:
+    "Personal engineering portfolio and technical case-study platform for Nachsyas Arham Mumtaz Nashohi. Evidence-based architectural reviews and Ask Arham AI copilot.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Nachsyas Arham Mumtaz Nashohi | Software Engineer",
+    description:
+      "Personal engineering portfolio and technical case-study platform for Nachsyas Arham Mumtaz Nashohi.",
+    url: siteUrl,
+    siteName: "Arham Porto",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nachsyas Arham Mumtaz Nashohi | Software Engineer",
+    description:
+      "Personal engineering portfolio and technical case-study platform for Nachsyas Arham Mumtaz Nashohi.",
+  },
 };
 
 export default function RootLayout({

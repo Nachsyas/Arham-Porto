@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -103,7 +104,7 @@ func main() {
 	// 7. Initialize delivery layer
 	handler := delivery.NewHandler(profileUC, projectUC, skillUC, evidenceUC, journeyUC, pgClient)
 	handler.EnableAI(askUC, cfg.AIMode, aiLimiter, cfg.AIMaxConcurrentRequests, cfg.AIRequestTimeoutSeconds)
-	router := delivery.NewRouter(handler, cfg.AllowedOrigins, rateLimiter)
+	router := delivery.NewRouter(handler, cfg.AllowedOrigins, rateLimiter, cfg.TrustProxyMode)
 
 	// 8. Configure hardened HTTP server
 	writeTimeout := 35 * time.Second
@@ -111,8 +112,13 @@ func main() {
 		writeTimeout = time.Duration(cfg.AIRequestTimeoutSeconds+5) * time.Second
 	}
 
+	listenAddr := "0.0.0.0:" + cfg.Port
+	if strings.Contains(cfg.Port, ":") {
+		listenAddr = cfg.Port
+	}
+
 	srv := &http.Server{
-		Addr:              ":" + cfg.Port,
+		Addr:              listenAddr,
 		Handler:           router,
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
@@ -126,7 +132,7 @@ func main() {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		log.Printf("[arham-porto-api] Server listening on :%s", cfg.Port)
+		log.Printf("[arham-porto-api] Server listening on %s (trustProxyMode: %s)", listenAddr, cfg.TrustProxyMode)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("[arham-porto-api] ListenAndServe error: %v", err)
 		}
