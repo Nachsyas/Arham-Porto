@@ -63,10 +63,10 @@ func NewHandler(
 	}
 }
 
-// SetTrustProxyMode configures the edge proxy IP resolution mode (direct or railway).
+// SetTrustProxyMode configures the edge proxy IP resolution mode (direct, cloudrun, or railway).
 func (h *Handler) SetTrustProxyMode(mode string) {
-	if mode == "railway" {
-		h.trustProxyMode = "railway"
+	if mode == "cloudrun" || mode == "railway" {
+		h.trustProxyMode = mode
 	} else {
 		h.trustProxyMode = "direct"
 	}
