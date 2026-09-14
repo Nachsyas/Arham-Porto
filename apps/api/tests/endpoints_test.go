@@ -505,6 +505,14 @@ func TestEndpoints_RateLimiting(t *testing.T) {
 	if healthRec.Code != http.StatusOK {
 		t.Fatalf("expected /healthz to bypass rate limiting with 200, got %d", healthRec.Code)
 	}
+
+	healthAliasReq := httptest.NewRequest(http.MethodGet, "/health", nil)
+	healthAliasReq.RemoteAddr = "192.168.1.100:12345"
+	healthAliasRec := httptest.NewRecorder()
+	router.ServeHTTP(healthAliasRec, healthAliasReq)
+	if healthAliasRec.Code != http.StatusOK {
+		t.Fatalf("expected /health to bypass rate limiting with 200, got %d", healthAliasRec.Code)
+	}
 }
 
 func TestEndpoints_PanicRecovery(t *testing.T) {
@@ -929,6 +937,7 @@ func TestEndpoints_MethodNotAllowed_OtherRoutes(t *testing.T) {
 		{"DELETE Evidence Item", http.MethodDelete, "/api/v1/evidence/example"},
 		{"POST Journey", http.MethodPost, "/api/v1/journey"},
 		{"PATCH Skills", http.MethodPatch, "/api/v1/skills"},
+		{"POST Health", http.MethodPost, "/health"},
 		{"POST Healthz", http.MethodPost, "/healthz"},
 		{"POST Readyz", http.MethodPost, "/readyz"},
 	}

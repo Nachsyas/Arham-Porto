@@ -57,6 +57,32 @@ func TestHealthzEndpoint(t *testing.T) {
 	}
 }
 
+func TestHealthEndpoint(t *testing.T) {
+	router := setupTestRouter("disabled")
+
+	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", rec.Code)
+	}
+
+	if cc := rec.Header().Get("Cache-Control"); cc != "no-store" {
+		t.Errorf("expected Cache-Control 'no-store', got '%s'", cc)
+	}
+
+	var resp map[string]string
+	if err := json.NewDecoder(rec.Body).Decode(&resp); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	if resp["status"] != "ok" || resp["scope"] != "process_alive" {
+		t.Errorf("unexpected response: %+v", resp)
+	}
+}
+
 func TestReadyzEndpoint_Disabled(t *testing.T) {
 	router := setupTestRouter("disabled")
 

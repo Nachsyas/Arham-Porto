@@ -15,6 +15,7 @@ func NewRouter(h *Handler, allowedOrigins []string, rl *RateLimiter, trustProxyM
 	mux := http.NewServeMux()
 
 	// Probes
+	mux.HandleFunc("GET /health", h.Healthz)
 	mux.HandleFunc("GET /healthz", h.Healthz)
 	mux.HandleFunc("GET /readyz", h.Readyz)
 

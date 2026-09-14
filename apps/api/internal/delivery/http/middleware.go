@@ -288,7 +288,7 @@ func RateLimiterMiddleware(rl *RateLimiter, trustProxyMode ...string) func(http.
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Probes bypass rate limiting
-			if r.URL.Path == "/healthz" || r.URL.Path == "/readyz" {
+			if r.URL.Path == "/health" || r.URL.Path == "/healthz" || r.URL.Path == "/readyz" {
 				next.ServeHTTP(w, r)
 				return
 			}
