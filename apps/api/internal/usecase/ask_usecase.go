@@ -23,8 +23,8 @@ type AskUseCase interface {
 }
 
 type askUseCase struct {
-	retriever       Retriever
-	llmProvider     llm.LLMProvider
+	retriever        Retriever
+	llmProvider      llm.LLMProvider
 	maxEvidenceChars int
 }
 
@@ -181,7 +181,7 @@ func (u *askUseCase) Ask(ctx context.Context, question string) (llm.GroundedResp
 	return u.validateAndAssemble(rawAnswer, evidenceList)
 }
 
-// GetRetrievedEvidence fetches and formats evidence for a query.
+// GetRetrievedEvidence fetches and formats evidence for a query with correct source family classification.
 func (u *askUseCase) GetRetrievedEvidence(ctx context.Context, question string) ([]llm.EvidenceContext, error) {
 	if u.retriever == nil {
 		return nil, fmt.Errorf("retriever is not initialized")
@@ -195,13 +195,18 @@ func (u *askUseCase) GetRetrievedEvidence(ctx context.Context, question string) 
 	evidenceList := make([]llm.EvidenceContext, 0, len(results))
 	for i, r := range results {
 		evID := fmt.Sprintf("E%d", i+1)
+
+		// Source family classification per Correction 6 & 7:
+		// repository == "canonical" -> portfolio
+		// repository != "canonical" -> github (source types: doc, manifest, architecture, entrypoint)
+		isGitHub := r.Repository != "canonical" && r.Repository != ""
 		kind := "portfolio"
 		var repoPtr *string
 		var pathPtr *string
 		var commitPtr *string
 		var urlPtr *string
 
-		if r.SourceType == "github" {
+		if isGitHub {
 			kind = "github"
 			if r.Repository != "" {
 				repoVal := r.Repository
@@ -215,8 +220,11 @@ func (u *askUseCase) GetRetrievedEvidence(ctx context.Context, question string) 
 				commitVal := r.CommitSHA
 				commitPtr = &commitVal
 			}
-			if r.SourceURL != "" {
+			if r.SourceURL != "" && strings.HasPrefix(r.SourceURL, "https://") {
 				urlVal := r.SourceURL
+				urlPtr = &urlVal
+			} else if repoPtr != nil && pathPtr != nil && commitPtr != nil && len(*commitPtr) == 40 {
+				urlVal := fmt.Sprintf("https://github.com/%s/blob/%s/%s", *repoPtr, *commitPtr, *pathPtr)
 				urlPtr = &urlVal
 			}
 		}
@@ -224,6 +232,7 @@ func (u *askUseCase) GetRetrievedEvidence(ctx context.Context, question string) 
 		evidenceList = append(evidenceList, llm.EvidenceContext{
 			ID:          evID,
 			Kind:        kind,
+			SourceType:  r.SourceType,
 			Title:       r.SourceTitle,
 			Repository:  repoPtr,
 			Path:        pathPtr,
@@ -256,7 +265,7 @@ func (u *askUseCase) validateAndAssemble(raw llm.GeneratedAnswer, evidenceList [
 		evidenceMap[e.ID] = e
 	}
 
-	// Validate segments and collect used evidence IDs
+	// Validate segments and collect used evidence IDs (Corrections 9, 10, 11, 12)
 	usedEvidenceIDSet := make(map[string]bool)
 	validatedSegments := make([]llm.GroundedSegment, 0, len(raw.Segments))
 	var answerParts []string
@@ -267,13 +276,24 @@ func (u *askUseCase) validateAndAssemble(raw llm.GeneratedAnswer, evidenceList [
 			continue
 		}
 
-		// Filter evidence IDs: drop unknown IDs (Correction 5)
+		// Filter evidence IDs: drop unknown IDs (Correction 5, 11, 12)
 		validIDs := make([]string, 0, len(seg.EvidenceIDs))
 		for _, id := range seg.EvidenceIDs {
 			if _, exists := evidenceMap[id]; exists {
 				validIDs = append(validIDs, id)
-				usedEvidenceIDSet[id] = true
 			}
+		}
+
+		// Correction 9: For status == "supported", EVERY non-empty factual answer segment
+		// must contain at least ONE valid retrieved evidence ID after server validation.
+		// If zero valid evidence IDs remain, DO NOT retain that segment.
+		if status == "supported" && len(validIDs) == 0 {
+			continue
+		}
+
+		// Track used evidence IDs for retained segments
+		for _, id := range validIDs {
+			usedEvidenceIDSet[id] = true
 		}
 
 		validatedSegments = append(validatedSegments, llm.GroundedSegment{
@@ -283,7 +303,22 @@ func (u *askUseCase) validateAndAssemble(raw llm.GeneratedAnswer, evidenceList [
 		answerParts = append(answerParts, trimmedText)
 	}
 
-	// If no valid segments were generated, provide standard fallback based on status
+	// Correction 9, 10, 11: If status is supported but no valid grounded segments remain,
+	// downgrade entire result to insufficient_evidence with deterministic safe response.
+	if status == "supported" && (len(validatedSegments) == 0 || len(usedEvidenceIDSet) == 0) {
+		status = "insufficient_evidence"
+		fallbackText := "I couldn't find verified evidence of that in Nachsyas Arham Mumtaz Nashohi's approved portfolio sources."
+		validatedSegments = []llm.GroundedSegment{
+			{
+				Text:        fallbackText,
+				EvidenceIDs: []string{},
+			},
+		}
+		answerParts = []string{fallbackText}
+		usedEvidenceIDSet = make(map[string]bool)
+	}
+
+	// For other statuses, if no segments were provided:
 	if len(validatedSegments) == 0 {
 		fallbackText := "I couldn't find verified evidence of that in Nachsyas Arham Mumtaz Nashohi's approved portfolio sources."
 		if status == "privacy_refusal" {
@@ -301,19 +336,14 @@ func (u *askUseCase) validateAndAssemble(raw llm.GeneratedAnswer, evidenceList [
 	// Build full answer text
 	finalAnswer := strings.Join(answerParts, " ")
 
-	// Build verified SourceCitations and PublicEvidenceItems from used evidence
+	// Build verified SourceCitations and PublicEvidenceItems from strictly cited evidence (Correction 10)
 	citations := make([]llm.SourceCitation, 0)
 	publicEvidence := make([]llm.PublicEvidenceItem, 0)
 	citationIndex := 1
 
 	for _, e := range evidenceList {
-		// Include evidence if explicitly cited, or if status is supported and only 1-2 chunks available
-		isUsed := usedEvidenceIDSet[e.ID]
-		if !isUsed && status == "supported" && len(usedEvidenceIDSet) == 0 {
-			isUsed = true // Fallback if model omitted ID in segments
-		}
-
-		if !isUsed {
+		// Include evidence ONLY if explicitly associated with a retained segment (Correction 10)
+		if !usedEvidenceIDSet[e.ID] {
 			continue
 		}
 
@@ -322,7 +352,7 @@ func (u *askUseCase) validateAndAssemble(raw llm.GeneratedAnswer, evidenceList [
 
 		var cit llm.SourceCitation
 		if e.Kind == "github" {
-			// GitHub citation with immutable HTTPS link (Correction 13)
+			// GitHub citation with immutable HTTPS link (Correction 7, 13)
 			label := e.Title
 			if e.Repository != nil && e.Path != nil {
 				label = fmt.Sprintf("%s / %s", *e.Repository, *e.Path)
@@ -337,16 +367,55 @@ func (u *askUseCase) validateAndAssemble(raw llm.GeneratedAnswer, evidenceList [
 				CommitSHA:  e.CommitSHA,
 			}
 		} else {
-			// Canonical portfolio citation (Correction 14, 15)
+			// Canonical portfolio citation routing per Correction 8:
+			// canonical_profile  -> label: "Portfolio Profile"   -> URL: nil / optional
+			// canonical_project  -> label: "Project: <title>"    -> URL: /projects/<slug>
+			// canonical_skill    -> label: "Skills & Evidence"   -> URL: /#skills
+			// canonical_evidence -> label: "Skills & Evidence"   -> URL: /#skills (or /projects/<slug>)
+			// canonical_journey  -> label: "Academic Journey"    -> URL: /#journey
 			label := e.Title
 			var safeTarget *string
-			if e.ProjectID != nil {
-				label = fmt.Sprintf("Project: %s", *e.ProjectID)
-				target := fmt.Sprintf("/projects/%s", *e.ProjectID)
+
+			switch e.SourceType {
+			case "canonical_profile":
+				label = "Portfolio Profile"
+				safeTarget = nil
+			case "canonical_project":
+				if e.ProjectID != nil && *e.ProjectID != "" {
+					label = fmt.Sprintf("Project: %s", *e.ProjectID)
+					target := fmt.Sprintf("/projects/%s", *e.ProjectID)
+					safeTarget = &target
+				} else {
+					label = "Projects"
+					target := "/#projects"
+					safeTarget = &target
+				}
+			case "canonical_skill":
+				label = "Skills & Evidence"
+				target := "/#skills"
 				safeTarget = &target
-			} else {
+			case "canonical_evidence":
+				label = "Skills & Evidence"
+				if e.ProjectID != nil && *e.ProjectID != "" {
+					target := fmt.Sprintf("/projects/%s", *e.ProjectID)
+					safeTarget = &target
+				} else {
+					target := "/#skills"
+					safeTarget = &target
+				}
+			case "canonical_journey":
+				label = "Academic Journey"
 				target := "/#journey"
 				safeTarget = &target
+			default:
+				if e.ProjectID != nil && *e.ProjectID != "" {
+					label = fmt.Sprintf("Project: %s", *e.ProjectID)
+					target := fmt.Sprintf("/projects/%s", *e.ProjectID)
+					safeTarget = &target
+				} else {
+					target := "/#projects"
+					safeTarget = &target
+				}
 			}
 
 			cit = llm.SourceCitation{
@@ -373,6 +442,22 @@ func (u *askUseCase) validateAndAssemble(raw llm.GeneratedAnswer, evidenceList [
 			Excerpt:    excerpt,
 			CitationID: citID,
 		})
+	}
+
+	// Status consistency check per Correction 13:
+	// supported must have at least one grounded segment and valid citation
+	if status == "supported" && (len(citations) == 0 || len(publicEvidence) == 0 || len(validatedSegments) == 0) {
+		status = "insufficient_evidence"
+		fallbackText := "I couldn't find verified evidence of that in Nachsyas Arham Mumtaz Nashohi's approved portfolio sources."
+		validatedSegments = []llm.GroundedSegment{
+			{
+				Text:        fallbackText,
+				EvidenceIDs: []string{},
+			},
+		}
+		finalAnswer = fallbackText
+		citations = []llm.SourceCitation{}
+		publicEvidence = []llm.PublicEvidenceItem{}
 	}
 
 	// Validate safe actions (Correction 29, 30)

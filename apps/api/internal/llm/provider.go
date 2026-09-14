@@ -18,6 +18,7 @@ var (
 type EvidenceContext struct {
 	ID          string   `json:"id"` // Server-issued ID: E1, E2, etc.
 	Kind        string   `json:"kind"` // "github" or "portfolio"
+	SourceType  string   `json:"source_type,omitempty"` // Provenance type: doc, architecture, canonical_profile, etc.
 	Title       string   `json:"title"`
 	Repository  *string  `json:"repository,omitempty"`
 	Path        *string  `json:"path,omitempty"`

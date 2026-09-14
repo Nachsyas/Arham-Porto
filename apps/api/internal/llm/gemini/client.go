@@ -15,12 +15,15 @@ import (
 )
 
 const (
-	defaultBaseURL     = "https://generativelanguage.googleapis.com/v1beta"
-	interactionsPath   = "/interactions"
-	generateContentFmt = "/models/%s:generateContent"
+	defaultBaseURL   = "https://generativelanguage.googleapis.com/v1beta"
+	interactionsPath = "/interactions"
+	maxResponseBytes = 512 * 1024 // 512 KiB
 )
 
-// Client implements llm.LLMProvider using Google Gemini.
+// ErrOversizedResponse is returned when the provider response exceeds the read budget.
+var ErrOversizedResponse = errors.New("gemini interactions response exceeded maximum allowed size of 512 KiB")
+
+// Client implements llm.LLMProvider using the Google Gemini Interactions API.
 type Client struct {
 	apiKey        string
 	model         string
@@ -49,11 +52,20 @@ func WithHTTPClient(client *http.Client) Option {
 // WithThinkingLevel sets the thinking level (low, medium, high).
 func WithThinkingLevel(level string) Option {
 	return func(c *Client) {
-		c.thinkingLevel = level
+		c.thinkingLevel = normalizeThinkingLevel(level)
 	}
 }
 
-// NewClient constructs a new Gemini LLMProvider.
+func normalizeThinkingLevel(level string) string {
+	switch strings.ToLower(strings.TrimSpace(level)) {
+	case "low", "medium", "high":
+		return strings.ToLower(strings.TrimSpace(level))
+	default:
+		return "low"
+	}
+}
+
+// NewClient constructs a new Gemini LLMProvider using the Interactions API.
 func NewClient(apiKey, model string, opts ...Option) (*Client, error) {
 	if apiKey == "" {
 		return nil, errors.New("gemini api key is required")
@@ -76,6 +88,7 @@ func NewClient(apiKey, model string, opts ...Option) (*Client, error) {
 		opt(c)
 	}
 
+	c.thinkingLevel = normalizeThinkingLevel(c.thinkingLevel)
 	return c, nil
 }
 
@@ -87,21 +100,14 @@ func (c *Client) Model() string {
 	return c.model
 }
 
-// Generate executes structured evidence generation.
+func (c *Client) ThinkingLevel() string {
+	return c.thinkingLevel
+}
+
+// Generate executes structured evidence generation using the Gemini Interactions API.
+// Automatic legacy fallback to generateContent has been removed per Phase 6 Gate Rule #5.
 func (c *Client) Generate(ctx context.Context, req llm.GenerateRequest) (llm.GeneratedAnswer, error) {
-	// Attempt 1: Gemini Interactions API
-	ans, err := c.callInteractionsAPI(ctx, req)
-	if err == nil {
-		return ans, nil
-	}
-
-	// If interactions endpoint is not found or unsupported, fallback to generateContent
-	var httpErr *httpStatusError
-	if errors.As(err, &httpErr) && (httpErr.StatusCode == http.StatusNotFound || httpErr.StatusCode == http.StatusMethodNotAllowed) {
-		return c.callGenerateContentAPI(ctx, req)
-	}
-
-	return ans, err
+	return c.callInteractionsAPI(ctx, req)
 }
 
 type httpStatusError struct {
@@ -110,20 +116,64 @@ type httpStatusError struct {
 }
 
 func (e *httpStatusError) Error() string {
-	return fmt.Sprintf("gemini api returned status %d", e.StatusCode)
+	return fmt.Sprintf("gemini api returned status %d: %s", e.StatusCode, e.Body)
 }
 
-// callInteractionsAPI calls POST /v1beta/interactions
+// callInteractionsAPI calls POST /v1beta/interactions with the current 2026 schema.
 func (c *Client) callInteractionsAPI(ctx context.Context, req llm.GenerateRequest) (llm.GeneratedAnswer, error) {
 	endpoint := c.baseURL + interactionsPath
 
-	fullPrompt := req.UserQuestion
+	// Top-level response_format with structured JSON schema per Correction 1
 	payload := map[string]any{
 		"model":              c.model,
 		"system_instruction": req.SystemInstruction,
-		"input":              fullPrompt,
+		"input":              req.UserQuestion,
 		"generation_config": map[string]any{
-			"response_mime_type": "application/json",
+			"thinking_level":     c.thinkingLevel,
+			"thinking_summaries": "none",
+		},
+		"response_format": map[string]any{
+			"type":      "text",
+			"mime_type": "application/json",
+			"schema": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"status": map[string]any{
+						"type": "string",
+						"enum": []string{
+							"supported",
+							"insufficient_evidence",
+							"privacy_refusal",
+							"scope_refusal",
+						},
+					},
+					"segments": map[string]any{
+						"type": "array",
+						"items": map[string]any{
+							"type": "object",
+							"properties": map[string]any{
+								"text": map[string]any{
+									"type": "string",
+								},
+								"evidence_ids": map[string]any{
+									"type": "array",
+									"items": map[string]any{
+										"type": "string",
+									},
+								},
+							},
+							"required": []string{"text", "evidence_ids"},
+						},
+					},
+					"suggested_action_ids": map[string]any{
+						"type": "array",
+						"items": map[string]any{
+							"type": "string",
+						},
+					},
+				},
+				"required": []string{"status", "segments", "suggested_action_ids"},
+			},
 		},
 	}
 
@@ -146,70 +196,14 @@ func (c *Client) callInteractionsAPI(ctx context.Context, req llm.GenerateReques
 	}
 	defer resp.Body.Close()
 
-	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 512*1024))
+	// Bound response size with overflow detection per Correction 19
+	lr := io.LimitReader(resp.Body, int64(maxResponseBytes+1))
+	respBody, err := io.ReadAll(lr)
 	if err != nil {
 		return llm.GeneratedAnswer{}, fmt.Errorf("failed to read interactions response: %w", err)
 	}
-
-	if resp.StatusCode != http.StatusOK {
-		return llm.GeneratedAnswer{}, &httpStatusError{
-			StatusCode: resp.StatusCode,
-			Body:       string(respBody),
-		}
-	}
-
-	return parseStructuredAnswer(respBody)
-}
-
-// callGenerateContentAPI calls POST /v1beta/models/{model}:generateContent as compatibility fallback
-func (c *Client) callGenerateContentAPI(ctx context.Context, req llm.GenerateRequest) (llm.GeneratedAnswer, error) {
-	modelPath := c.model
-	if !strings.HasPrefix(modelPath, "models/") {
-		modelPath = fmt.Sprintf(generateContentFmt, c.model)
-	}
-	endpoint := c.baseURL + modelPath
-
-	payload := map[string]any{
-		"system_instruction": map[string]any{
-			"parts": []map[string]any{
-				{"text": req.SystemInstruction},
-			},
-		},
-		"contents": []map[string]any{
-			{
-				"role": "user",
-				"parts": []map[string]any{
-					{"text": req.UserQuestion},
-				},
-			},
-		},
-		"generationConfig": map[string]any{
-			"responseMimeType": "application/json",
-		},
-	}
-
-	bodyBytes, err := json.Marshal(payload)
-	if err != nil {
-		return llm.GeneratedAnswer{}, fmt.Errorf("failed to marshal generateContent request: %w", err)
-	}
-
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return llm.GeneratedAnswer{}, fmt.Errorf("failed to create generateContent request: %w", err)
-	}
-
-	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("x-goog-api-key", c.apiKey)
-
-	resp, err := c.httpClient.Do(httpReq)
-	if err != nil {
-		return llm.GeneratedAnswer{}, fmt.Errorf("generateContent network request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 512*1024))
-	if err != nil {
-		return llm.GeneratedAnswer{}, fmt.Errorf("failed to read generateContent response: %w", err)
+	if len(respBody) > maxResponseBytes {
+		return llm.GeneratedAnswer{}, ErrOversizedResponse
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -219,64 +213,56 @@ func (c *Client) callGenerateContentAPI(ctx context.Context, req llm.GenerateReq
 		}
 	}
 
-	return parseStructuredAnswer(respBody)
+	return parseInteractionsResponse(respBody)
 }
 
-// parseStructuredAnswer extracts the JSON output from either Gemini response structure
-func parseStructuredAnswer(body []byte) (llm.GeneratedAnswer, error) {
-	// 1. Try parsing directly if the response is directly the structured JSON or has output field
-	var directAnswer llm.GeneratedAnswer
-	if err := json.Unmarshal(body, &directAnswer); err == nil && directAnswer.Status != "" {
-		return directAnswer, nil
+// interactionsResponse reflects the current 2026 Gemini Interactions API response structure.
+type interactionsResponse struct {
+	Status string `json:"status"` // "completed", "failed", "cancelled", "incomplete"
+	Steps  []struct {
+		Type    string `json:"type"` // "model_output"
+		Content []struct {
+			Type string `json:"type"` // "text"
+			Text string `json:"text"`
+		} `json:"content"`
+	} `json:"steps"`
+}
+
+// parseInteractionsResponse extracts the model output from the steps array.
+func parseInteractionsResponse(body []byte) (llm.GeneratedAnswer, error) {
+	var respObj interactionsResponse
+	if err := json.Unmarshal(body, &respObj); err != nil {
+		return llm.GeneratedAnswer{}, fmt.Errorf("failed to decode interactions response envelope: %w", err)
 	}
 
-	// 2. Check for Interactions API response envelope {"output": "..."} or {"result": "..."}
-	var envelope struct {
-		Output string `json:"output"`
-		Result string `json:"result"`
-		Text   string `json:"text"`
-	}
-	if err := json.Unmarshal(body, &envelope); err == nil {
-		raw := envelope.Output
-		if raw == "" {
-			raw = envelope.Result
-		}
-		if raw == "" {
-			raw = envelope.Text
-		}
-		if raw != "" {
-			if parsed, err := parseJSONText(raw); err == nil {
-				return parsed, nil
-			}
+	// Verify interaction status per Correction 18
+	switch respObj.Status {
+	case "completed":
+		// Normal successful completion
+	case "failed", "cancelled", "incomplete":
+		return llm.GeneratedAnswer{}, fmt.Errorf("gemini interaction not completed: status=%s", respObj.Status)
+	default:
+		if respObj.Status != "" {
+			return llm.GeneratedAnswer{}, fmt.Errorf("gemini interaction returned unexpected status: %s", respObj.Status)
 		}
 	}
 
-	// 3. Check for generateContent envelope {"candidates": [{"content": {"parts": [{"text": "..."}]}}]}
-	var gcEnvelope struct {
-		Candidates []struct {
-			Content struct {
-				Parts []struct {
-					Text string `json:"text"`
-				} `json:"parts"`
-			} `json:"content"`
-		} `json:"candidates"`
-	}
-	if err := json.Unmarshal(body, &gcEnvelope); err == nil && len(gcEnvelope.Candidates) > 0 {
-		for _, part := range gcEnvelope.Candidates[0].Content.Parts {
-			if part.Text != "" {
-				if parsed, err := parseJSONText(part.Text); err == nil {
-					return parsed, nil
+	// Search steps for model_output -> text per Correction 3
+	for _, step := range respObj.Steps {
+		if step.Type == "model_output" {
+			for _, content := range step.Content {
+				if content.Type == "text" && strings.TrimSpace(content.Text) != "" {
+					return parseJSONText(content.Text)
 				}
 			}
 		}
 	}
 
-	return llm.GeneratedAnswer{}, fmt.Errorf("failed to parse structured model response from Gemini payload")
+	return llm.GeneratedAnswer{}, fmt.Errorf("gemini interaction response contained no model_output text step")
 }
 
 func parseJSONText(raw string) (llm.GeneratedAnswer, error) {
 	trimmed := strings.TrimSpace(raw)
-	// Strip markdown fences if present
 	if strings.HasPrefix(trimmed, "```json") {
 		trimmed = strings.TrimPrefix(trimmed, "```json")
 		trimmed = strings.TrimSuffix(trimmed, "```")
@@ -291,5 +277,10 @@ func parseJSONText(raw string) (llm.GeneratedAnswer, error) {
 	if err := json.Unmarshal([]byte(trimmed), &ans); err != nil {
 		return llm.GeneratedAnswer{}, fmt.Errorf("invalid json in model text: %w", err)
 	}
+
+	if ans.Status == "" {
+		return llm.GeneratedAnswer{}, errors.New("model output missing status field")
+	}
+
 	return ans, nil
 }

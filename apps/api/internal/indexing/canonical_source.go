@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nachsyas/arham-porto/apps/api/internal/delivery/http/dto"
 	"github.com/nachsyas/arham-porto/apps/api/internal/domain"
 	"github.com/nachsyas/arham-porto/apps/api/internal/repository/jsonfile"
 )
@@ -23,23 +24,29 @@ func BuildCanonicalKnowledgeSources(dataDir string) ([]domain.SourceWithChunks, 
 	var results []domain.SourceWithChunks
 	now := time.Now().UTC()
 
-	// 1. Profile (Sanitized Public Fields Only)
+	// 1. Profile (Sanitized Approved Public Fields Only - Centralized via DTO)
 	profile, err := repo.GetProfile(ctx)
 	if err == nil && profile != nil {
+		pub := dto.FromDomainProfile(profile)
 		var b strings.Builder
-		b.WriteString(fmt.Sprintf("Name: %s\n", profile.FullName))
-		b.WriteString(fmt.Sprintf("Role: %s\n", profile.Role))
-		if profile.Positioning != nil {
-			b.WriteString(fmt.Sprintf("Positioning: %s\n", *profile.Positioning))
+		b.WriteString(fmt.Sprintf("Name: %s\n", pub.FullName))
+		b.WriteString(fmt.Sprintf("Role: %s\n", pub.Role))
+		b.WriteString(fmt.Sprintf("Project: %s\n", pub.ProjectName))
+		b.WriteString(fmt.Sprintf("AI Feature: %s\n", pub.AIFeature))
+		if pub.Positioning != nil {
+			b.WriteString(fmt.Sprintf("Positioning: %s\n", *pub.Positioning))
 		}
-		if profile.Bio != nil {
-			b.WriteString(fmt.Sprintf("Bio: %s\n", *profile.Bio))
+		if pub.Bio != nil {
+			b.WriteString(fmt.Sprintf("Bio: %s\n", *pub.Bio))
 		}
-		if profile.CurrentCity != nil {
-			b.WriteString(fmt.Sprintf("Current City: %s\n", *profile.CurrentCity))
+		if pub.GitHub != nil {
+			b.WriteString(fmt.Sprintf("GitHub: %s\n", *pub.GitHub))
 		}
-		if profile.Availability != nil {
-			b.WriteString(fmt.Sprintf("Availability: %s\n", *profile.Availability))
+		if pub.CurrentCity != nil {
+			b.WriteString(fmt.Sprintf("Current City: %s\n", *pub.CurrentCity))
+		}
+		if pub.Availability != nil {
+			b.WriteString(fmt.Sprintf("Availability: %s\n", *pub.Availability))
 		}
 
 		profileText := NormalizeText(b.String())
