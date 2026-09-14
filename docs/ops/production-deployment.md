@@ -149,22 +149,27 @@ Once the Supabase database is healthy, `pgvector` confirmed, migrations complete
 
 ## 8. Health & Readiness Verification
 
-- **`/healthz` (Liveness)**:
-  - Verifies HTTP process responsiveness.
+- **`/health` (External Liveness)**:
+  - Verifies HTTP process responsiveness and server liveness.
   - Returns `200 OK` (`{"status":"ok","scope":"process_alive"}`).
+  - Recommended endpoint for external uptime monitors and synthetic checks.
 - **`/readyz` (Readiness)**:
-  - Verifies PostgreSQL connectivity.
-  - Returns `200 OK` when `DATABASE_MODE=required` and database is connected.
-  - Used for Cloud Run startup and liveness probes.
+  - Verifies PostgreSQL database connectivity.
+  - Returns `200 OK` when `DATABASE_MODE=required` and database is connected (`{"status":"ready","database":"connected"}`).
+  - Used for Cloud Run startup and readiness probes.
+- **`/healthz` (Local Compatibility Probe)**:
+  - Retained for local compatibility and standard container liveness probes.
+  - Returns `200 OK` when accessed directly on the container.
+  - Note: In Cloud Run production, an edge anomaly has been observed where requests directly to `/healthz` return a Google edge 404 before reaching the container. While not an officially documented Google reservation rule, `/health` serves as the public liveness alias.
 
 ---
 
 ## 9. AI Degraded State & Failure Recovery
 
-- If the Gemini API key is missing or invalid:
-  - Core portfolio deployment continues with `AI_MODE=disabled`.
-  - The API continues serving core portfolio data (`/api/v1/profile`, `/api/v1/projects`, `/api/v1/skills`, etc.).
-  - `/api/v1/ai/ask` responds with HTTP 503 Service Unavailable with a standard JSON error envelope.
-  - Status reports: `CORE PORTFOLIO LIVE; ASK ARHAM AI PENDING PRODUCTION ACTIVATION`.
+- **Ask Arham AI Status**: `PENDING PRODUCTION ACTIVATION`.
+  - Core portfolio deployment is active and fully functional on Vercel and Google Cloud Run.
+  - The API serves all canonical portfolio data (`/api/v1/profile`, `/api/v1/projects`, `/api/v1/skills`, `/api/v1/evidence`, `/api/v1/journey`).
+  - `/api/v1/ai/ask` responds with HTTP 503 Service Unavailable (`{"error":{"code":"service_unavailable","message":"Ask Arham AI is currently unavailable."}}`).
+  - Real embedding indexing via Cloud Run Job `arham-porto-indexer` requires an active Google AI Studio API key with available prepayment credits / quota.
 - If PostgreSQL becomes unreachable:
-  - `/readyz` fails, preventing unready instances from receiving traffic.
+  - `/readyz` fails (HTTP 503), preventing unready instances from receiving traffic.

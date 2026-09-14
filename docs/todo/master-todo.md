@@ -16,7 +16,7 @@
 | **Phase 5** | **AI Indexing & Retrieval** | **CERTIFIED — Evidence Indexing & pgvector Retrieval Foundation** |
 | **Phase 6** | **AI Reviewer Copilot** | **CERTIFIED — Grounded Ask Arham AI Reviewer Copilot** |
 | **Phase 7** | **Integration & Polish** | **DEFERRED — Post-Launch Enhancement** |
-| **Phase 8** | **Production & Launch** | **IN PROGRESS — Vercel, Railway, pgvector, Gemini AI Fast-Launch** |
+| **Phase 8** | **Production & Launch** | **CORE PORTFOLIO LIVE — ASK ARHAM AI PENDING** |
 
 ---
 
@@ -335,3 +335,18 @@
   - `docs/api/http-api.md`: `POST /api/v1/ai/ask` specification, preflight error contracts, in-stream recovery.
   - `.env.example`: Non-secret placeholders for all Phase 6 environment variables.
 - [x] **Stop Rule Enforcement**: Halt execution upon Phase 6 certification and push; strictly do NOT proceed to Phase 7 without explicit user approval.
+
+---
+
+## Phase 8 Checklist — Production & Launch (CORE PORTFOLIO LIVE — ASK ARHAM AI PENDING)
+> **Production Architecture**:
+> - **Frontend**: Vercel (`https://arham-porto.vercel.app`) running Next.js 15 App Router (`apps/web`).
+> - **Backend API**: Google Cloud Run (`https://arham-porto-api-6ivuekmjva-et.a.run.app`, region `asia-southeast2`).
+> - **Database**: Supabase PostgreSQL 16 with `pgvector` extension.
+> - **Liveness Hardening**: `GET /health` returns 200 OK (`{"status":"ok","scope":"process_alive"}`). Cloud Run edge anomaly affecting `/healthz` documented without claiming Google officially reserves it.
+> - **Readiness**: `GET /readyz` returns 200 OK (`{"status":"ready","database":"connected"}`).
+> - **CORS**: Finalized to exact Vercel production origin (`https://arham-porto.vercel.app`), unauthorized origins denied.
+> - **Indexer Job**: Cloud Run Job `arham-porto-indexer` created targeting `gemini-embedding-2` (768 dimensions).
+> - **AI Copilot Status**: `PENDING PRODUCTION ACTIVATION` — blocked on Google AI Studio prepayment credits / quota (HTTP 429 RESOURCE_EXHAUSTED). Core portfolio is 100% operational; `/api/v1/ai/ask` fails gracefully with HTTP 503 Service Unavailable.
+> - **Phase 7**: DEFERRED.
+

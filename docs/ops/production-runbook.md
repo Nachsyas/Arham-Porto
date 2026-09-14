@@ -99,19 +99,30 @@ To rotate `GEMINI_API_KEY` without service downtime:
 
 ## 4. Administrative Indexing Procedures
 
-### 4.1 Running a Full Re-Index
-When new projects or skills are approved in canonical data:
-1. Run a one-off Cloud Run Job or administrative container execution:
-   ```bash
-   /app/indexer --all-approved
-   ```
-2. Monitor output logs:
-   - Confirms canonical source extraction.
-   - Generates embeddings with `gemini-embedding-2`.
-   - Validates that `knowledge_sources` and `knowledge_chunks` are in `vector_ready` state.
+### 4.1 Running Production Indexing via Cloud Run Job
+When new projects or skills are approved in canonical data, execute the dedicated administrative Cloud Run Job:
+```bash
+gcloud run jobs execute arham-porto-indexer \
+  --project=project-c3c283e3-36a1-43ec-a7f \
+  --region=asia-southeast2 \
+  --wait
+```
+The job executes `/app/indexer --all-approved` using:
+- `EMBEDDING_PROVIDER=gemini`
+- `EMBEDDING_MODEL=gemini-embedding-2` (768 dimensions)
+- Secret bindings for `DATABASE_URL` and `GEMINI_API_KEY`
+- Persists embeddings into Supabase PostgreSQL + `pgvector`
 
-### 4.2 Checking Vector Index Health
-To inspect the production vector index directly in Supabase SQL Editor:
+### 4.2 Inspecting Vector Index Status
+To query the operational index status without running ingestion:
+```bash
+gcloud run jobs execute arham-porto-indexer \
+  --project=project-c3c283e3-36a1-43ec-a7f \
+  --region=asia-southeast2 \
+  --args=--status \
+  --wait
+```
+Or directly in Supabase SQL Editor:
 ```sql
 -- Check total embedded chunks
 SELECT embedding_model, COUNT(*) 
