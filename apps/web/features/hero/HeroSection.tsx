@@ -1,18 +1,28 @@
 "use client";
 
-import { motion } from "motion/react";
-import { ArrowDown, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { GithubIcon } from "@/components/icons/GithubIcon";
 import HeroPortrait from "./HeroPortrait";
+import { useOptionalPortfolioUI } from "@/context/PortfolioUIContext";
 import type { Profile } from "arham-porto-schema";
 
 interface HeroSectionProps {
   profile: Profile;
-  onOpenQuickReview: () => void;
+  onOpenQuickReview?: () => void;
 }
 
 export default function HeroSection({ profile, onOpenQuickReview }: HeroSectionProps) {
   const focusTags = ["Full-Stack", "Backend", "AI / ML", "System Design"];
+  const uiContext = useOptionalPortfolioUI();
+
+  const handleQuickReview = () => {
+    if (onOpenQuickReview) {
+      onOpenQuickReview();
+    } else if (uiContext) {
+      uiContext.openQuickReview();
+    }
+  };
 
   return (
     <section
@@ -64,17 +74,17 @@ export default function HeroSection({ profile, onOpenQuickReview }: HeroSectionP
 
           {/* CTAs & Actions */}
           <div className="flex flex-wrap items-center gap-4 pt-4">
-            <a
-              href="#projects"
+            <Link
+              href="/work"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold font-body bg-primary text-white hover:bg-primary-active transition-all shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary"
             >
               Explore My Work
-              <ArrowDown className="h-4 w-4" />
-            </a>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
 
             <button
               type="button"
-              onClick={onOpenQuickReview}
+              onClick={handleQuickReview}
               className="inline-flex items-center gap-2 px-5 py-3 rounded-md text-sm font-medium font-body bg-surface border border-border text-themeText-primary hover:border-primary hover:text-primary transition-all shadow-sm focus-visible:ring-2 focus-visible:ring-primary"
             >
               <Sparkles className="h-4 w-4 text-primary" />

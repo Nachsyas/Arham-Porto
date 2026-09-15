@@ -50,11 +50,17 @@ export const metadata: Metadata = {
   },
 };
 
+import { getProfile, getProjects } from "arham-porto-data";
+import AppShell from "@/components/AppShell";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const profile = getProfile();
+  const projects = getProjects();
+
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${inter.variable}`}>
       <body className="bg-canvas text-themeText-body min-h-screen antialiased selection:bg-primary/20 selection:text-primary">
@@ -64,7 +70,11 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        <main id="main-content">{children}</main>
+        <AppShell profile={profile} projects={projects}>
+          <main id="main-content" className="flex-1 flex flex-col">
+            {children}
+          </main>
+        </AppShell>
       </body>
     </html>
   );

@@ -10,9 +10,11 @@ import JourneyTimeline from "./JourneyTimeline";
 
 interface JourneySectionProps {
   stops?: JourneyStop[];
+  hideHeader?: boolean;
+  className?: string;
 }
 
-export default function JourneySection({ stops = [] }: JourneySectionProps) {
+export default function JourneySection({ stops = [], hideHeader = false, className = "" }: JourneySectionProps) {
   // 1. Strict public filtering: non-public stops (TK, SD, SMP) are excluded from DOM
   const publicMilestones = useMemo(() => filterPublicMilestones(stops), [stops]);
 
@@ -80,30 +82,32 @@ export default function JourneySection({ stops = [] }: JourneySectionProps) {
     <section
       id="journey"
       aria-label="Academic and Geographic Journey Map"
-      className="py-20 border-b border-border px-4 sm:px-6 lg:px-8 bg-canvas relative overflow-hidden"
+      className={className || "py-20 border-b border-border px-4 sm:px-6 lg:px-8 bg-canvas relative overflow-hidden"}
     >
       <div className="mx-auto max-w-7xl">
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
-          <div>
-            <span className="text-xs font-code text-primary uppercase tracking-wider block mb-2">
-              03 // GEOGRAPHIC & ACADEMIC EVOLUTION
-            </span>
-            <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-themeText-primary tracking-tight">
-              Interactive Journey Map
-            </h2>
-            <p className="mt-2 text-sm sm:text-base font-body text-themeText-muted max-w-2xl">
-              From Karanganyar to Jakarta, Salatiga, and Malang — a journey through formative education and computer science.
-            </p>
-          </div>
+        {!hideHeader && (
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+            <div>
+              <span className="text-xs font-code text-primary uppercase tracking-wider block mb-2">
+                03 // GEOGRAPHIC & ACADEMIC EVOLUTION
+              </span>
+              <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-themeText-primary tracking-tight">
+                Interactive Journey Map
+              </h2>
+              <p className="mt-2 text-sm sm:text-base font-body text-themeText-muted max-w-2xl">
+                From Karanganyar to Jakarta, Salatiga, and Malang — a journey through formative education and computer science.
+              </p>
+            </div>
 
-          {/* Quick Counter Badge */}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-md bg-surface border border-border text-xs font-code text-themeText-muted">
-            <span className="text-primary font-bold">0{safeIndex + 1}</span>
-            <span>/</span>
-            <span>0{publicMilestones.length} Milestones</span>
+            {/* Quick Counter Badge */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-md bg-surface border border-border text-xs font-code text-themeText-muted">
+              <span className="text-primary font-bold">0{safeIndex + 1}</span>
+              <span>/</span>
+              <span>0{publicMilestones.length} Milestones</span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Responsive Desktop / Tablet / Mobile Composition */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch mb-6">

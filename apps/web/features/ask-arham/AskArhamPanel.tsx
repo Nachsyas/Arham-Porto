@@ -180,6 +180,7 @@ export default function AskArhamPanel({
       role="dialog"
       aria-modal="true"
       aria-labelledby="ask-arham-title"
+      data-testid="ask-arham-panel"
     >
       {/* Screen Reader Announcement Region (Correction 43) */}
       <div className="sr-only" aria-live="polite">

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, ExternalLink, Shield, CheckCircle2, Layers } from "lucide-react";
 import { GithubIcon } from "@/components/icons/GithubIcon";
 import { getProjects, getProfile } from "arham-porto-data";
+import InterPageNav from "@/components/InterPageNav";
 import type { Metadata } from "next";
 
 interface CaseStudyPageProps {
@@ -47,10 +48,10 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
   return (
     <div className="min-h-screen bg-canvas text-themeText-body selection:bg-primary/20 selection:text-primary pb-24">
       {/* Top Breadcrumb Navigation */}
-      <nav className="sticky top-0 z-30 border-b border-border bg-canvas/90 backdrop-blur-md px-4 sm:px-6 lg:px-8 py-4">
+      <nav className="border-b border-border bg-surface/80 backdrop-blur-md px-4 sm:px-6 lg:px-8 py-3.5">
         <div className="mx-auto max-w-5xl flex items-center justify-between">
           <Link
-            href="/#projects"
+            href="/work"
             className="inline-flex items-center gap-2 text-xs font-code text-themeText-muted hover:text-primary transition-colors focus-visible:ring-2 focus-visible:ring-primary rounded py-1 px-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -167,6 +168,15 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
           </p>
         </section>
       </main>
+
+      <div className="mt-16">
+        <InterPageNav
+          label="EXPLORE ALL WORK"
+          nextRoute="/work"
+          nextTitle="All Selected Systems & Projects"
+          description="Browse the complete catalog of engineering projects, architectural case studies, and verified repositories."
+        />
+      </div>
     </div>
   );
 }
