@@ -72,28 +72,29 @@ If a backend regression or container failure occurs:
    - The Go API automatically retries connections with exponential backoff.
    - Once the database accepts connections, `/readyz` returns HTTP 200 without requiring container restarts.
 
-### 3.2 Gemini API Outage or Quota Exhaustion
+### 3.2 Groq / Cloudflare Outage or Quota Exhaustion
 **Symptom**: Ask Arham returns HTTP 503 with code `service_unavailable`; core portfolio pages remain operational.
 **Actions**:
-1. Verify Google AI Studio operational status and quota in Google Cloud Console.
-2. Check Cloud Run logs for rate limit or quota responses.
+1. Check Groq operational status (status.groq.com) and Cloudflare Workers AI operational status.
+2. Check Cloud Run logs for provider rate limit or quota responses.
 3. If necessary, temporarily disable the AI copilot without redeploying code:
    - Update Cloud Run environment variable `AI_MODE=disabled`.
    - The API will gracefully inform visitors that Ask Arham is resting while preserving 100% of portfolio navigation.
 
-### 3.3 Gemini API Key Rotation
-To rotate `GEMINI_API_KEY` without service downtime:
-1. Generate a new API key in Google AI Studio.
-2. In Google Cloud Secret Manager / Cloud Run:
-   - Update the `GEMINI_API_KEY` secret with the new value.
-3. Cloud Run automatically performs a rolling restart or deploy new revision referencing the secret.
+### 3.3 Provider Credential Rotation
+To rotate `GROQ_API_KEY` or `CLOUDFLARE_AI_TOKEN` without service downtime:
+1. Generate a new API key/token in Groq Console or Cloudflare Dashboard.
+2. In Google Cloud Secret Manager:
+   - Add a new secret version to `arham-porto-groq-api-key` or `arham-porto-cloudflare-ai-token`.
+3. Cloud Run automatically picks up the `:latest` version on new revision deployment or restart.
 4. Verify functionality:
    ```bash
-   curl -X POST https://<cloud-run-domain>/api/v1/ai/ask \
+   curl -X POST https://arham-porto-api-6ivuekmjva-et.a.run.app/api/v1/ai/ask \
      -H "Content-Type: application/json" \
+     -H "Accept: text/event-stream" \
      -d '{"question":"What does Arham specialize in?"}'
    ```
-5. Revoke the retired key in Google AI Studio only after the new deployment is verified.
+5. Revoke the retired key in the provider console only after the new deployment is verified.
 
 ---
 
@@ -108,9 +109,9 @@ gcloud run jobs execute arham-porto-indexer \
   --wait
 ```
 The job executes `/app/indexer --all-approved` using:
-- `EMBEDDING_PROVIDER=gemini`
-- `EMBEDDING_MODEL=gemini-embedding-2` (768 dimensions)
-- Secret bindings for `DATABASE_URL` and `GEMINI_API_KEY`
+- `EMBEDDING_PROVIDER=cloudflare`
+- `EMBEDDING_MODEL=@cf/baai/bge-base-en-v1.5` (768 dimensions)
+- Secret bindings for `DATABASE_URL` and `CLOUDFLARE_AI_TOKEN`
 - Persists embeddings into Supabase PostgreSQL + `pgvector`
 
 ### 4.2 Inspecting Vector Index Status

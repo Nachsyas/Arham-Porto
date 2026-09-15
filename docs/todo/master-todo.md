@@ -338,15 +338,18 @@
 
 ---
 
-## Phase 8 Checklist — Production & Launch (CORE PORTFOLIO LIVE — ASK ARHAM AI PENDING)
-> **Production Architecture**:
+## Phase 8 Checklist — Production & Launch (PRODUCTION CERTIFIED + LIVE)
+> **Final Certified Production Architecture**:
 > - **Frontend**: Vercel (`https://arham-porto.vercel.app`) running Next.js 15 App Router (`apps/web`).
-> - **Backend API**: Google Cloud Run (`https://arham-porto-api-6ivuekmjva-et.a.run.app`, region `asia-southeast2`).
+> - **Backend API**: Google Cloud Run (`https://arham-porto-api-6ivuekmjva-et.a.run.app`, region `asia-southeast2`, active revision `arham-porto-api-00004-btg`).
 > - **Database**: Supabase PostgreSQL 16 with `pgvector` extension.
-> - **Liveness Hardening**: `GET /health` returns 200 OK (`{"status":"ok","scope":"process_alive"}`). Cloud Run edge anomaly affecting `/healthz` documented without claiming Google officially reserves it.
+> - **AI Generation Provider**: Groq (`openai/gpt-oss-20b`) with strict JSON schema structured outputs and low reasoning effort.
+> - **AI Embedding Provider**: Cloudflare Workers AI (`@cf/baai/bge-base-en-v1.5`, 768 dimensions), Account ID `8b685eec1cdeffb91e795555dc70f4e2`.
+> - **Knowledge Index**: 100% of approved repositories indexed via `arham-porto-indexer` Cloud Run Job (113 total chunks across canonical + 5 repositories), verified `vector_ready`.
+> - **Liveness Hardening**: `GET /health` returns 200 OK (`{"status":"ok","scope":"process_alive"}`).
 > - **Readiness**: `GET /readyz` returns 200 OK (`{"status":"ready","database":"connected"}`).
 > - **CORS**: Finalized to exact Vercel production origin (`https://arham-porto.vercel.app`), unauthorized origins denied.
-> - **Indexer Job**: Cloud Run Job `arham-porto-indexer` created targeting `gemini-embedding-2` (768 dimensions).
-> - **AI Copilot Status**: `PENDING PRODUCTION ACTIVATION` — blocked on Google AI Studio prepayment credits / quota (HTTP 429 RESOURCE_EXHAUSTED). Core portfolio is 100% operational; `/api/v1/ai/ask` fails gracefully with HTTP 503 Service Unavailable.
+> - **Ask Arham AI Copilot**: FULLY ACTIVE & CERTIFIED — Passed 8/8 canonical live evaluation questions, Desktop & Mobile E2E verification, 5 req/min rate limiting, and zero-leak security audit.
+> - **Legacy Adapter**: Gemini provider preserved as inactive rollback adapter.
 > - **Phase 7**: DEFERRED.
 

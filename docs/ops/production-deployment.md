@@ -26,10 +26,12 @@ Certified Baseline: **Phase 8 Production Architecture**
               │
       ┌───────┴────────────────────────┐
       ▼                                ▼
-[ Supabase PostgreSQL 16 ]     [ Google Gemini API ]
-  - pgvector extension          - gemini-3.8-flash (Reasoning)
-  - schema_migrations           - gemini-embedding-2 (Retrieval)
-  - knowledge_sources/chunks    - Zero-Trust Grounding Guards
+[ Supabase PostgreSQL 16 ]     [ AI Providers (Free-Tier Production Stack) ]
+  - pgvector extension          - Generation: Groq (openai/gpt-oss-20b)
+  - schema_migrations             Strict JSON Schema Structured Outputs
+  - knowledge_sources/chunks    - Embeddings: Cloudflare Workers AI
+  - 768-dim cosine retrieval      @cf/baai/bge-base-en-v1.5 (768 dimensions)
+                                - Gemini: Inactive legacy rollback adapter
 ```
 
 ---
@@ -43,7 +45,9 @@ The production deployment maintains strict isolation between presentation, appli
 | **Frontend** | Vercel | Next.js 15 Monorepo Workspace (`apps/web`) | SSR/SSG Portfolio, Case Studies, SSE Chat Client |
 | **API Backend** | Google Cloud Run | Docker Image (`apps/api/Dockerfile`) | Clean Architecture REST API, Proxy Rate Limiter, SSE Streaming |
 | **Database** | Supabase | PostgreSQL 16 with `pgvector` extension | Relational storage & exact cosine vector similarity search |
-| **AI Generation** | Google AI Studio | Gemini Interactions API (`v1beta/interactions`) | Structured, evidence-grounded responses |
+| **AI Generation** | Groq | OpenAI Chat Completions API (`/v1/chat/completions`) | Strict Structured Outputs with `openai/gpt-oss-20b` |
+| **AI Embeddings** | Cloudflare Workers AI | REST API (`/ai/run/@cf/baai/bge-base-en-v1.5`) | High-performance 768-dim embeddings |
+| **Knowledge Indexer** | Google Cloud Run Job | Multi-stage Container (`/app/indexer`) | Deterministic chunking & atomic repository snapshot replacement |
 
 ---
 
@@ -71,19 +75,22 @@ The production deployment maintains strict isolation between presentation, appli
 | `TRUST_PROXY_MODE` | **Yes** | Edge proxy client IP resolution | `cloudrun` |
 | `PORTFOLIO_DATA_DIR` | **Yes** | Path to canonical portfolio content | `/app/data` |
 | `MIGRATIONS_DIR` | **Yes** | Path to database schema migrations | `/app/migrations` |
-| `AI_MODE` | **Yes** | Ask Arham AI operational mode | `remote` (or `disabled` if key pending) |
-| `AI_PROVIDER` | **Yes** | Generative AI provider | `gemini` |
-| `AI_MODEL` | **Yes** | Gemini generation model | `gemini-3.8-flash` |
-| `AI_THINKING_LEVEL` | **Yes** | Gemini thinking level | `low` |
+| `AI_MODE` | **Yes** | Ask Arham AI operational mode | `remote` |
+| `AI_PROVIDER` | **Yes** | Generative AI provider | `groq` |
+| `AI_MODEL` | **Yes** | Generation model | `openai/gpt-oss-20b` |
+| `AI_THINKING_LEVEL` | **Yes** | Groq reasoning effort | `low` |
 | `AI_REQUEST_TIMEOUT_SECONDS`| No | Timeout for Ask Arham SSE responses | `30` |
 | `AI_MAX_CONCURRENT_REQUESTS`| No | Server concurrency semaphore | `4` |
 | `AI_RATE_LIMIT_PER_MINUTE` | No | Per-client IP rate limit | `5` |
 | `AI_MAX_EVIDENCE_CHARS` | No | Retrieval context character cap | `24000` |
 | `EMBEDDING_MODE` | **Yes** | Vector embedding subsystem | `enabled` |
-| `EMBEDDING_PROVIDER` | **Yes** | Embedding provider | `gemini` |
-| `EMBEDDING_MODEL` | **Yes** | Embedding model name | `gemini-embedding-2` |
+| `EMBEDDING_PROVIDER` | **Yes** | Embedding provider | `cloudflare` |
+| `EMBEDDING_MODEL` | **Yes** | Embedding model name | `@cf/baai/bge-base-en-v1.5` |
 | `EMBEDDING_DIMENSIONS` | **Yes** | Vector dimensions | `768` |
-| `GEMINI_API_KEY` | **Yes** | Google Gemini Auth API Key | Injected via Secret Manager / Cloud Run secret |
+| `CLOUDFLARE_ACCOUNT_ID` | **Yes** | Cloudflare account identifier | `8b685eec1cdeffb91e795555dc70f4e2` |
+| `GROQ_API_KEY` | **Yes** | Groq API Key | Injected via Secret Manager / Cloud Run secret |
+| `CLOUDFLARE_AI_TOKEN` | **Yes** | Cloudflare Workers AI token | Injected via Secret Manager / Cloud Run secret |
+| `GEMINI_API_KEY` | Optional | Legacy rollback Gemini API key | Inactive rollback material |
 | `GITHUB_TOKEN` | Optional | GitHub API read-only token | Injected via Secret Manager / Cloud Run secret |
 
 ---

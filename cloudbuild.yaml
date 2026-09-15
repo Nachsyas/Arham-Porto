@@ -1,0 +1,11 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - 'build'
+  - '-f'
+  - 'apps/api/Dockerfile'
+  - '-t'
+  - 'asia-southeast2-docker.pkg.dev/project-c3c283e3-36a1-43ec-a7f/arham-porto/api:4f74b50c18408fa8ebcc47cf4bfcf8347895e30d'
+  - '.'
+images:
+- 'asia-southeast2-docker.pkg.dev/project-c3c283e3-36a1-43ec-a7f/arham-porto/api:4f74b50c18408fa8ebcc47cf4bfcf8347895e30d'
