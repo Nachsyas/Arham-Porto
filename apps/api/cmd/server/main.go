@@ -107,7 +107,7 @@ func main() {
 				if cfg.CloudflareAIToken == "" || cfg.CloudflareAccountID == "" {
 					log.Printf("[arham-porto-api] Warning: CLOUDFLARE_AI_TOKEN and CLOUDFLARE_ACCOUNT_ID are required when EMBEDDING_PROVIDER=cloudflare")
 				} else {
-					embClient, embErr = cloudflare.NewProvider(cfg.CloudflareAIToken, cfg.CloudflareAccountID, cfg.EmbeddingModel, cfg.EmbeddingDimensions)
+					embClient, embErr = cloudflare.NewProvider(cfg.CloudflareAccountID, cfg.CloudflareAIToken, cfg.EmbeddingModel, cfg.EmbeddingDimensions)
 				}
 			case "gemini":
 				if cfg.GeminiAPIKey == "" {

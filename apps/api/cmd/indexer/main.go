@@ -120,7 +120,7 @@ func main() {
 	var embProvider embedding.Provider
 	if cfg.EmbeddingMode == "enabled" {
 		if cfg.EmbeddingProvider == "cloudflare" {
-			p, err := cloudflare.NewProvider(cfg.CloudflareAIToken, cfg.CloudflareAccountID, cfg.EmbeddingModel, cfg.EmbeddingDimensions)
+			p, err := cloudflare.NewProvider(cfg.CloudflareAccountID, cfg.CloudflareAIToken, cfg.EmbeddingModel, cfg.EmbeddingDimensions)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Failed initializing Cloudflare provider: %v\n", err)
 				os.Exit(1)
