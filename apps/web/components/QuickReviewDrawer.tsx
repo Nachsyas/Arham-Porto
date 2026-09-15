@@ -98,7 +98,7 @@ export default function QuickReviewDrawer({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="fixed inset-0 bg-canvas/80 backdrop-blur-sm"
+            className="fixed inset-0 bg-slate-900/25 backdrop-blur-sm"
             aria-hidden="true"
           />
 
@@ -115,7 +115,7 @@ export default function QuickReviewDrawer({
             className="relative z-10 flex h-full w-full max-w-lg flex-col bg-surface border-l border-border shadow-2xl overflow-y-auto"
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-border p-6 bg-surfaceElevated/50">
+            <div className="flex items-center justify-between border-b border-border p-6 bg-surface-elevated">
               <div className="flex items-center gap-2">
                 <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
                 <h2 id="quick-review-title" className="font-display font-bold text-lg text-themeText-primary">
@@ -127,7 +127,7 @@ export default function QuickReviewDrawer({
                 type="button"
                 onClick={onClose}
                 aria-label="Close review drawer"
-                className="flex h-10 w-10 items-center justify-center rounded-md border border-border text-themeText-muted hover:text-themeText-primary hover:border-primary transition-colors focus-visible:ring-2 focus-visible:ring-primary"
+                className="flex h-10 w-10 items-center justify-center rounded-md border border-border text-themeText-muted hover:text-themeText-primary hover:border-primary transition-colors focus-visible:ring-2 focus-visible:ring-primary shadow-sm"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -136,7 +136,7 @@ export default function QuickReviewDrawer({
             {/* Content Body */}
             <div className="flex-1 space-y-6 p-6">
               {/* Identity Snapshot */}
-              <div className="rounded-card border border-border bg-surfaceElevated p-5">
+              <div className="rounded-card border border-border bg-surface-elevated p-5 shadow-sm">
                 <p className="text-xs font-code tracking-wider text-primary uppercase mb-1">
                   Candidate Profile
                 </p>
@@ -147,7 +147,7 @@ export default function QuickReviewDrawer({
                   {profile.role}
                 </p>
                 {profile.positioning && (
-                  <p className="text-xs text-themeText-muted mt-2 leading-relaxed">
+                  <p className="text-xs text-themeText-body mt-2 leading-relaxed">
                     {profile.positioning}
                   </p>
                 )}
@@ -162,7 +162,7 @@ export default function QuickReviewDrawer({
                   {coreStack.map((tech) => (
                     <span
                       key={tech}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-code bg-canvas border border-border text-themeText-primary"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-code bg-canvas-soft border border-border text-themeText-primary shadow-sm"
                     >
                       <CheckCircle2 className="h-3 w-3 text-status-success" />
                       {tech}
@@ -180,20 +180,20 @@ export default function QuickReviewDrawer({
                   {projects.map((proj) => (
                     <div
                       key={proj.id}
-                      className="rounded-md border border-border bg-surfaceElevated/40 p-3 hover:border-borderStrong transition-colors"
+                      className="rounded-md border border-border bg-surface p-3 hover:border-border-strong hover:shadow-sm transition-all"
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-display font-semibold text-sm text-themeText-primary">
                           {proj.title}
                         </span>
                         {proj.category && (
-                          <span className="text-[10px] font-code px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                          <span className="text-[10px] font-code px-2 py-0.5 rounded bg-primary-muted text-primary border border-primary/20 font-medium">
                             {proj.category}
                           </span>
                         )}
                       </div>
                       {proj.summary && (
-                        <p className="text-xs text-themeText-muted line-clamp-2 mb-2 leading-relaxed">
+                        <p className="text-xs text-themeText-body line-clamp-2 mb-2 leading-relaxed">
                           {proj.summary}
                         </p>
                       )}
@@ -201,7 +201,7 @@ export default function QuickReviewDrawer({
                         <Link
                           href={`/projects/${proj.slug}`}
                           onClick={onClose}
-                          className="text-primary hover:text-primaryActive inline-flex items-center gap-1 font-medium focus-visible:ring-1 focus-visible:ring-primary rounded"
+                          className="text-primary hover:text-primary-active inline-flex items-center gap-1 font-medium focus-visible:ring-1 focus-visible:ring-primary rounded"
                         >
                           Case Study <ArrowRight className="h-3 w-3" />
                         </Link>
@@ -222,7 +222,7 @@ export default function QuickReviewDrawer({
               </div>
 
               {/* Evidence Architecture Note */}
-              <div className="rounded-md border border-primary/20 bg-primary/5 p-4 text-xs text-themeText-muted leading-relaxed">
+              <div className="rounded-md border border-primary/30 bg-primary-muted/60 p-4 text-xs text-themeText-body leading-relaxed">
                 <div className="flex items-center gap-2 text-primary font-medium mb-1">
                   <Shield className="h-4 w-4" /> Evidence-Grounded Portfolio
                 </div>
@@ -231,13 +231,13 @@ export default function QuickReviewDrawer({
             </div>
 
             {/* Footer Actions */}
-            <div className="border-t border-border p-6 bg-surfaceElevated/50 flex flex-col gap-3">
+            <div className="border-t border-border p-6 bg-surface-elevated flex flex-col gap-3">
               {profile.github && (
                 <a
                   href={profile.github}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-md border border-border bg-surface text-themeText-primary hover:border-primary text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-md border border-border bg-surface text-themeText-primary hover:border-primary text-sm font-medium transition-colors shadow-sm focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   <GithubIcon className="h-4 w-4" /> Visit GitHub Profile
                 </a>

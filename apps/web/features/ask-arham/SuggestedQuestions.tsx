@@ -33,7 +33,7 @@ export default function SuggestedQuestions({
             type="button"
             disabled={disabled}
             onClick={() => onSelect(q)}
-            className="text-left text-xs bg-surface/60 hover:bg-surface border border-border/80 hover:border-primary/50 text-themeText-body hover:text-themeText-primary px-3 py-1.5 rounded-full transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+            className="text-left text-xs bg-surface-elevated hover:bg-surface border border-border hover:border-primary text-themeText-body hover:text-primary px-3 py-1.5 rounded-full transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
           >
             {q}
           </button>

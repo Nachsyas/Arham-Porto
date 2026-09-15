@@ -31,10 +31,10 @@ export default function AskArhamMessages({
           {/* User Question */}
           {msg.question && (
             <div className="flex items-start gap-2.5 justify-end">
-              <div className="bg-primary/15 border border-primary/30 text-themeText-primary text-sm p-3 rounded-2xl rounded-tr-none max-w-[85%] break-words">
+              <div className="bg-primary-muted border border-primary/25 text-themeText-primary text-sm p-3 rounded-2xl rounded-tr-none max-w-[85%] break-words shadow-sm">
                 {msg.question}
               </div>
-              <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center flex-shrink-0 text-primary">
+              <div className="w-7 h-7 rounded-full bg-primary-muted border border-primary/30 flex items-center justify-center flex-shrink-0 text-primary">
                 <User className="w-3.5 h-3.5" />
               </div>
             </div>
@@ -43,10 +43,10 @@ export default function AskArhamMessages({
           {/* Assistant Response */}
           {msg.response ? (
             <div className="flex items-start gap-2.5 justify-start">
-              <div className="w-7 h-7 rounded-full bg-surface border border-border flex items-center justify-center flex-shrink-0 text-primary">
+              <div className="w-7 h-7 rounded-full bg-surface border border-border flex items-center justify-center flex-shrink-0 text-primary shadow-sm">
                 <Bot className="w-3.5 h-3.5" />
               </div>
-              <div className="bg-surface/60 border border-border/80 p-3.5 rounded-2xl rounded-tl-none max-w-[92%] flex-1">
+              <div className="bg-surface border border-border p-3.5 rounded-2xl rounded-tl-none max-w-[92%] flex-1 shadow-sm">
                 <AskArhamAnswer
                   response={msg.response}
                   onActionTriggered={onActionTriggered}
@@ -55,19 +55,19 @@ export default function AskArhamMessages({
             </div>
           ) : msg.errorMessage ? (
             <div className="flex items-start gap-2.5 justify-start">
-              <div className="w-7 h-7 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center flex-shrink-0 text-red-400">
+              <div className="w-7 h-7 rounded-full bg-red-50 border border-red-200 flex items-center justify-center flex-shrink-0 text-status-error">
                 <AlertTriangle className="w-3.5 h-3.5" />
               </div>
-              <div className="bg-red-500/10 border border-red-500/20 text-red-300 text-sm p-3 rounded-2xl rounded-tl-none max-w-[90%]">
+              <div className="bg-red-50 border border-red-200 text-red-800 text-sm p-3 rounded-2xl rounded-tl-none max-w-[90%] shadow-sm">
                 {msg.errorMessage}
               </div>
             </div>
           ) : msg.status && msg.status !== "idle" && msg.status !== "ready" ? (
             <div className="flex items-start gap-2.5 justify-start">
-              <div className="w-7 h-7 rounded-full bg-surface border border-border flex items-center justify-center flex-shrink-0 text-primary animate-pulse">
+              <div className="w-7 h-7 rounded-full bg-surface border border-border flex items-center justify-center flex-shrink-0 text-primary animate-pulse shadow-sm">
                 <Bot className="w-3.5 h-3.5" />
               </div>
-              <div className="bg-surface/40 border border-border/60 text-themeText-muted text-xs font-mono p-3 rounded-2xl rounded-tl-none flex items-center gap-2">
+              <div className="bg-surface-elevated border border-border text-themeText-muted text-xs font-mono p-3 rounded-2xl rounded-tl-none flex items-center gap-2 shadow-sm">
                 <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
                 <span>
                   {msg.status === "retrieving"

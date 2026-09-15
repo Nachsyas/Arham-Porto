@@ -20,29 +20,29 @@ export default function AskArhamAnswer({
     switch (status) {
       case "supported":
         return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-            <ShieldCheck className="w-3 h-3" />
+          <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-800 border border-emerald-500/30">
+            <ShieldCheck className="w-3 h-3 text-status-success" />
             <span>Verified Evidence</span>
           </span>
         );
       case "insufficient_evidence":
         return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">
-            <AlertCircle className="w-3 h-3" />
+          <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-800 border border-amber-500/30">
+            <AlertCircle className="w-3 h-3 text-status-warning" />
             <span>Insufficient Evidence</span>
           </span>
         );
       case "privacy_refusal":
         return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30">
-            <Lock className="w-3 h-3" />
+          <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-800 border border-blue-500/30">
+            <Lock className="w-3 h-3 text-primary" />
             <span>Privacy Guard</span>
           </span>
         );
       case "scope_refusal":
         return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-neutral-500/10 text-neutral-400 border border-neutral-500/30">
-            <Slash className="w-3 h-3" />
+          <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-500/10 text-slate-800 border border-slate-500/30">
+            <Slash className="w-3 h-3 text-slate-600" />
             <span>Scope Bounded</span>
           </span>
         );
@@ -67,7 +67,7 @@ export default function AskArhamAnswer({
                   {seg.evidence_ids.map((id) => (
                     <span
                       key={id}
-                      className="text-[10px] font-mono px-1 py-0.2 rounded bg-primary/10 text-primary border border-primary/30"
+                      className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary-muted text-primary border border-primary/25 font-semibold"
                     >
                       [{id}]
                     </span>

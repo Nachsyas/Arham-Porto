@@ -47,8 +47,8 @@ export default function ProjectsSection({ projects }: ProjectsSectionProps) {
                   onClick={() => setActiveFilter(category)}
                   className={`px-3.5 py-1.5 rounded-md text-xs font-code transition-all focus-visible:ring-2 focus-visible:ring-primary ${
                     isActive
-                      ? "bg-primary text-canvas font-semibold shadow-[0_0_12px_rgba(38,184,255,0.3)]"
-                      : "bg-surface border border-border text-themeText-muted hover:text-themeText-primary hover:border-primary/40"
+                      ? "bg-primary text-white font-semibold shadow-sm"
+                      : "bg-surface border border-border text-themeText-body hover:text-themeText-primary hover:border-primary/40 shadow-sm"
                   }`}
                 >
                   {category}

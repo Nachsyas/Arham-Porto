@@ -21,13 +21,13 @@ export default function HeroSection({ profile, onOpenQuickReview }: HeroSectionP
       className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center border-b border-border px-4 py-16 sm:px-6 lg:px-8 overflow-hidden"
     >
       {/* Subtle Background Ambience */}
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(38,184,255,0.08),rgba(2,6,11,0))]" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(7,153,230,0.07),transparent)]" />
 
       <div className="relative mx-auto max-w-7xl w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
         {/* Left Column: Reviewer Identity & Copy */}
         <div className="lg:col-span-7 flex flex-col space-y-6 text-left">
           {/* Status & Role Pill */}
-          <div className="inline-flex items-center gap-2 self-start px-3 py-1.5 rounded-full border border-primary/30 bg-surfaceElevated text-xs font-code text-primary">
+          <div className="inline-flex items-center gap-2 self-start px-3 py-1.5 rounded-full border border-border bg-surface-elevated text-xs font-code text-primary shadow-sm">
             <span className="flex h-2 w-2 rounded-full bg-primary" />
             <span>{profile.role}</span>
             <span className="text-themeText-muted">|</span>
@@ -55,7 +55,7 @@ export default function HeroSection({ profile, onOpenQuickReview }: HeroSectionP
             {focusTags.map((tag) => (
               <span
                 key={tag}
-                className="px-3 py-1 rounded-md text-xs font-code bg-surface border border-border text-themeText-muted hover:border-primary/40 hover:text-primary transition-colors"
+                className="px-3 py-1 rounded-md text-xs font-code bg-surface border border-border text-themeText-body hover:border-primary/40 hover:text-primary transition-colors shadow-sm"
               >
                 #{tag}
               </span>
@@ -66,7 +66,7 @@ export default function HeroSection({ profile, onOpenQuickReview }: HeroSectionP
           <div className="flex flex-wrap items-center gap-4 pt-4">
             <a
               href="#projects"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold font-body bg-primary text-canvas hover:bg-primaryActive transition-all shadow-[0_0_15px_rgba(38,184,255,0.25)] focus-visible:ring-2 focus-visible:ring-primary"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold font-body bg-primary text-white hover:bg-primary-active transition-all shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary"
             >
               Explore My Work
               <ArrowDown className="h-4 w-4" />
@@ -75,7 +75,7 @@ export default function HeroSection({ profile, onOpenQuickReview }: HeroSectionP
             <button
               type="button"
               onClick={onOpenQuickReview}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-md text-sm font-medium font-body bg-surfaceElevated border border-border text-themeText-primary hover:border-primary hover:text-primary transition-all focus-visible:ring-2 focus-visible:ring-primary"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-md text-sm font-medium font-body bg-surface border border-border text-themeText-primary hover:border-primary hover:text-primary transition-all shadow-sm focus-visible:ring-2 focus-visible:ring-primary"
             >
               <Sparkles className="h-4 w-4 text-primary" />
               60-Second Quick Review
@@ -87,7 +87,7 @@ export default function HeroSection({ profile, onOpenQuickReview }: HeroSectionP
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub Profile"
-                className="flex h-11 w-11 items-center justify-center rounded-md border border-border bg-surface text-themeText-muted hover:text-themeText-primary hover:border-primary transition-colors focus-visible:ring-2 focus-visible:ring-primary"
+                className="flex h-11 w-11 items-center justify-center rounded-md border border-border bg-surface text-themeText-muted hover:text-themeText-primary hover:border-primary transition-colors shadow-sm focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <GithubIcon className="h-5 w-5" />
               </a>

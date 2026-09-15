@@ -27,11 +27,11 @@ export default function ContactSection({ profile }: ContactSectionProps) {
               href={profile.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-md text-sm font-semibold font-body bg-primary text-canvas hover:bg-primaryActive transition-all shadow-[0_0_20px_rgba(38,184,255,0.25)] focus-visible:ring-2 focus-visible:ring-primary w-full sm:w-auto justify-center"
+              className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-md text-sm font-semibold font-body bg-primary text-white hover:bg-primary-active transition-all shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary w-full sm:w-auto justify-center"
             >
               <GithubIcon className="h-4 w-4" />
               Connect on GitHub
-              <ExternalLink className="h-3.5 w-3.5 opacity-70" />
+              <ExternalLink className="h-3.5 w-3.5 opacity-80" />
             </a>
           )}
         </div>

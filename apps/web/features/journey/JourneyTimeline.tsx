@@ -86,7 +86,7 @@ export default function JourneyTimeline({
   return (
     <nav
       aria-label="Milestone Progress Timeline"
-      className="w-full rounded-card border border-border bg-surface/60 p-4 sm:p-5 backdrop-blur-xs relative overflow-hidden"
+      className="w-full rounded-card border border-border bg-surface/80 p-4 sm:p-5 backdrop-blur-sm relative overflow-hidden shadow-sm"
     >
       <div className="relative w-full">
         {/* Desktop background connector line (horizontal) */}
@@ -97,7 +97,7 @@ export default function JourneyTimeline({
 
         {/* Desktop dynamic progress fill (horizontal) */}
         <div
-          className="hidden sm:block absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-cyan-400 z-0 transition-all duration-300 shadow-[0_0_8px_#22d3ee]"
+          className="hidden sm:block absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-primary z-0 transition-all duration-300"
           style={{ width: `${progressPct}%` }}
           aria-hidden="true"
         />
@@ -110,7 +110,7 @@ export default function JourneyTimeline({
 
         {/* Mobile dynamic progress fill (vertical) */}
         <div
-          className="sm:hidden absolute left-[19px] top-4 w-0.5 bg-cyan-400 z-0 transition-all duration-300 shadow-[0_0_8px_#22d3ee]"
+          className="sm:hidden absolute left-[19px] top-4 w-0.5 bg-primary z-0 transition-all duration-300"
           style={{ height: `${progressPct}%` }}
           aria-hidden="true"
         />
@@ -135,9 +135,9 @@ export default function JourneyTimeline({
                     isActive ? "Currently selected." : "Click to view details."
                   }`}
                   data-testid={`timeline-step-${milestone.id}`}
-                  className={`group flex sm:flex-col items-center gap-3 sm:gap-1.5 w-full sm:w-auto p-1.5 sm:p-1 rounded-lg text-left sm:text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas transition-all ${
+                  className={`group flex sm:flex-col items-center gap-3 sm:gap-1.5 w-full sm:w-auto p-1.5 sm:p-1 rounded-lg text-left sm:text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-canvas transition-all ${
                     isActive
-                      ? "bg-surfaceElevated/60 sm:bg-transparent"
+                      ? "bg-surface-elevated sm:bg-transparent"
                       : "hover:bg-surface/50 sm:hover:bg-transparent"
                   }`}
                 >
@@ -145,10 +145,10 @@ export default function JourneyTimeline({
                   <span
                     className={`flex h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 items-center justify-center rounded-full font-code text-xs font-bold transition-all duration-300 ${
                       isActive
-                        ? "bg-cyan-400 text-canvas ring-4 ring-cyan-400/20 shadow-[0_0_12px_#22d3ee] scale-110"
+                        ? "bg-primary text-white ring-4 ring-primary/20 scale-110 shadow-sm"
                         : isPassed
-                        ? "bg-surfaceElevated border-2 border-cyan-500/60 text-cyan-400 hover:border-cyan-400"
-                        : "bg-surfaceStrong border border-border text-themeText-muted group-hover:border-borderStrong group-hover:text-themeText-primary"
+                        ? "bg-primary-muted border-2 border-primary text-primary hover:bg-primary/20"
+                        : "bg-surface border border-border text-themeText-muted group-hover:border-border-strong group-hover:text-themeText-primary"
                     }`}
                   >
                     {isPassed ? (
@@ -162,7 +162,7 @@ export default function JourneyTimeline({
                   <span
                     className={`font-code transition-colors duration-200 ${
                       isActive
-                        ? "text-cyan-400 font-semibold text-xs sm:text-xs"
+                        ? "text-primary font-semibold text-xs sm:text-xs"
                         : isPassed
                         ? "text-themeText-primary text-[11px] sm:text-[11px]"
                         : "text-themeText-muted text-[11px] sm:text-[11px] group-hover:text-themeText-body"

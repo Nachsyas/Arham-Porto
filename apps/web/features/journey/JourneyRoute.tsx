@@ -41,9 +41,9 @@ export default function JourneyRoute({ activeMilestoneId }: JourneyRouteProps) {
 
         {/* Linear gradient along Java corridor */}
         <linearGradient id="journey-corridor-gradient" x1="0%" y1="0%" x2="100%" y2="50%">
-          <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.9" />
-          <stop offset="50%" stopColor="#26b8ff" stopOpacity="0.95" />
-          <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.9" />
+          <stop offset="0%" stopColor="#0799E6" stopOpacity="0.95" />
+          <stop offset="50%" stopColor="#007CC3" stopOpacity="1" />
+          <stop offset="100%" stopColor="#0799E6" stopOpacity="0.95" />
         </linearGradient>
       </defs>
 
@@ -51,9 +51,9 @@ export default function JourneyRoute({ activeMilestoneId }: JourneyRouteProps) {
       <path
         d={pathD}
         fill="none"
-        stroke="#06b6d4"
-        strokeWidth="6"
-        strokeOpacity="0.12"
+        stroke="#0799E6"
+        strokeWidth="5"
+        strokeOpacity="0.08"
         strokeLinecap="round"
         filter="url(#corridor-glow)"
       />
@@ -62,7 +62,7 @@ export default function JourneyRoute({ activeMilestoneId }: JourneyRouteProps) {
       <path
         d={pathD}
         fill="none"
-        stroke="rgba(148, 163, 184, 0.3)"
+        stroke="rgba(190, 211, 223, 0.5)"
         strokeWidth="1.5"
         strokeDasharray="4 4"
         strokeLinecap="round"
@@ -88,10 +88,10 @@ export default function JourneyRoute({ activeMilestoneId }: JourneyRouteProps) {
       />
 
       {/* Decorative waypoint indicator rings along the corridor */}
-      <circle cx="478.3" cy="203.2" r="3.5" fill="#06b6d4" fillOpacity="0.4" />
-      <circle cx="172.0" cy="72.0" r="3.5" fill="#06b6d4" fillOpacity="0.4" />
-      <circle cx="445.3" cy="178.2" r="3.5" fill="#26b8ff" fillOpacity="0.4" />
-      <circle cx="603.4" cy="239.2" r="3.5" fill="#38bdf8" fillOpacity="0.4" />
+      <circle cx="478.3" cy="203.2" r="3.5" fill="#0799E6" fillOpacity="0.6" />
+      <circle cx="172.0" cy="72.0" r="3.5" fill="#0799E6" fillOpacity="0.6" />
+      <circle cx="445.3" cy="178.2" r="3.5" fill="#007CC3" fillOpacity="0.6" />
+      <circle cx="603.4" cy="239.2" r="3.5" fill="#0799E6" fillOpacity="0.6" />
     </g>
   );
 }

@@ -4,39 +4,40 @@
  */
 export const colors = {
   canvas: {
-    DEFAULT: "#02060B",
-    soft: "#040A12",
+    DEFAULT: "#F6FAFD",
+    soft: "#EEF6FB",
   },
   surface: {
-    DEFAULT: "#07111C",
-    elevated: "#0A1825",
-    strong: "#0D2030",
+    DEFAULT: "#FFFFFF",
+    elevated: "#F9FCFE",
+    strong: "#EAF4F9",
   },
   primary: {
-    DEFAULT: "#26B8FF",
-    active: "#55C8FF",
-    muted: "#123D55",
+    DEFAULT: "#0799E6",
+    active: "#007CC3",
+    muted: "#E1F4FD",
   },
   hologram: {
-    DEFAULT: "#61D8FF",
-    soft: "#2E8FB5",
-    faint: "#14384A",
+    DEFAULT: "#0799E6",
+    soft: "#38BDF8",
+    faint: "#E0F2FE",
   },
   text: {
-    primary: "#F3F8FC",
-    body: "#C7D4DD",
-    muted: "#8395A3",
-    mutedSoft: "#5F7180",
+    primary: "#0B1F2A",
+    body: "#40515C",
+    muted: "#71838E",
+    mutedSoft: "#96A5AE",
   },
   border: {
-    DEFAULT: "#173247",
-    strong: "#25516E",
+    DEFAULT: "#D8E6EE",
+    strong: "#BED3DF",
   },
   status: {
-    success: "#5AD6A0",
-    warning: "#F0B65A",
-    error: "#EF6A73",
+    success: "#2E9D70",
+    warning: "#B87918",
+    error: "#D94C57",
   },
 } as const;
 
 export type ColorTokens = typeof colors;
+

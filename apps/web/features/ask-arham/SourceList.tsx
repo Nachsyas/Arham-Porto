@@ -29,7 +29,7 @@ export default function SourceList({ sources }: SourceListProps) {
                 href={src.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded border border-border/80 bg-surface/70 hover:bg-surface hover:border-primary/50 text-themeText-body hover:text-primary transition-colors font-mono"
+                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded border border-border bg-surface hover:border-primary text-themeText-body hover:text-primary transition-colors font-mono shadow-sm"
               >
                 <GithubIcon className="w-3 h-3 text-themeText-muted" />
                 <span>{src.label}</span>
@@ -43,7 +43,7 @@ export default function SourceList({ sources }: SourceListProps) {
               <Link
                 key={src.id}
                 href={src.url}
-                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded border border-border/80 bg-surface/70 hover:bg-surface hover:border-primary/50 text-themeText-body hover:text-primary transition-colors font-mono"
+                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded border border-border bg-surface hover:border-primary text-themeText-body hover:text-primary transition-colors font-mono shadow-sm"
               >
                 <Bookmark className="w-3 h-3 text-primary" />
                 <span>{src.label}</span>
@@ -54,7 +54,7 @@ export default function SourceList({ sources }: SourceListProps) {
           return (
             <span
               key={src.id}
-              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded border border-border/60 bg-surface/40 text-themeText-muted font-mono"
+              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded border border-border bg-surface-elevated text-themeText-muted font-mono"
             >
               <Bookmark className="w-3 h-3 text-themeText-muted" />
               <span>{src.label}</span>

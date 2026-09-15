@@ -22,7 +22,7 @@ export default function SkillsSection({ skills, projects }: SkillsSectionProps) 
   };
 
   return (
-    <section id="skills" aria-label="Technical Skills & Evidence Chain" className="py-20 border-b border-border px-4 sm:px-6 lg:px-8 bg-surface/30">
+    <section id="skills" aria-label="Technical Skills & Evidence Chain" className="py-20 border-b border-border px-4 sm:px-6 lg:px-8 bg-canvas-soft/40">
       <div className="mx-auto max-w-7xl">
         {/* Section Header */}
         <div className="mb-12">
@@ -46,11 +46,11 @@ export default function SkillsSection({ skills, projects }: SkillsSectionProps) 
             return (
               <div
                 key={skill.id}
-                className="flex flex-col justify-between rounded-card border border-border bg-surface p-6 hover:border-borderStrong transition-colors"
+                className="flex flex-col justify-between rounded-card border border-border bg-surface p-6 hover:border-border-strong hover:shadow-sm transition-all"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className="text-[11px] font-code px-2.5 py-0.5 rounded bg-surfaceElevated border border-border text-primary font-medium">
+                    <span className="text-[11px] font-code px-2.5 py-0.5 rounded bg-primary-muted border border-primary/20 text-primary font-medium">
                       {skill.category}
                     </span>
                     {isVerified && (
@@ -82,7 +82,7 @@ export default function SkillsSection({ skills, projects }: SkillsSectionProps) 
                         <Link
                           key={p.id}
                           href={`/projects/${p.slug}`}
-                          className="flex items-center justify-between text-xs text-themeText-primary hover:text-primary transition-colors py-1 px-2 rounded bg-surfaceElevated/40"
+                          className="flex items-center justify-between text-xs text-themeText-primary hover:text-primary transition-colors py-1.5 px-2.5 rounded bg-canvas-soft hover:bg-primary-muted/40 border border-border/50"
                         >
                           <span className="font-medium">{p.title}</span>
                           <ArrowRight className="h-3 w-3 text-primary" />

@@ -14,11 +14,11 @@ export default function EvidenceList({ evidence }: EvidenceListProps) {
   }
 
   return (
-    <div className="mt-3 border border-border/60 rounded-lg bg-surface/30 overflow-hidden">
+    <div className="mt-3 border border-border rounded-lg bg-surface overflow-hidden shadow-sm">
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-3 py-2 text-xs font-mono text-themeText-muted hover:text-themeText-primary hover:bg-surface/50 transition-colors"
+        className="w-full flex items-center justify-between px-3 py-2 text-xs font-mono text-themeText-muted hover:text-themeText-primary hover:bg-surface-elevated transition-colors"
         aria-expanded={expanded}
       >
         <span className="flex items-center gap-1.5">
@@ -33,11 +33,11 @@ export default function EvidenceList({ evidence }: EvidenceListProps) {
       </button>
 
       {expanded && (
-        <div className="p-3 border-t border-border/60 flex flex-col gap-2.5 bg-canvas/40">
+        <div className="p-3 border-t border-border flex flex-col gap-2.5 bg-canvas-soft">
           {evidence.map((item) => (
             <div
               key={item.id}
-              className="p-2.5 rounded border border-border/50 bg-surface/50 text-xs flex flex-col gap-1"
+              className="p-2.5 rounded border border-border bg-surface text-xs flex flex-col gap-1 shadow-sm"
             >
               <div className="flex items-center justify-between font-mono text-themeText-muted">
                 <span className="flex items-center gap-1 font-semibold text-primary">
@@ -48,7 +48,7 @@ export default function EvidenceList({ evidence }: EvidenceListProps) {
                   {item.kind === "github" && item.repository ? item.repository : "Canonical Portfolio"}
                 </span>
               </div>
-              <pre className="mt-1 p-2 rounded bg-canvas/60 text-[11px] font-mono text-themeText-body whitespace-pre-wrap break-words border border-border/30 max-h-36 overflow-y-auto">
+              <pre className="mt-1 p-2 rounded bg-canvas-soft text-[11px] font-mono text-themeText-body whitespace-pre-wrap break-words border border-border max-h-36 overflow-y-auto">
                 <code>{item.excerpt}</code>
               </pre>
             </div>

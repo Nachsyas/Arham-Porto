@@ -47,18 +47,18 @@ export default function JourneyMilestoneCard({
   return (
     <article
       aria-label={`Milestone details: ${milestone.title}`}
-      className="flex flex-col justify-between rounded-card border border-border bg-surface p-6 sm:p-7 shadow-lg relative overflow-hidden transition-all duration-300"
+      className="flex flex-col justify-between rounded-card border border-border bg-surface p-6 sm:p-7 shadow-sm relative overflow-hidden transition-all duration-300"
     >
       {/* Decorative Technical Header Strip */}
       <div className="flex items-center justify-between border-b border-border/80 pb-3 mb-5">
         <div className="flex items-center gap-2">
-          <span className="flex h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]" />
-          <span className="text-[11px] font-code font-bold text-cyan-400 tracking-wider">
+          <span className="flex h-2 w-2 rounded-full bg-primary" />
+          <span className="text-[11px] font-code font-bold text-primary tracking-wider">
             STEP 0{currentIndex + 1} // 0{totalCount}
           </span>
         </div>
         <div className="flex items-center gap-1 text-[11px] font-code text-themeText-muted">
-          <Compass className="h-3 w-3 text-cyan-400/80" />
+          <Compass className="h-3 w-3 text-primary" />
           <span>JAVA // INDONESIA</span>
         </div>
       </div>
@@ -67,7 +67,7 @@ export default function JourneyMilestoneCard({
       <div className="space-y-4">
         {/* Category Pill */}
         <div className="inline-flex items-center">
-          <span className="px-2.5 py-1 rounded bg-surfaceElevated border border-border text-[11px] font-code font-semibold text-primary tracking-wide">
+          <span className="px-2.5 py-1 rounded bg-surface-elevated border border-border text-[11px] font-code font-semibold text-primary tracking-wide shadow-sm">
             {getCategoryBadge(milestone.category)}
           </span>
         </div>
@@ -87,8 +87,8 @@ export default function JourneyMilestoneCard({
         {/* Location & Period Meta */}
         <div className="flex flex-wrap items-center gap-y-2 gap-x-5 text-xs font-code text-themeText-muted pt-1">
           {/* Safe City & Region Location */}
-          <div className="flex items-center gap-1.5 text-themeText-primary/90">
-            <MapPin className="h-3.5 w-3.5 text-cyan-400 flex-shrink-0" />
+          <div className="flex items-center gap-1.5 text-themeText-primary">
+            <MapPin className="h-3.5 w-3.5 text-primary flex-shrink-0" />
             <span>
               {milestone.city}, {milestone.region}
             </span>
@@ -120,7 +120,7 @@ export default function JourneyMilestoneCard({
           aria-label="Go to previous milestone"
           className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-md text-xs font-code font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary ${
             hasPrevious
-              ? "bg-surfaceElevated border border-border text-themeText-primary hover:bg-surfaceStrong hover:border-cyan-400/50 cursor-pointer"
+              ? "bg-surface-elevated border border-border text-themeText-primary hover:bg-surface-strong hover:border-primary/50 cursor-pointer shadow-sm"
               : "bg-surface/50 border border-border/40 text-themeText-muted/40 cursor-not-allowed"
           }`}
         >
@@ -135,7 +135,7 @@ export default function JourneyMilestoneCard({
               key={idx}
               className={`h-1.5 rounded-full transition-all duration-300 ${
                 idx === currentIndex
-                  ? "w-6 bg-cyan-400 shadow-[0_0_6px_#22d3ee]"
+                  ? "w-6 bg-primary"
                   : "w-1.5 bg-border hover:bg-themeText-muted"
               }`}
             />
@@ -149,7 +149,7 @@ export default function JourneyMilestoneCard({
           aria-label="Go to next milestone"
           className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-md text-xs font-code font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary ${
             hasNext
-              ? "bg-primary text-canvas font-semibold hover:bg-primaryActive shadow-[0_0_10px_rgba(38,184,255,0.25)] cursor-pointer"
+              ? "bg-primary text-white font-semibold hover:bg-primary-active shadow-sm cursor-pointer"
               : "bg-surface/50 border border-border/40 text-themeText-muted/40 cursor-not-allowed"
           }`}
         >

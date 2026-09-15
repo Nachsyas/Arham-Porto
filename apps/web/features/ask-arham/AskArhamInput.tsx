@@ -42,8 +42,8 @@ export default function AskArhamInput({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-1.5 p-3 border-t border-border bg-surface/40">
-      <div className="relative flex items-end gap-2 bg-canvas/80 border border-border focus-within:border-primary/60 rounded-xl p-2 transition-colors">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-1.5 p-3 border-t border-border bg-surface-elevated">
+      <div className="relative flex items-end gap-2 bg-canvas-soft border border-border focus-within:border-primary rounded-xl p-2.5 transition-colors">
         <textarea
           ref={inputRef}
           value={question}
@@ -60,7 +60,7 @@ export default function AskArhamInput({
           <button
             type="button"
             onClick={onAbort}
-            className="flex-shrink-0 p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition-colors focus:outline-none focus:ring-1 focus:ring-red-400"
+            className="flex-shrink-0 p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 transition-colors focus:outline-none focus:ring-1 focus:ring-red-400"
             aria-label="Stop generation"
             title="Stop response"
           >
@@ -70,7 +70,7 @@ export default function AskArhamInput({
           <button
             type="submit"
             disabled={!isValidLength || disabled}
-            className="flex-shrink-0 p-2 rounded-lg bg-primary hover:bg-primary-hover text-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+            className="flex-shrink-0 p-2 rounded-lg bg-primary hover:bg-primary-active text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
             aria-label="Submit question"
           >
             <Send className="w-4 h-4" />
@@ -81,7 +81,7 @@ export default function AskArhamInput({
       {/* Character counter & length warning */}
       <div className="flex items-center justify-between px-1 text-[11px] font-mono text-themeText-muted">
         <span>Press Enter to send, Shift+Enter for new line</span>
-        <span className={isOverLimit ? "text-red-400 flex items-center gap-1" : ""}>
+        <span className={isOverLimit ? "text-status-error flex items-center gap-1" : ""}>
           {isOverLimit && <AlertCircle className="w-3 h-3" />}
           {charCount}/1000
         </span>

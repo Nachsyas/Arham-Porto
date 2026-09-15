@@ -72,7 +72,7 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
               </span>
             )}
             {project.evidenceIds && project.evidenceIds.length > 0 && (
-              <span className="px-3 py-1 rounded text-xs font-code bg-surfaceElevated border border-border text-themeText-muted flex items-center gap-1.5">
+              <span className="px-3 py-1 rounded text-xs font-code bg-surface-elevated border border-border text-themeText-muted flex items-center gap-1.5">
                 <CheckCircle2 className="h-3.5 w-3.5 text-status-success" /> Source Verified
               </span>
             )}
@@ -95,7 +95,7 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
                 href={project.githubUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-xs font-code bg-surface border border-border text-themeText-primary hover:border-primary hover:text-primary transition-colors focus-visible:ring-2 focus-visible:ring-primary"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-xs font-code bg-surface border border-border text-themeText-primary hover:border-primary hover:text-primary transition-colors focus-visible:ring-2 focus-visible:ring-primary shadow-sm"
               >
                 <GithubIcon className="h-4 w-4" /> View GitHub Repository <ExternalLink className="h-3 w-3 opacity-60" />
               </a>
@@ -105,7 +105,7 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
                 href={project.demoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-xs font-code bg-primary text-canvas hover:bg-primaryActive transition-colors font-medium focus-visible:ring-2 focus-visible:ring-primary"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-xs font-code bg-primary text-white hover:bg-primary-active transition-colors font-medium focus-visible:ring-2 focus-visible:ring-primary shadow-sm"
               >
                 Live Demo <ExternalLink className="h-3 w-3" />
               </a>
@@ -147,7 +147,7 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
               {project.technologies.map((tech) => (
                 <span
                   key={tech}
-                  className="px-3.5 py-1.5 rounded-md text-xs font-code bg-surfaceElevated border border-border text-themeText-primary font-medium"
+                  className="px-3.5 py-1.5 rounded-md text-xs font-code bg-surface-elevated border border-border text-themeText-primary font-medium"
                 >
                   {tech}
                 </span>

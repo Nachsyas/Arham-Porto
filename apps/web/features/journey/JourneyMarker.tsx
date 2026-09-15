@@ -85,30 +85,30 @@ export default function JourneyMarker({
             : "Click to view milestones."
         }`}
         data-testid={`journey-marker-${location.id}`}
-        className={`group relative flex flex-col items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas rounded-full p-2 transition-all ${
+        className={`group relative flex flex-col items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-canvas rounded-full p-2 transition-all ${
           isActive ? "z-30 scale-110" : "z-10 hover:scale-105"
         }`}
       >
         {/* Radar Pulse Effect (when active, respects motion preferences) */}
         {isActive && (
           <span
-            className="absolute h-8 w-8 rounded-full bg-cyan-400/25 motion-safe:animate-ping motion-reduce:hidden"
+            className="absolute h-8 w-8 rounded-full bg-primary/25 motion-safe:animate-ping motion-reduce:hidden"
             aria-hidden="true"
           />
         )}
 
-        {/* Outer Glow Halo */}
+        {/* Outer Halo */}
         <span
           className={`relative flex h-5 w-5 items-center justify-center rounded-full transition-all duration-300 ${
             isActive
-              ? "bg-cyan-500/30 ring-2 ring-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.8)]"
-              : "bg-surfaceStrong/80 ring-1 ring-border hover:ring-cyan-400/60 hover:bg-cyan-950/40"
+              ? "bg-primary/20 ring-2 ring-primary shadow-sm"
+              : "bg-surface ring-1 ring-border hover:ring-primary/60 hover:bg-primary-muted/40 shadow-sm"
           }`}
         >
           {/* Inner Solid Core */}
           <span
             className={`h-2 w-2 rounded-full transition-all duration-300 ${
-              isActive ? "bg-cyan-300 scale-125 shadow-[0_0_8px_#38bdf8]" : "bg-cyan-500/60 group-hover:bg-cyan-400"
+              isActive ? "bg-primary scale-125" : "bg-themeText-muted group-hover:bg-primary"
             }`}
           />
         </span>
@@ -119,13 +119,13 @@ export default function JourneyMarker({
             location.id === "salatiga" ? "order-first mb-1.5" : "order-last mt-1.5"
           } ${
             isActive
-              ? "bg-surfaceElevated/95 border border-cyan-400/50 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.3)] backdrop-blur-sm"
-              : "bg-surface/80 border border-border text-themeText-muted group-hover:text-themeText-primary group-hover:border-borderStrong backdrop-blur-xs"
+              ? "bg-surface border border-primary text-primary font-semibold shadow-sm backdrop-blur-sm"
+              : "bg-surface/90 border border-border text-themeText-body group-hover:text-themeText-primary group-hover:border-border-strong shadow-sm backdrop-blur-sm"
           }`}
         >
           <span>{location.name}</span>
           {statusBadge && (
-            <span className="text-[9px] text-cyan-400/90 font-mono -mt-0.5">
+            <span className="text-[9px] text-primary font-mono -mt-0.5">
               [{statusBadge}]
             </span>
           )}

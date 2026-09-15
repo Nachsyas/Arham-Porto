@@ -176,7 +176,7 @@ export default function AskArhamPanel({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity"
+      className="fixed inset-0 z-50 flex justify-end bg-slate-900/25 backdrop-blur-sm transition-opacity"
       role="dialog"
       aria-modal="true"
       aria-labelledby="ask-arham-title"
@@ -189,18 +189,18 @@ export default function AskArhamPanel({
       {/* Slide-over Drawer / Mobile Sheet (Correction 46) */}
       <div
         ref={panelRef}
-        className="relative w-full max-w-lg bg-canvas border-l border-border flex flex-col shadow-2xl h-[100dvh] max-h-[100dvh] pb-[env(safe-area-inset-bottom)]"
+        className="relative w-full max-w-lg bg-surface border-l border-border flex flex-col shadow-2xl h-[100dvh] max-h-[100dvh] pb-[env(safe-area-inset-bottom)]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3.5 border-b border-border bg-surface/50">
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-border bg-surface-elevated">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center text-primary">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/25 flex items-center justify-center text-primary">
               <Bot className="w-4 h-4" />
             </div>
             <div>
               <h2 id="ask-arham-title" className="text-sm font-bold text-themeText-primary font-display flex items-center gap-1.5">
                 Ask Arham AI
-                <span className="text-[10px] font-mono font-normal px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/30">
+                <span className="text-[10px] font-mono font-normal px-2 py-0.5 rounded-full bg-primary-muted text-primary border border-primary/25">
                   Reviewer Copilot
                 </span>
               </h2>
@@ -215,7 +215,7 @@ export default function AskArhamPanel({
               <button
                 type="button"
                 onClick={handleClearSession}
-                className="p-1.5 rounded-md text-themeText-muted hover:text-themeText-primary hover:bg-surface/80 transition-colors"
+                className="p-1.5 rounded-md text-themeText-muted hover:text-themeText-primary hover:bg-surface-strong transition-colors"
                 title="Reset conversation"
                 aria-label="Reset conversation"
               >
@@ -225,7 +225,7 @@ export default function AskArhamPanel({
             <button
               type="button"
               onClick={handleClose}
-              className="p-1.5 rounded-md text-themeText-muted hover:text-themeText-primary hover:bg-surface/80 transition-colors"
+              className="p-1.5 rounded-md text-themeText-muted hover:text-themeText-primary hover:bg-surface-strong transition-colors"
               aria-label="Close Ask Arham panel"
             >
               <X className="w-4 h-4" />
@@ -235,8 +235,8 @@ export default function AskArhamPanel({
 
         {/* Unavailable Banner if 503 received (Correction 46, 58) */}
         {isUnavailable && (
-          <div className="p-3 bg-amber-500/10 border-b border-amber-500/20 text-xs text-amber-300 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 flex-shrink-0 text-amber-400" />
+          <div className="p-3 bg-amber-50 border-b border-amber-200 text-xs text-amber-900 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 flex-shrink-0 text-status-warning" />
             <span>
               Ask Arham AI is currently unavailable. You can continue reviewing all verified projects, skills, and the journey map directly on the portfolio.
             </span>

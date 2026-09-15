@@ -67,7 +67,7 @@ export default function SafeActionButtons({
               key={act.id}
               type="button"
               onClick={() => handleActionClick(act.id)}
-              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary font-medium transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-primary/30 bg-primary-muted hover:bg-primary/20 text-primary font-medium transition-colors focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
             >
               <span>{act.label}</span>
               <ArrowRight className="w-3 h-3" />

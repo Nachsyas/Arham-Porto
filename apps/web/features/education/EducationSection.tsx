@@ -7,7 +7,7 @@ interface EducationSectionProps {
 
 export default function EducationSection({ education }: EducationSectionProps) {
   return (
-    <section id="education" aria-label="Academic Education" className="py-20 border-b border-border px-4 sm:px-6 lg:px-8 bg-surface/30">
+    <section id="education" aria-label="Academic Education" className="py-20 border-b border-border px-4 sm:px-6 lg:px-8 bg-canvas-soft/40">
       <div className="mx-auto max-w-7xl">
         {/* Section Header */}
         <div className="mb-12">
@@ -28,7 +28,7 @@ export default function EducationSection({ education }: EducationSectionProps) {
             {education.map((item) => (
               <div
                 key={item.id}
-                className="rounded-card border border-border bg-surface p-6 flex flex-col md:flex-row md:items-start justify-between gap-4"
+                className="rounded-card border border-border bg-surface p-6 flex flex-col md:flex-row md:items-start justify-between gap-4 shadow-sm"
               >
                 <div>
                   <h3 className="font-display text-xl font-bold text-themeText-primary">
@@ -54,8 +54,8 @@ export default function EducationSection({ education }: EducationSectionProps) {
           </div>
         ) : (
           /* Dignified Graceful Empty State */
-          <div className="rounded-card border border-border bg-surface p-8 sm:p-12 text-center max-w-2xl mx-auto">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surfaceElevated border border-border mx-auto mb-4 text-primary">
+          <div className="rounded-card border border-border bg-surface p-8 sm:p-12 text-center max-w-2xl mx-auto shadow-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-elevated border border-border mx-auto mb-4 text-primary">
               <GraduationCap className="h-6 w-6" />
             </div>
             <h3 className="font-display text-lg font-semibold text-themeText-primary mb-2">
@@ -64,7 +64,7 @@ export default function EducationSection({ education }: EducationSectionProps) {
             <p className="text-xs sm:text-sm font-body text-themeText-muted leading-relaxed">
               Formal degree credentials, thesis topics, and academic institution records are currently undergoing verification before public listing.
             </p>
-            <span className="inline-block mt-4 text-[10px] font-code px-3 py-1 rounded bg-surfaceElevated text-primary border border-primary/20">
+            <span className="inline-block mt-4 text-[10px] font-code px-3 py-1 rounded bg-surface-elevated text-primary border border-primary/20">
               STATUS: PENDING USER CONFIRMATION
             </span>
           </div>

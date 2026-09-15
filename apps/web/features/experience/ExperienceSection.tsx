@@ -47,7 +47,7 @@ export default function ExperienceSection({ experiences }: ExperienceSectionProp
                       {item.skills.map((s) => (
                         <span
                           key={s}
-                          className="px-2 py-0.5 rounded text-[10px] font-code bg-surfaceElevated border border-border text-themeText-muted"
+                          className="px-2 py-0.5 rounded text-[10px] font-code bg-surface-elevated border border-border text-themeText-muted"
                         >
                           {s}
                         </span>
@@ -66,8 +66,8 @@ export default function ExperienceSection({ experiences }: ExperienceSectionProp
           </div>
         ) : (
           /* Dignified Graceful Empty State */
-          <div className="rounded-card border border-border bg-surface p-8 sm:p-12 text-center max-w-2xl mx-auto">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surfaceElevated border border-border mx-auto mb-4 text-primary">
+          <div className="rounded-card border border-border bg-surface p-8 sm:p-12 text-center max-w-2xl mx-auto shadow-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-elevated border border-border mx-auto mb-4 text-primary">
               <Briefcase className="h-6 w-6" />
             </div>
             <h3 className="font-display text-lg font-semibold text-themeText-primary mb-2">
@@ -76,7 +76,7 @@ export default function ExperienceSection({ experiences }: ExperienceSectionProp
             <p className="text-xs sm:text-sm font-body text-themeText-muted leading-relaxed">
               Official professional employment records and enterprise contributions are currently undergoing verification against primary source documentation.
             </p>
-            <span className="inline-block mt-4 text-[10px] font-code px-3 py-1 rounded bg-surfaceElevated text-primary border border-primary/20">
+            <span className="inline-block mt-4 text-[10px] font-code px-3 py-1 rounded bg-surface-elevated text-primary border border-primary/20">
               STATUS: PENDING USER CONFIRMATION
             </span>
           </div>

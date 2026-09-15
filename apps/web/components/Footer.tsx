@@ -11,14 +11,14 @@ export default function Footer({ profile }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-border bg-canvasSoft py-12 px-4 sm:px-6 lg:px-8 text-xs font-body text-themeText-muted">
+    <footer className="border-t border-border bg-canvas-soft py-12 px-4 sm:px-6 lg:px-8 text-xs font-body text-themeText-muted">
       <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-6">
         {/* Left: Identity & Copyright */}
         <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
           <span className="font-display font-bold text-themeText-primary text-sm">
             {profile.fullName}
           </span>
-          <span className="hidden sm:inline text-borderStrong">|</span>
+          <span className="hidden sm:inline text-border-strong">|</span>
           <span>© {currentYear} {profile.projectName}. All rights reserved.</span>
         </div>
 

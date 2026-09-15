@@ -22,14 +22,14 @@ export default function Navbar({ onOpenQuickReview, hasExperience = false }: Nav
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-canvas/85 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b border-border bg-surface/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand / Identity */}
         <Link
           href="#overview"
           className="flex items-center gap-2.5 focus-visible:ring-2 focus-visible:ring-primary rounded p-1"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-surfaceStrong border border-primary/40 text-primary font-code font-bold text-sm shadow-[0_0_12px_rgba(38,184,255,0.2)]">
+          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-surface-strong border border-primary/30 text-primary font-code font-bold text-sm shadow-sm">
             AP
           </span>
           <div className="flex flex-col">
@@ -60,7 +60,7 @@ export default function Navbar({ onOpenQuickReview, hasExperience = false }: Nav
           <button
             type="button"
             onClick={onOpenQuickReview}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-medium font-code bg-surfaceElevated border border-primary/30 text-primary hover:bg-primary/10 hover:border-primary transition-all shadow-[0_0_10px_rgba(38,184,255,0.15)] focus-visible:ring-2 focus-visible:ring-primary"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-medium font-code bg-surface-elevated border border-border text-primary hover:bg-primary-muted hover:border-primary transition-all shadow-sm focus-visible:ring-2 focus-visible:ring-primary"
           >
             <Sparkles className="h-3.5 w-3.5 text-primary" />
             Quick Review
@@ -68,7 +68,7 @@ export default function Navbar({ onOpenQuickReview, hasExperience = false }: Nav
 
           <a
             href="#contact"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-medium font-body bg-primary text-canvas hover:bg-primaryActive transition-colors focus-visible:ring-2 focus-visible:ring-primary"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-medium font-body bg-primary text-white hover:bg-primary-active transition-colors shadow-sm focus-visible:ring-2 focus-visible:ring-primary"
           >
             Get in Touch
           </a>
@@ -79,7 +79,7 @@ export default function Navbar({ onOpenQuickReview, hasExperience = false }: Nav
           <button
             type="button"
             onClick={onOpenQuickReview}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-code bg-surface border border-primary/30 text-primary"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-code bg-surface-elevated border border-border text-primary shadow-sm"
           >
             <Sparkles className="h-3 w-3" /> Review
           </button>
@@ -97,14 +97,14 @@ export default function Navbar({ onOpenQuickReview, hasExperience = false }: Nav
 
       {/* Mobile Dropdown Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-border bg-surface px-4 py-4 space-y-3">
+        <div className="md:hidden border-b border-border bg-surface px-4 py-4 space-y-3 shadow-md">
           <nav aria-label="Mobile Navigation" className="flex flex-col space-y-2">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="rounded-md px-3 py-2 text-sm font-body text-themeText-body hover:bg-surfaceElevated hover:text-primary transition-colors"
+                className="rounded-md px-3 py-2 text-sm font-body text-themeText-body hover:bg-surface-elevated hover:text-primary transition-colors"
               >
                 {link.label}
               </Link>
@@ -117,7 +117,7 @@ export default function Navbar({ onOpenQuickReview, hasExperience = false }: Nav
                 setMobileMenuOpen(false);
                 onOpenQuickReview();
               }}
-              className="flex w-full items-center justify-center gap-2 py-2 px-3 rounded-md text-xs font-code bg-surfaceElevated border border-primary/40 text-primary"
+              className="flex w-full items-center justify-center gap-2 py-2 px-3 rounded-md text-xs font-code bg-surface-elevated border border-primary/30 text-primary shadow-sm"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Open 60-Second Quick Review
