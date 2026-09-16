@@ -33,8 +33,8 @@ export default function JourneyPage() {
       <PageHeader
         eyebrow="JOURNEY // GEOGRAPHIC & ACADEMIC"
         title="Geographic & Academic Evolution"
-        description="An interactive corridor tracing formative secondary education in Central Java through university computer science in East Java."
-        badge="Java Corridor"
+        description="An interactive corridor tracing formative education across Karanganyar, Jakarta, and Salatiga through university computer science in Malang."
+        badge="Karanganyar → Jakarta → Salatiga → Malang"
       />
 
       {/* Main Interactive Map & Milestone Story Card */}

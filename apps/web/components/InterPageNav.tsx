@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import NavLink from "@/components/motion/NavLink";
 import { ArrowRight } from "lucide-react";
 
 interface InterPageNavProps {
@@ -19,7 +19,7 @@ export default function InterPageNav({
   return (
     <section className="mt-16 sm:mt-24 pt-10 border-t border-border/80">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Link
+        <NavLink
           href={nextRoute}
           aria-label={`Navigate to next section: ${nextTitle}`}
           data-testid="inter-page-nav"
@@ -47,7 +47,7 @@ export default function InterPageNav({
               </span>
             </div>
           </div>
-        </Link>
+        </NavLink>
       </div>
     </section>
   );

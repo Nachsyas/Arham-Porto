@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import NavLink from "@/components/motion/NavLink";
 import { usePathname } from "next/navigation";
 import { Menu, X, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
@@ -50,7 +51,7 @@ export default function Navbar({ onOpenQuickReview }: NavbarProps) {
     <header className="sticky top-0 z-40 w-full border-b border-border bg-surface/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand / Identity */}
-        <Link
+        <NavLink
           href="/"
           className="flex items-center gap-2.5 focus-visible:ring-2 focus-visible:ring-primary rounded p-1"
         >
@@ -65,14 +66,14 @@ export default function Navbar({ onOpenQuickReview }: NavbarProps) {
               Nachsyas Arham
             </span>
           </div>
-        </Link>
+        </NavLink>
 
         {/* Desktop Route Navigation */}
         <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-1.5 bg-canvas-soft/80 p-1.5 rounded-full border border-border/80 shadow-sm">
           {NAV_ITEMS.map((item) => {
             const active = isActive(item.href);
             return (
-              <Link
+              <NavLink
                 key={item.label}
                 href={item.href}
                 className={`relative px-3.5 py-1.5 text-xs font-code font-medium rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-primary ${
@@ -89,7 +90,7 @@ export default function Navbar({ onOpenQuickReview }: NavbarProps) {
                   />
                 )}
                 <span className="relative z-10">{item.label}</span>
-              </Link>
+              </NavLink>
             );
           })}
         </nav>
@@ -105,12 +106,12 @@ export default function Navbar({ onOpenQuickReview }: NavbarProps) {
             Quick Review
           </button>
 
-          <Link
+          <NavLink
             href="/contact"
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-medium font-body bg-primary text-white hover:bg-primary-active transition-colors shadow-sm focus-visible:ring-2 focus-visible:ring-primary"
           >
             Get in Touch
-          </Link>
+          </NavLink>
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -141,7 +142,7 @@ export default function Navbar({ onOpenQuickReview }: NavbarProps) {
             {NAV_ITEMS.map((item) => {
               const active = isActive(item.href);
               return (
-                <Link
+                <NavLink
                   key={item.label}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
@@ -153,7 +154,7 @@ export default function Navbar({ onOpenQuickReview }: NavbarProps) {
                 >
                   <span>{item.label}</span>
                   {active && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
-                </Link>
+                </NavLink>
               );
             })}
           </nav>

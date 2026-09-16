@@ -17,7 +17,7 @@ export default function ContactSection({ profile }: ContactSectionProps) {
           Let&apos;s Build Together
         </h2>
         <p className="mt-4 text-base sm:text-lg font-body text-themeText-muted max-w-xl mx-auto leading-relaxed">
-          Open to software engineering opportunities, technical collaborations, and distributed systems challenges.
+          Explore verified engineering work, public repositories, or ask the grounded portfolio reviewer.
         </p>
 
         {/* Contact Action Cards */}

@@ -8,6 +8,7 @@ import QuickReviewDrawer from "@/components/QuickReviewDrawer";
 import RouteProgress from "@/components/motion/RouteProgress";
 import { AskArhamLauncher } from "@/features/ask-arham";
 import { PortfolioUIProvider, usePortfolioUI } from "@/context/PortfolioUIContext";
+import { NavigationProgressProvider } from "@/context/NavigationProgressContext";
 import type { Profile, Project } from "arham-porto-schema";
 
 const AskArhamPanel = dynamic(
@@ -82,9 +83,11 @@ function AppShellInner({
 export default function AppShell({ children, profile, projects }: AppShellProps) {
   return (
     <PortfolioUIProvider>
-      <AppShellInner profile={profile} projects={projects}>
-        {children}
-      </AppShellInner>
+      <NavigationProgressProvider>
+        <AppShellInner profile={profile} projects={projects}>
+          {children}
+        </AppShellInner>
+      </NavigationProgressProvider>
     </PortfolioUIProvider>
   );
 }

@@ -10,12 +10,14 @@ interface SkillsExplorerProps {
   skills: Skill[];
   projects: Project[];
   evidence: Evidence[];
+  initialSkillId?: string;
 }
 
 export default function SkillsExplorer({
   skills,
   projects,
   evidence,
+  initialSkillId,
 }: SkillsExplorerProps) {
   // Extract unique categories
   const categories = ["All", ...Array.from(new Set(skills.map((s) => s.category)))];
@@ -25,25 +27,31 @@ export default function SkillsExplorer({
     ? skills
     : skills.filter((s) => s.category === selectedCategory);
 
-  const [selectedSkillId, setSelectedSkillId] = useState<string>(skills[0]?.id ?? "");
+  const [selectedSkillId, setSelectedSkillId] = useState<string>(initialSkillId ?? skills[0]?.id ?? "");
 
   const activeSkill = skills.find((s) => s.id === selectedSkillId) || filteredSkills[0] || skills[0];
 
-  // Find linked projects
-  const relevantProjects = projects.filter((p) => {
-    const directLink = p.evidenceIds?.some((id) => activeSkill?.evidenceIds?.includes(id));
-    if (directLink) return true;
-    if (activeSkill?.category === "Backend" && p.category === "Backend") return true;
-    if (activeSkill?.category === "Frontend" && p.category === "Full-Stack") return true;
-    if (activeSkill?.category === "AI / ML" && p.category === "AI") return true;
-    if (activeSkill?.category === "Systems" && p.category === "Systems") return true;
-    return false;
-  });
+  const hasSkillEvidence = (s?: Skill | null) => {
+    if (!s) return false;
+    const hasDirect = Boolean(s.evidenceIds && s.evidenceIds.length > 0);
+    const hasCross = evidence.some((e) => e.skillIds?.includes(s.id));
+    return hasDirect || hasCross;
+  };
 
   // Find linked evidence items
   const relevantEvidence = evidence.filter((e) =>
     e.skillIds?.includes(activeSkill?.id ?? "") ||
-    activeSkill?.evidenceIds?.includes(e.id)
+    Boolean(activeSkill?.evidenceIds?.includes(e.id))
+  );
+
+  // Derive relevant projects strictly through explicit canonical evidence IDs
+  const linkedEvidenceIds = new Set<string>([
+    ...(activeSkill?.evidenceIds ?? []),
+    ...relevantEvidence.map((e) => e.id),
+  ]);
+
+  const relevantProjects = projects.filter((p) =>
+    p.evidenceIds?.some((id) => linkedEvidenceIds.has(id))
   );
 
   return (
@@ -86,6 +94,7 @@ export default function SkillsExplorer({
           <div className="space-y-2.5">
             {filteredSkills.map((skill) => {
               const isSelected = skill.id === activeSkill?.id;
+              const hasEvidence = hasSkillEvidence(skill);
               return (
                 <button
                   key={skill.id}
@@ -102,7 +111,13 @@ export default function SkillsExplorer({
                       {skill.category}
                     </span>
                     <span className="flex items-center gap-1 text-[10px] font-code text-themeText-muted">
-                      <Shield className="h-3 w-3 text-status-success" /> Verified
+                      {hasEvidence ? (
+                        <>
+                          <Shield className="h-3 w-3 text-status-success" /> Verified
+                        </>
+                      ) : (
+                        <span>Portfolio Skill</span>
+                      )}
                     </span>
                   </div>
 
@@ -121,7 +136,7 @@ export default function SkillsExplorer({
 
         {/* Right Column: Grounded Evidence Detail Panel */}
         <div className="lg:col-span-7">
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {activeSkill && (
               <motion.div
                 key={activeSkill.id}
@@ -138,7 +153,13 @@ export default function SkillsExplorer({
                       {activeSkill.category}
                     </span>
                     <span className="text-xs font-code text-themeText-muted flex items-center gap-1">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-status-success" /> Evidence Grounded
+                      {hasSkillEvidence(activeSkill) ? (
+                        <>
+                          <CheckCircle2 className="h-3.5 w-3.5 text-status-success" /> Evidence Grounded
+                        </>
+                      ) : (
+                        <span>No linked portfolio evidence yet</span>
+                      )}
                     </span>
                   </div>
 
@@ -148,7 +169,7 @@ export default function SkillsExplorer({
 
                   <div className="p-4 rounded-xl bg-canvas-soft border border-border/70 text-xs sm:text-sm font-body text-themeText-body leading-relaxed">
                     <span className="font-code text-primary font-bold block mb-1 uppercase tracking-wider text-[11px]">
-                      VERIFIED CAPABILITY CLAIM:
+                      {hasSkillEvidence(activeSkill) ? "VERIFIED CAPABILITY CLAIM:" : "CAPABILITY OVERVIEW:"}
                     </span>
                     {activeSkill.claim}
                   </div>
@@ -197,7 +218,7 @@ export default function SkillsExplorer({
                     </div>
                   ) : (
                     <div className="p-4 rounded-xl bg-canvas-soft border border-border text-xs text-themeText-muted">
-                      Validated in core architectural case studies.
+                      No linked portfolio evidence is currently available for this skill.
                     </div>
                   )}
                 </div>
@@ -208,25 +229,31 @@ export default function SkillsExplorer({
                     DEMONSTRATED IN PROJECTS ({relevantProjects.length})
                   </span>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {relevantProjects.map((p) => (
-                      <Link
-                        key={p.id}
-                        href={`/projects/${p.slug}`}
-                        className="p-3.5 rounded-lg border border-border bg-surface hover:border-primary/50 hover:bg-surface-elevated transition-all flex items-center justify-between group shadow-sm"
-                      >
-                        <div className="space-y-0.5">
-                          <p className="font-display text-sm font-bold text-themeText-primary group-hover:text-primary transition-colors">
-                            {p.title}
-                          </p>
-                          <p className="text-[10px] font-code text-themeText-muted">
-                            {p.category}
-                          </p>
-                        </div>
-                        <ArrowRight className="h-4 w-4 text-primary transform group-hover:translate-x-1 transition-transform" />
-                      </Link>
-                    ))}
-                  </div>
+                  {relevantProjects.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {relevantProjects.map((p) => (
+                        <Link
+                          key={p.id}
+                          href={`/projects/${p.slug}`}
+                          className="p-3.5 rounded-lg border border-border bg-surface hover:border-primary/50 hover:bg-surface-elevated transition-all flex items-center justify-between group shadow-sm"
+                        >
+                          <div className="space-y-0.5">
+                            <p className="font-display text-sm font-bold text-themeText-primary group-hover:text-primary transition-colors">
+                              {p.title}
+                            </p>
+                            <p className="text-[10px] font-code text-themeText-muted">
+                              {p.category}
+                            </p>
+                          </div>
+                          <ArrowRight className="h-4 w-4 text-primary transform group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-xl bg-canvas-soft border border-border text-xs text-themeText-muted">
+                      No public projects are currently linked to this skill via canonical evidence.
+                    </div>
+                  )}
                 </div>
 
                 {/* Zero Fake Percentages Rule Banner */}

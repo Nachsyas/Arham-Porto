@@ -14,11 +14,11 @@ export default function ContactView({ profile }: ContactViewProps) {
   const { openAskArham, openQuickReview } = usePortfolioUI();
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-clip">
       {/* Decorative Cyan Orbit Background Element */}
-      <div className="relative py-8">
+      <div className="relative py-8 overflow-hidden">
         <div
-          className="absolute inset-0 -top-12 flex items-center justify-center pointer-events-none opacity-40"
+          className="absolute inset-0 -top-12 flex items-center justify-center pointer-events-none opacity-40 overflow-hidden"
           aria-hidden="true"
         >
           <div className="w-96 h-96 rounded-full border border-primary/20 animate-[spin_60s_linear_infinite]" />
@@ -44,7 +44,7 @@ export default function ContactView({ profile }: ContactViewProps) {
                 GitHub Repositories & Code
               </h2>
               <p className="mt-2 text-xs sm:text-sm font-body text-themeText-body leading-relaxed">
-                Review verified commit history, Go backend microservices, Next.js web applications, and architectural source code.
+                Review verified commit history, Go backend services, Next.js web applications, and architectural source code.
               </p>
             </div>
 
@@ -85,7 +85,7 @@ export default function ContactView({ profile }: ContactViewProps) {
                 <Sparkles className="h-4 w-4 text-primary" />
               </h2>
               <p className="mt-2 text-xs sm:text-sm font-body text-themeText-body leading-relaxed">
-                Query Nachsyas Arham&apos;s background directly. Powered by hybrid vector search over verified repositories with strict citation anchoring.
+                Query Nachsyas Arham&apos;s background directly. Powered by semantic vector retrieval over approved portfolio sources with strict citation anchoring.
               </p>
             </div>
 
