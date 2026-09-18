@@ -46,6 +46,7 @@ export default function NavLink({
     const hrefStr = typeof href === "string" ? href : href.pathname ?? "";
     if (
       !hrefStr ||
+      hrefStr.startsWith("#") ||
       hrefStr.startsWith("http://") ||
       hrefStr.startsWith("https://") ||
       hrefStr.startsWith("//") ||

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
+import NavLink from "@/components/motion/NavLink";
 import { motion, AnimatePresence } from "motion/react";
 import { Shield, ArrowRight, CheckCircle2, FileCode, ExternalLink, Sparkles } from "lucide-react";
 import type { Skill, Project, Evidence } from "arham-porto-schema";
@@ -232,7 +232,7 @@ export default function SkillsExplorer({
                   {relevantProjects.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {relevantProjects.map((p) => (
-                        <Link
+                        <NavLink
                           key={p.id}
                           href={`/projects/${p.slug}`}
                           className="p-3.5 rounded-lg border border-border bg-surface hover:border-primary/50 hover:bg-surface-elevated transition-all flex items-center justify-between group shadow-sm"
@@ -246,7 +246,7 @@ export default function SkillsExplorer({
                             </p>
                           </div>
                           <ArrowRight className="h-4 w-4 text-primary transform group-hover:translate-x-1 transition-transform" />
-                        </Link>
+                        </NavLink>
                       ))}
                     </div>
                   ) : (

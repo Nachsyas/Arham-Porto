@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, ExternalLink, CheckCircle2, Shield, ArrowRight } from "lucide-react";
 import { GithubIcon } from "@/components/icons/GithubIcon";
-import Link from "next/link";
+import NavLink from "@/components/motion/NavLink";
 import type { Profile, Project } from "arham-porto-schema";
 
 interface QuickReviewDrawerProps {
@@ -198,13 +198,13 @@ export default function QuickReviewDrawer({
                         </p>
                       )}
                       <div className="flex items-center justify-between text-xs pt-2 border-t border-border/50">
-                        <Link
+                        <NavLink
                           href={`/projects/${proj.slug}`}
                           onClick={onClose}
                           className="text-primary hover:text-primary-active inline-flex items-center gap-1 font-medium focus-visible:ring-1 focus-visible:ring-primary rounded"
                         >
                           Case Study <ArrowRight className="h-3 w-3" />
-                        </Link>
+                        </NavLink>
                         {proj.githubUrl && (
                           <a
                             href={proj.githubUrl}

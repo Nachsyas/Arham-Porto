@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import NavLink from "@/components/motion/NavLink";
 import { ArrowLeft, ExternalLink, Shield, CheckCircle2, Layers } from "lucide-react";
 import { GithubIcon } from "@/components/icons/GithubIcon";
 import { getProjects, getProfile } from "arham-porto-data";
@@ -50,13 +50,13 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
       {/* Top Breadcrumb Navigation */}
       <nav className="border-b border-border bg-surface/80 backdrop-blur-md px-4 sm:px-6 lg:px-8 py-3.5">
         <div className="mx-auto max-w-5xl flex items-center justify-between">
-          <Link
+          <NavLink
             href="/work"
             className="inline-flex items-center gap-2 text-xs font-code text-themeText-muted hover:text-primary transition-colors focus-visible:ring-2 focus-visible:ring-primary rounded py-1 px-2"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Selected Work
-          </Link>
+          </NavLink>
           <span className="text-xs font-code text-themeText-mutedSoft">
             CASE STUDY // {project.slug.toUpperCase()}
           </span>

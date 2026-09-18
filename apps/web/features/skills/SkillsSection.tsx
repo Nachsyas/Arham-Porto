@@ -1,6 +1,6 @@
 import { Shield, CheckCircle2, ArrowRight } from "lucide-react";
 import type { Skill, Project } from "arham-porto-schema";
-import Link from "next/link";
+import NavLink from "@/components/motion/NavLink";
 
 interface SkillsSectionProps {
   skills: Skill[];
@@ -8,16 +8,11 @@ interface SkillsSectionProps {
 }
 
 export default function SkillsSection({ skills, projects }: SkillsSectionProps) {
-  // Map project references by evidence linkage and category
+  // Map project references strictly by canonical evidence linkage
   const getRelevantProjects = (skill: Skill) => {
     return projects.filter((p) => {
       const hasDirectEvidence = p.evidenceIds?.some((id) => skill.evidenceIds?.includes(id));
-      if (hasDirectEvidence) return true;
-      if (skill.category === "Backend" && p.category === "Backend") return true;
-      if (skill.category === "Frontend" && p.category === "Full-Stack") return true;
-      if (skill.category === "AI / ML" && p.category === "AI") return true;
-      if (skill.category === "Systems" && p.category === "Systems") return true;
-      return false;
+      return Boolean(hasDirectEvidence);
     });
   };
 
@@ -79,14 +74,14 @@ export default function SkillsSection({ skills, projects }: SkillsSectionProps) 
                   {relevantProjects.length > 0 ? (
                     <div className="space-y-1.5">
                       {relevantProjects.map((p) => (
-                        <Link
+                        <NavLink
                           key={p.id}
                           href={`/projects/${p.slug}`}
                           className="flex items-center justify-between text-xs text-themeText-primary hover:text-primary transition-colors py-1.5 px-2.5 rounded bg-canvas-soft hover:bg-primary-muted/40 border border-border/50"
                         >
                           <span className="font-medium">{p.title}</span>
                           <ArrowRight className="h-3 w-3 text-primary" />
-                        </Link>
+                        </NavLink>
                       ))}
                     </div>
                   ) : (

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import NavLink from "@/components/motion/NavLink";
 import { ArrowRight, Code2, Cpu, Database, Globe, Compass, Sparkles, CheckCircle2, Shield } from "lucide-react";
 import HeroSection from "@/features/hero/HeroSection";
 import type { Profile, Project, Skill, JourneyStop } from "arham-porto-schema";
@@ -108,13 +108,13 @@ export default function HomeView({
               Production-grade systems demonstrating clean architecture, API design, and distributed persistence.
             </p>
           </div>
-          <Link
+          <NavLink
             href="/work"
             className="inline-flex items-center gap-2 text-xs font-code font-semibold text-primary hover:text-primary-active transition-colors self-start sm:self-auto"
           >
             <span>View all projects</span>
             <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+          </NavLink>
         </div>
 
         {/* 2–3 Featured Cards Grid */}
@@ -153,13 +153,13 @@ export default function HomeView({
               </div>
 
               <div className="pt-5 mt-5 border-t border-border/60 flex items-center justify-between">
-                <Link
+                <NavLink
                   href={`/projects/${project.slug}`}
                   className="text-xs font-code font-semibold text-primary hover:text-primary-active inline-flex items-center gap-1 transition-colors"
                 >
                   <span>Read Case Study</span>
                   <ArrowRight className="h-3 w-3 transform group-hover:translate-x-1 transition-transform" />
-                </Link>
+                </NavLink>
                 {project.githubUrl && (
                   <span className="text-[10px] font-code text-themeText-muted">GitHub Verified</span>
                 )}
@@ -183,13 +183,13 @@ export default function HomeView({
               Structured engineering disciplines backed by verified evidence across repositories.
             </p>
           </div>
-          <Link
+          <NavLink
             href="/skills"
             className="inline-flex items-center gap-2 text-xs font-code font-semibold text-primary hover:text-primary-active transition-colors self-start sm:self-auto"
           >
             <span>Explore skill evidence</span>
             <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+          </NavLink>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -248,13 +248,13 @@ export default function HomeView({
                 Trace the educational milestones from Karanganyar and Jakarta to Tahfizh &amp; Academic Foundation in Salatiga and university studies in Malang. Discover the interactive route map and formative timeline.
               </p>
               <div className="pt-2">
-                <Link
+                <NavLink
                   href="/journey"
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-xs font-code font-semibold bg-primary text-white hover:bg-primary-active transition-all shadow-sm"
                 >
                   <span>Explore Interactive Journey</span>
                   <Compass className="h-4 w-4" />
-                </Link>
+                </NavLink>
               </div>
             </div>
 
@@ -294,13 +294,13 @@ export default function HomeView({
             Explore verified engineering work, public repositories, or ask the grounded portfolio reviewer.
           </p>
           <div className="pt-2 flex justify-center gap-4">
-            <Link
+            <NavLink
               href="/contact"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold font-body bg-primary text-white hover:bg-primary-active transition-all shadow-sm hover:shadow-md"
             >
               <span>Connect on Contact Page</span>
               <ArrowRight className="h-4 w-4" />
-            </Link>
+            </NavLink>
           </div>
         </div>
       </section>

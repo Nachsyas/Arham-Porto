@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import NavLink from "@/components/motion/NavLink";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { GithubIcon } from "@/components/icons/GithubIcon";
 import type { Project } from "arham-porto-schema";
@@ -66,13 +66,13 @@ export default function ProjectCard({ project }: ProjectCardProps) {
 
       {/* Footer Actions */}
       <div className="mt-6 pt-4 border-t border-border/80 flex items-center justify-between">
-        <Link
+        <NavLink
           href={`/projects/${project.slug}`}
           className="inline-flex items-center gap-1.5 text-xs font-code font-semibold text-primary hover:text-primary-active transition-colors focus-visible:ring-2 focus-visible:ring-primary rounded py-1"
         >
           <span>Explore Case Study</span>
           <ArrowRight className="h-3.5 w-3.5 transform group-hover:translate-x-1.5 transition-transform" />
-        </Link>
+        </NavLink>
 
         <div className="flex items-center gap-2">
           {project.githubUrl && (

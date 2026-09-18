@@ -3,7 +3,7 @@ import { render, screen, fireEvent, renderHook, act } from "@testing-library/rea
 import React from "react";
 import { PortfolioUIProvider, usePortfolioUI } from "../context/PortfolioUIContext";
 import { NavigationProgressProvider, useNavigationProgress } from "../context/NavigationProgressContext";
-import { isModifiedClick } from "../components/motion/NavLink";
+import NavLink, { isModifiedClick } from "../components/motion/NavLink";
 import { getSkills, getProjects, getEvidence, getProfile, getJourney } from "arham-porto-data";
 import SkillsExplorer from "../features/skills/SkillsExplorer";
 import HomeView from "../features/home/HomeView";
@@ -329,6 +329,53 @@ describe("Multi-Page Experience & Routing Architecture", () => {
 
       const middleClick = { metaKey: false, ctrlKey: false, shiftKey: false, altKey: false, button: 1 } as React.MouseEvent;
       expect(isModifiedClick(middleClick)).toBe(true);
+
+      // Test NavLink component interactions
+      function NavLinkHarness() {
+        const { isNavigating } = useNavigationProgress();
+        return (
+          <div>
+            <span data-testid="nav-status">{isNavigating ? "NAVIGATING" : "IDLE"}</span>
+            <NavLink href="/work">Go to Work</NavLink>
+            <NavLink href="#overview">Anchor Link</NavLink>
+            <NavLink href="https://github.com" target="_blank">External Link</NavLink>
+          </div>
+        );
+      }
+
+      render(
+        <PortfolioUIProvider>
+          <NavigationProgressProvider>
+            <NavLinkHarness />
+          </NavigationProgressProvider>
+        </PortfolioUIProvider>
+      );
+
+      expect(screen.getByTestId("nav-status").textContent).toBe("IDLE");
+
+      // Suppress jsdom navigation error for internal link test
+      const originalConsoleError = console.error;
+      console.error = (...args: unknown[]) => {
+        if (typeof args[0] === "string" && args[0].includes("Not implemented: navigation")) return;
+        if (args[0] instanceof Error && args[0].message.includes("Not implemented: navigation")) return;
+        originalConsoleError(...args);
+      };
+
+      try {
+        // Clicking hash anchor should not trigger navigation progress
+        fireEvent.click(screen.getByText("Anchor Link"));
+        expect(screen.getByTestId("nav-status").textContent).toBe("IDLE");
+
+        // Clicking external target=_blank link should not trigger navigation progress
+        fireEvent.click(screen.getByText("External Link"));
+        expect(screen.getByTestId("nav-status").textContent).toBe("IDLE");
+
+        // Clicking internal route link triggers navigation progress
+        fireEvent.click(screen.getByText("Go to Work"));
+        expect(screen.getByTestId("nav-status").textContent).toBe("NAVIGATING");
+      } finally {
+        console.error = originalConsoleError;
+      }
     });
   });
 });

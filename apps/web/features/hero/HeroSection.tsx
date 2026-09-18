@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import NavLink from "@/components/motion/NavLink";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { GithubIcon } from "@/components/icons/GithubIcon";
 import HeroPortrait from "./HeroPortrait";
@@ -74,13 +74,13 @@ export default function HeroSection({ profile, onOpenQuickReview }: HeroSectionP
 
           {/* CTAs & Actions */}
           <div className="flex flex-wrap items-center gap-4 pt-4">
-            <Link
+            <NavLink
               href="/work"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold font-body bg-primary text-white hover:bg-primary-active transition-all shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary"
             >
               Explore My Work
               <ArrowRight className="h-4 w-4" />
-            </Link>
+            </NavLink>
 
             <button
               type="button"
