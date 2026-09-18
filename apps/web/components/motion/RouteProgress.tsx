@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useOptionalNavigationProgress } from "@/context/NavigationProgressContext";
 
@@ -8,11 +8,14 @@ export default function RouteProgress() {
   const pathname = usePathname();
   const navProgress = useOptionalNavigationProgress();
   const [status, setStatus] = useState<"idle" | "navigating" | "completing">("idle");
+  const [scale, setScale] = useState(0);
+  const [opacity, setOpacity] = useState(0);
   const [prefersReduced, setPrefersReduced] = useState(false);
+  const isFirstMount = useRef(true);
 
   // Respect prefers-reduced-motion
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReduced(mediaQuery.matches);
     const listener = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
@@ -20,39 +23,70 @@ export default function RouteProgress() {
     return () => mediaQuery.removeEventListener("change", listener);
   }, []);
 
-  // React to startProgress from context
+  // React to startProgress from context (navigation start)
   useEffect(() => {
     if (navProgress?.isNavigating) {
       setStatus("navigating");
+      setOpacity(1);
+      setScale(0.05);
+
+      const timer = setTimeout(() => {
+        setScale(0.75);
+      }, 20);
+
+      return () => clearTimeout(timer);
     }
   }, [navProgress?.isNavigating]);
 
-  // When pathname changes, complete and fade
+  // When pathname changes (route commit)
   useEffect(() => {
-    setStatus("completing");
-    const finishTimer = setTimeout(() => {
-      setStatus("idle");
-    }, 350);
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
 
-    return () => clearTimeout(finishTimer);
+    setStatus("completing");
+    setScale(1);
+    setOpacity(1);
+
+    const fadeTimer = setTimeout(() => {
+      setOpacity(0);
+    }, 180);
+
+    const idleTimer = setTimeout(() => {
+      setStatus("idle");
+      setScale(0);
+    }, 400);
+
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(idleTimer);
+    };
   }, [pathname]);
 
-  if (prefersReduced || status === "idle") {
+  if (prefersReduced) {
     return null;
   }
+
+  const getTransition = () => {
+    if (status === "completing") {
+      return "transform 180ms ease-out, opacity 200ms ease-in";
+    }
+    if (status === "navigating" && scale > 0.05) {
+      return "transform 600ms cubic-bezier(0.1, 0.9, 0.2, 1)";
+    }
+    return "none";
+  };
 
   return (
     <div
       aria-hidden="true"
       data-testid="route-progress-bar"
-      className="fixed top-0 left-0 right-0 z-50 h-[2.5px] bg-primary pointer-events-none origin-left transition-all duration-300 motion-reduce:hidden"
+      className="fixed top-0 left-0 right-0 z-50 h-[2px] bg-primary pointer-events-none origin-left motion-reduce:hidden"
       style={{
-        width: status === "navigating" ? "75%" : "100%",
-        opacity: status === "completing" ? 0 : 1,
-        transition:
-          status === "completing"
-            ? "width 200ms ease-out, opacity 250ms ease-in"
-            : "width 400ms cubic-bezier(0.1, 0.9, 0.2, 1)",
+        transform: `scaleX(${scale})`,
+        opacity,
+        transition: getTransition(),
       }}
     />
   );

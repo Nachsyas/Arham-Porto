@@ -136,7 +136,7 @@ export default function ContactView({ profile }: ContactViewProps) {
               Strict Zero-Trust & Evidence Integrity Standard
             </p>
             <p className="font-body text-themeText-muted leading-relaxed">
-              Every technical claim, project metric, and architectural role presented on this site is anchored to verifiable repositories and source documentation. Non-public credentials or personal identifiers are strictly withheld.
+              Verified technical claims and project evidence are linked to approved repositories and source documentation where available. Non-public credentials and personal identifiers remain withheld.
             </p>
           </div>
         </div>

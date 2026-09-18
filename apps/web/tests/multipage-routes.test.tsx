@@ -13,6 +13,7 @@ import SkillsPage from "../app/skills/page";
 import JourneyPage from "../app/journey/page";
 import ContactPage from "../app/contact/page";
 import Navbar from "../components/Navbar";
+import RouteProgress from "../components/motion/RouteProgress";
 
 describe("Multi-Page Experience & Routing Architecture", () => {
   describe("PortfolioUIProvider & Context Hook", () => {
@@ -252,7 +253,7 @@ describe("Multi-Page Experience & Routing Architecture", () => {
       ).toBeDefined();
     });
 
-    it("F: Contact does not contain 'hybrid vector search' or 'microservices'", () => {
+    it("F: Contact does not contain 'hybrid vector search', 'microservices', or old universal claim", () => {
       const { container } = render(
         <PortfolioUIProvider>
           <ContactView profile={profile} />
@@ -261,6 +262,9 @@ describe("Multi-Page Experience & Routing Architecture", () => {
 
       expect(container.textContent).not.toMatch(/hybrid vector search/i);
       expect(container.textContent).not.toMatch(/microservices/i);
+      expect(container.textContent).not.toMatch(
+        /Every technical claim, project metric, and architectural role presented on this site is anchored to verifiable repositories/i
+      );
       expect(
         screen.getByText(
           /Powered by semantic vector retrieval over approved portfolio sources with strict citation anchoring/i
@@ -268,6 +272,11 @@ describe("Multi-Page Experience & Routing Architecture", () => {
       ).toBeDefined();
       expect(
         screen.getByText(/Review verified commit history, Go backend services, Next\.js web applications/i)
+      ).toBeDefined();
+      expect(
+        screen.getByText(
+          /Verified technical claims and project evidence are linked to approved repositories and source documentation where available\. Non-public credentials and personal identifiers remain withheld\./i
+        )
       ).toBeDefined();
     });
 
@@ -376,6 +385,31 @@ describe("Multi-Page Experience & Routing Architecture", () => {
       } finally {
         console.error = originalConsoleError;
       }
+    });
+
+    it("H2: RouteProgress animates transform scaleX and opacity without animating CSS width", () => {
+      render(
+        <PortfolioUIProvider>
+          <NavigationProgressProvider>
+            <RouteProgress />
+          </NavigationProgressProvider>
+        </PortfolioUIProvider>
+      );
+
+      const progressBar = screen.getByTestId("route-progress-bar");
+      expect(progressBar).toBeDefined();
+
+      // Check fixed full-width classes and origin-left
+      expect(progressBar.className).toContain("fixed");
+      expect(progressBar.className).toContain("top-0");
+      expect(progressBar.className).toContain("left-0");
+      expect(progressBar.className).toContain("right-0");
+      expect(progressBar.className).toContain("h-[2px]");
+      expect(progressBar.className).toContain("origin-left");
+
+      // Verify it uses transform: scaleX and does NOT animate CSS width
+      expect(progressBar.style.transform).toMatch(/scaleX/);
+      expect(progressBar.style.width).toBe("");
     });
   });
 });
