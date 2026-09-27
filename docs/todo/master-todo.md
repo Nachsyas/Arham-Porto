@@ -353,3 +353,17 @@
 > - **Legacy Adapter**: Gemini provider preserved as inactive rollback adapter.
 > - **Phase 7**: DEFERRED.
 
+---
+
+## Living Portfolio Pipeline — Sprint 1: GitHub Repository Sync Service (COMPLETED)
+> **Sprint 1 Scope**: Ingestion foundation for automated living portfolio. Pinned to GitHub REST API (`https://api.github.com/users/Nachsyas/repos`), hardened pagination, Bearer authentication with `GITHUB_TOKEN`, clean architecture domain isolation, PostgreSQL upserts on `github_projects` table with historical retention (never delete), and `POST /api/v1/github/sync` endpoint.
+
+- [x] **Database Migration**: Created `apps/api/migrations/000003_github_projects.up.sql` (`github_projects` table with UUID id, BIGINT github_id UNIQUE, JSONB topics, indexes on github_id and updated_at) and clean rollback `000003_github_projects.down.sql`.
+- [x] **Pure Go Domain Layer**: Defined `domain.GithubProject` and `domain.GithubProjectRepository` with zero external dependencies (`internal/domain/github_project.go`).
+- [x] **GitHub Client & Service**: Implemented hardened client (`FetchUserRepositories`), DTO mapping, and `SyncService` in `internal/github/`.
+- [x] **PostgreSQL Repository**: Implemented `postgres.GithubProjectRepository` with atomic `(xmax = 0)` conflict detection, NULL-safe scanning, and historical retention.
+- [x] **HTTP Delivery Endpoint**: Created `POST /api/v1/github/sync` with standard error envelopes (401, 429, 502, 503, 405) and success response `{status: "success", synced: N, created: N, updated: N}`.
+- [x] **Testing & Verification**: 100% test pass with zero data races (`go test -race ./...`), 0 vet warnings, 100% web test passes (76/76).
+- [x] **Documentation**: Created `docs/github-sync.md` documenting architecture, sync flow, env vars, database design, and future expansion phases.
+
+

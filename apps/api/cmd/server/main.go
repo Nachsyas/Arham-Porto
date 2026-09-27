@@ -15,6 +15,7 @@ import (
 	"github.com/nachsyas/arham-porto/apps/api/internal/embedding"
 	"github.com/nachsyas/arham-porto/apps/api/internal/embedding/cloudflare"
 	geminiEmb "github.com/nachsyas/arham-porto/apps/api/internal/embedding/gemini"
+	githubPkg "github.com/nachsyas/arham-porto/apps/api/internal/github"
 	"github.com/nachsyas/arham-porto/apps/api/internal/llm"
 	geminiLLM "github.com/nachsyas/arham-porto/apps/api/internal/llm/gemini"
 	"github.com/nachsyas/arham-porto/apps/api/internal/llm/groq"
@@ -139,12 +140,18 @@ func main() {
 	aiLimiter = delivery.NewRateLimiter(cfg.AIRateLimitPerMinute, time.Minute)
 	defer aiLimiter.Close()
 
-	// 7. Initialize delivery layer
+	// 7. Initialize GitHub repository sync pipeline
+	githubClient := githubPkg.NewClient(cfg.GitHubToken)
+	githubProjectRepo := postgres.NewGithubProjectRepository(pgClient)
+	githubSyncSvc := githubPkg.NewSyncService(githubClient, githubProjectRepo, "Nachsyas")
+
+	// 8. Initialize delivery layer
 	handler := delivery.NewHandler(profileUC, projectUC, skillUC, evidenceUC, journeyUC, pgClient)
+	handler.SetGitHubSyncService(githubSyncSvc)
 	handler.EnableAI(askUC, cfg.AIMode, aiLimiter, cfg.AIMaxConcurrentRequests, cfg.AIRequestTimeoutSeconds)
 	router := delivery.NewRouter(handler, cfg.AllowedOrigins, rateLimiter, cfg.TrustProxyMode)
 
-	// 8. Configure hardened HTTP server
+	// 9. Configure hardened HTTP server
 	writeTimeout := 35 * time.Second
 	if cfg.AIRequestTimeoutSeconds > 30 {
 		writeTimeout = time.Duration(cfg.AIRequestTimeoutSeconds+5) * time.Second

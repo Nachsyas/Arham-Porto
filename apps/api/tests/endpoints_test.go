@@ -980,3 +980,36 @@ func TestEndpoints_MethodNotAllowed_OtherRoutes(t *testing.T) {
 	}
 }
 
+func TestEndpoints_GitHubSync(t *testing.T) {
+	router := setupFullTestRouter(t, []string{"http://localhost:3000"}, nil)
+
+	t.Run("POST /api/v1/github/sync returns 503 when service unconfigured", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/github/sync", nil)
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusServiceUnavailable {
+			t.Fatalf("expected status 503, got %d", rec.Code)
+		}
+
+		var errResp dto.ErrorEnvelope
+		if err := json.NewDecoder(rec.Body).Decode(&errResp); err != nil {
+			t.Fatalf("failed to decode error envelope: %v", err)
+		}
+		if errResp.Error.Code != "service_unavailable" {
+			t.Errorf("expected code 'service_unavailable', got %s", errResp.Error.Code)
+		}
+	})
+
+	t.Run("GET /api/v1/github/sync returns 405 method not allowed", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/github/sync", nil)
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusMethodNotAllowed {
+			t.Fatalf("expected status 405, got %d", rec.Code)
+		}
+	})
+}
+
+

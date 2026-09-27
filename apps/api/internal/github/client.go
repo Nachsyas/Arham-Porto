@@ -3,6 +3,7 @@ package github
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -20,14 +21,16 @@ import (
 const MaxFileSize = 256 * 1024
 
 var (
-	ErrFileNotFound    = errors.New("file not found on github")
-	ErrRateLimited     = errors.New("github api rate limit exceeded")
-	ErrFileOversized   = errors.New("file exceeds maximum allowed size (256 KiB)")
-	ErrBinaryContent   = errors.New("binary or non-utf8 content rejected")
-	ErrPathExcluded    = errors.New("path matches secret or excluded pattern")
-	ErrInvalidSHA      = errors.New("invalid commit SHA format: expected 40 hex characters")
-	ErrInvalidPath     = errors.New("invalid path: traversal or absolute path not permitted")
+	ErrFileNotFound     = errors.New("file not found on github")
+	ErrRateLimited      = errors.New("github api rate limit exceeded")
+	ErrFileOversized    = errors.New("file exceeds maximum allowed size (256 KiB)")
+	ErrBinaryContent    = errors.New("binary or non-utf8 content rejected")
+	ErrPathExcluded     = errors.New("path matches secret or excluded pattern")
+	ErrInvalidSHA       = errors.New("invalid commit SHA format: expected 40 hex characters")
+	ErrInvalidPath      = errors.New("invalid path: traversal or absolute path not permitted")
 	ErrUnauthorizedHost = errors.New("redirect to unauthorized host rejected")
+	ErrMissingToken     = errors.New("github token is required")
+	ErrUserNotFound     = errors.New("github user not found")
 )
 
 var shaRegex = regexp.MustCompile(`^[0-9a-fA-F]{40}$`)
@@ -257,3 +260,99 @@ func GenerateCitationURL(owner, repo, commitSHA, filePath string) (string, error
 
 	return fmt.Sprintf("https://github.com/%s/%s/blob/%s/%s", owner, repo, commitSHA, cleanPath), nil
 }
+
+// FetchUserRepositories retrieves all public repositories for a specified user with pagination.
+// Requires valid GITHUB_TOKEN authentication.
+func (c *Client) FetchUserRepositories(ctx context.Context, username string) ([]Repository, error) {
+	if strings.TrimSpace(c.token) == "" {
+		return nil, ErrMissingToken
+	}
+
+	cleanUsername := strings.TrimSpace(username)
+	if cleanUsername == "" {
+		return nil, errors.New("github username cannot be empty")
+	}
+
+	var allRepos []Repository
+	page := 1
+	perPage := 100
+	const maxPages = 50
+
+	for page <= maxPages {
+		endpoint := fmt.Sprintf("%s/users/%s/repos?per_page=%d&page=%d&type=owner",
+			c.baseURL,
+			url.PathEscape(cleanUsername),
+			perPage,
+			page,
+		)
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create repos request: %w", err)
+		}
+
+		req.Header.Set("Accept", "application/vnd.github.v3+json")
+		req.Header.Set("User-Agent", "Arham-Porto-Sync/1.0")
+		req.Header.Set("Authorization", "Bearer "+c.token)
+
+		resp, err := c.httpClient.Do(req)
+		if err != nil {
+			if ctx.Err() != nil {
+				return nil, ctx.Err()
+			}
+			return nil, fmt.Errorf("github fetch repos failed: %w", err)
+		}
+
+		if resp.StatusCode == http.StatusNotFound {
+			resp.Body.Close()
+			return nil, fmt.Errorf("%w: user %s", ErrUserNotFound, cleanUsername)
+		}
+		if resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusTooManyRequests {
+			resp.Body.Close()
+			return nil, ErrRateLimited
+		}
+		if resp.StatusCode == http.StatusUnauthorized {
+			resp.Body.Close()
+			return nil, errors.New("github api authentication failed: invalid or expired token")
+		}
+		if resp.StatusCode != http.StatusOK {
+			resp.Body.Close()
+			return nil, fmt.Errorf("unexpected status %d fetching repos: %s", resp.StatusCode, resp.Status)
+		}
+
+		var pageItems []githubRepoResponse
+		decodeErr := json.NewDecoder(resp.Body).Decode(&pageItems)
+		linkHeader := resp.Header.Get("Link")
+		resp.Body.Close()
+
+		if decodeErr != nil {
+			return nil, fmt.Errorf("failed to decode github repos response: %w", decodeErr)
+		}
+
+		if len(pageItems) == 0 {
+			break
+		}
+
+		for _, item := range pageItems {
+			allRepos = append(allRepos, item.ToRepository())
+		}
+
+		// Check pagination termination:
+		// When GitHub Link header is present, continue only if rel="next" is present.
+		// When Link header is omitted (e.g. some mock environments), terminate if page is smaller than perPage.
+		if linkHeader != "" {
+			if !strings.Contains(linkHeader, `rel="next"`) {
+				break
+			}
+		} else {
+			if len(pageItems) < perPage {
+				break
+			}
+		}
+
+		page++
+	}
+
+	return allRepos, nil
+}
+

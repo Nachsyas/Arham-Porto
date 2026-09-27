@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/nachsyas/arham-porto/apps/api/internal/delivery/http/dto"
+	"github.com/nachsyas/arham-porto/apps/api/internal/github"
 	"github.com/nachsyas/arham-porto/apps/api/internal/repository/jsonfile"
 	"github.com/nachsyas/arham-porto/apps/api/internal/usecase"
 )
@@ -29,6 +30,9 @@ type Handler struct {
 	journeyUC  usecase.JourneyUseCase
 	dbChecker  DBStatusChecker
 
+	// Sprint 1 GitHub Repository Sync dependencies
+	githubSyncService GitHubSyncService
+
 	// Phase 6 Ask Arham AI dependencies
 	askUC            usecase.AskUseCase
 	aiMode           string
@@ -38,6 +42,11 @@ type Handler struct {
 
 	// Production Edge Proxy Mode
 	trustProxyMode string
+}
+
+// GitHubSyncService defines the sync operations required by the delivery layer.
+type GitHubSyncService interface {
+	SyncRepositories(ctx context.Context) (*github.SyncResult, error)
 }
 
 // NewHandler constructs a Handler with all usecases.
@@ -70,6 +79,11 @@ func (h *Handler) SetTrustProxyMode(mode string) {
 	} else {
 		h.trustProxyMode = "direct"
 	}
+}
+
+// SetGitHubSyncService configures the GitHub synchronization service.
+func (h *Handler) SetGitHubSyncService(svc GitHubSyncService) {
+	h.githubSyncService = svc
 }
 
 // EnableAI configures the Ask Arham AI copilot dependencies.
