@@ -1,6 +1,7 @@
 import { getProjects } from "arham-porto-data";
 import PageHeader from "@/components/PageHeader";
 import ProjectsSection from "@/features/projects/ProjectsSection";
+import GithubProjectsSection from "@/features/github-projects/GithubProjectsSection";
 import InterPageNav from "@/components/InterPageNav";
 import type { Metadata } from "next";
 
@@ -27,6 +28,7 @@ export default function WorkPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ProjectsSection projects={projects} hideHeader={true} />
+        <GithubProjectsSection />
       </div>
 
       <InterPageNav

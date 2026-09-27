@@ -29,6 +29,7 @@ func NewRouter(h *Handler, allowedOrigins []string, rl *RateLimiter, trustProxyM
 	mux.HandleFunc("GET /api/v1/journey", h.ListJourney)
 	mux.HandleFunc("POST /api/v1/ai/ask", h.AskHandler)
 	mux.HandleFunc("POST /api/v1/github/sync", h.SyncGitHubRepositories)
+	mux.HandleFunc("GET /api/v1/github/projects", h.ListGithubProjects)
 
 	// Middleware composition (outer -> inner)
 	// 1. Recovery

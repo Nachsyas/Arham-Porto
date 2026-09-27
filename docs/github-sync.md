@@ -227,21 +227,117 @@ Trigger repository ingestion and synchronization from GitHub to PostgreSQL.
   }
   ```
 
+### `GET /api/v1/github/projects`
+
+Expose synchronized GitHub repositories stored in PostgreSQL as a read-only list for frontend exploration.
+
+#### Request
+- **Method**: `GET`
+- **Path**: `/api/v1/github/projects`
+- **Query Parameters**:
+  - `page` (optional, default: `1`, minimum: `1`): Pagination page number.
+  - `limit` (optional, default: `20`, range: `1` to `100`): Maximum repositories per page.
+- **Headers**:
+  - `Accept: application/json`
+
+#### Success Response (`200 OK`)
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "name": "EduTrace",
+      "full_name": "Nachsyas/EduTrace",
+      "description": "Educational tracking and analytics platform",
+      "html_url": "https://github.com/Nachsyas/EduTrace",
+      "homepage": "https://edutrace.example.com",
+      "language": "TypeScript",
+      "stars": 12,
+      "forks": 3,
+      "topics": [
+        "nextjs",
+        "ai",
+        "education"
+      ],
+      "synced_at": "2026-09-14T00:00:00Z"
+    }
+  ]
+}
+```
+
+#### Error Responses
+- **`400 Bad Request`** (invalid page/limit parameter, non-numeric, or duplicate parameters):
+  ```json
+  {
+    "error": {
+      "code": "bad_request",
+      "message": "invalid page parameter: must be an integer >= 1"
+    }
+  }
+  ```
+- **`500 Internal Server Error`** (database query failure):
+  ```json
+  {
+    "error": {
+      "code": "internal_error",
+      "message": "failed to retrieve GitHub projects"
+    }
+  }
+  ```
+- **`503 Service Unavailable`** (database repository disabled or unconfigured):
+  ```json
+  {
+    "error": {
+      "code": "service_unavailable",
+      "message": "database repository is unavailable"
+    }
+  }
+  ```
+
 ---
 
-## 6. Future Expansion Roadmap
+## 6. Phase 2A — GitHub Project Explorer Integration
 
-The GitHub Repository Sync Service serves as the trusted evidence layer for upcoming automated capabilities:
+Phase 2A connects the backend ingestion pipeline to the live Next.js portfolio user interface, transforming the static showcase into a dynamic, unified work explorer.
+
+### Key Capabilities
+1. **Frontend Consumption via Read-Only API**:
+   - The Next.js frontend fetches synchronized GitHub repositories via `getGithubProjects(page, limit)` pointing to `NEXT_PUBLIC_API_BASE_URL/api/v1/github/projects`.
+2. **Unified `/work` Page Display**:
+   - The `/work` page seamlessly combines:
+     - **Canonical Showcase Projects** (`arham-porto-data`): In-depth architectural case studies with domain filters (`All`, `AI`, `Full-Stack`, `Backend`, `Systems`).
+     - **GitHub Synchronized Repositories**: Real-time open-source repositories rendered below the canonical showcase in section `02 // OPEN SOURCE & REPOSITORIES`.
+   - Canonical project data is never replaced or removed.
+3. **Dedicated `GithubProjectCard` Component**:
+   - Displays repository name, description, primary language badge, topics (`#nextjs`, `#ai`), real star/fork metrics, last synchronization timestamp, and a direct link to the repository on GitHub.
+   - Adheres strictly to the certified bright light theme, rounded borders (`rounded-card`), and typography design tokens (`font-display`, `font-code`).
+4. **Non-Blocking Resilience & Fault-Tolerance**:
+   - While fetching, displays subtle skeleton placeholder cards.
+   - If the backend API or database is unreachable, displays a graceful synchronization notice (`"GitHub projects are temporarily unavailable. Canonical projects and case studies remain fully accessible above."`).
+   - The `/work` page **never** fails or becomes empty due to upstream or network issues.
+
+---
+
+## 7. Future Expansion Roadmap
+
+The living portfolio pipeline proceeds along the following sequential milestones:
 
 ```
 ┌────────────────────────────────────────────────────────┐
-│           Sprint 1: GitHub Ingestion Service           │  <-- COMPLETED (Current)
+│           Sprint 1: GitHub Ingestion Service           │  <-- COMPLETED
 │   (Polls GitHub REST API, upserts github_projects)     │
 └───────────────────────────┬────────────────────────────┘
                             │
                             ▼
 ┌────────────────────────────────────────────────────────┐
-│        Phase 2: GitHub AI Project Analyzer             │
+│       Phase 2A: GitHub Project Explorer API & UI       │  <-- COMPLETED (Current)
+│   (Read-only GET API, /work integration, card view)    │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│        Phase 2B: GitHub AI Project Analyzer            │
 │   (Analyzes code structure, commits, and technologies) │
 └───────────────────────────┬────────────────────────────┘
                             │
@@ -263,3 +359,4 @@ The GitHub Repository Sync Service serves as the trusted evidence layer for upco
 │   (Embeds synced repositories into pgvector knowledge) │
 └────────────────────────────────────────────────────────┘
 ```
+

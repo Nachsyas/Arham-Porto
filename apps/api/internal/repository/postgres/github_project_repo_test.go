@@ -48,6 +48,13 @@ func TestGithubProjectRepository_DatabaseDisabled(t *testing.T) {
 		}
 	})
 
+	t.Run("ListGithubProjects fails with ErrDatabaseDisabled", func(t *testing.T) {
+		_, err := repo.ListGithubProjects(ctx, 1, 20)
+		if !errors.Is(err, ErrDatabaseDisabled) {
+			t.Errorf("expected ErrDatabaseDisabled, got %v", err)
+		}
+	})
+
 	t.Run("GetByGithubID fails with ErrDatabaseDisabled", func(t *testing.T) {
 		_, err := repo.GetByGithubID(ctx, 100)
 		if !errors.Is(err, ErrDatabaseDisabled) {

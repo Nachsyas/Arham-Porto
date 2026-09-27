@@ -148,6 +148,7 @@ func main() {
 	// 8. Initialize delivery layer
 	handler := delivery.NewHandler(profileUC, projectUC, skillUC, evidenceUC, journeyUC, pgClient)
 	handler.SetGitHubSyncService(githubSyncSvc)
+	handler.SetGithubProjectRepository(githubProjectRepo)
 	handler.EnableAI(askUC, cfg.AIMode, aiLimiter, cfg.AIMaxConcurrentRequests, cfg.AIRequestTimeoutSeconds)
 	router := delivery.NewRouter(handler, cfg.AllowedOrigins, rateLimiter, cfg.TrustProxyMode)
 

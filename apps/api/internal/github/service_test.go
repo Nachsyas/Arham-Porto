@@ -67,6 +67,10 @@ func (m *mockGithubProjectRepo) List(ctx context.Context) ([]*domain.GithubProje
 	return res, nil
 }
 
+func (m *mockGithubProjectRepo) ListGithubProjects(ctx context.Context, page, limit int) ([]*domain.GithubProject, error) {
+	return m.List(ctx)
+}
+
 func (m *mockGithubProjectRepo) GetByGithubID(ctx context.Context, githubID int64) (*domain.GithubProject, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()

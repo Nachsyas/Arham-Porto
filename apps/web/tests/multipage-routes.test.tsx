@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen, fireEvent, renderHook, act } from "@testing-library/react";
+import { render, screen, fireEvent, renderHook, act, waitFor } from "@testing-library/react";
 import React from "react";
 import { PortfolioUIProvider, usePortfolioUI } from "../context/PortfolioUIContext";
 import { NavigationProgressProvider, useNavigationProgress } from "../context/NavigationProgressContext";
@@ -83,7 +83,7 @@ describe("Multi-Page Experience & Routing Architecture", () => {
   });
 
   describe("Dedicated Route Pages", () => {
-    it("renders /work with PageHeader and project cards", () => {
+    it("renders /work with PageHeader and project cards", async () => {
       render(
         <PortfolioUIProvider>
           <WorkPage />
@@ -94,6 +94,10 @@ describe("Multi-Page Experience & Routing Architecture", () => {
       expect(screen.getByRole("heading", { name: /Selected Systems & Engineering Projects/i })).toBeDefined();
       expect(screen.getByRole("heading", { name: "EduTrace" })).toBeDefined();
       expect(screen.getByRole("heading", { name: "GDGOC E-Commerce" })).toBeDefined();
+
+      await waitFor(() => {
+        expect(screen.getByTestId("github-projects-section")).toBeDefined();
+      });
     });
 
     it("renders /skills with PageHeader and verified evidence without arbitrary percentage numbers", () => {

@@ -276,6 +276,88 @@ func (r *GithubProjectRepository) List(ctx context.Context) ([]*domain.GithubPro
 	return projects, nil
 }
 
+// ListGithubProjects returns synchronized GitHub repositories ordered by newest updated first, with pagination support.
+func (r *GithubProjectRepository) ListGithubProjects(ctx context.Context, page, limit int) ([]*domain.GithubProject, error) {
+	pool := r.client.Pool()
+	if pool == nil {
+		return nil, ErrDatabaseDisabled
+	}
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 20
+	} else if limit > 100 {
+		limit = 100
+	}
+
+	offset := (page - 1) * limit
+
+	query := `
+		SELECT
+			id, github_id, name, full_name, COALESCE(description, ''), COALESCE(html_url, ''),
+			COALESCE(homepage, ''), COALESCE(language, ''), stars, forks,
+			COALESCE(topics, '[]'::jsonb), readme, preview_image, synced_at, created_at, updated_at
+		FROM github_projects
+		ORDER BY updated_at DESC
+		LIMIT $1 OFFSET $2;
+	`
+
+	rows, err := pool.Query(ctx, query, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query paginated github projects: %w", err)
+	}
+	defer rows.Close()
+
+	var projects []*domain.GithubProject
+
+	for rows.Next() {
+		var (
+			p           domain.GithubProject
+			topicsBytes []byte
+		)
+
+		err := rows.Scan(
+			&p.ID,
+			&p.GithubID,
+			&p.Name,
+			&p.FullName,
+			&p.Description,
+			&p.HTMLURL,
+			&p.Homepage,
+			&p.Language,
+			&p.Stars,
+			&p.Forks,
+			&topicsBytes,
+			&p.Readme,
+			&p.PreviewImage,
+			&p.SyncedAt,
+			&p.CreatedAt,
+			&p.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan github project row: %w", err)
+		}
+
+		if len(topicsBytes) > 0 {
+			if err := json.Unmarshal(topicsBytes, &p.Topics); err != nil {
+				p.Topics = []string{}
+			}
+		} else {
+			p.Topics = []string{}
+		}
+
+		projects = append(projects, &p)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error during paginated github projects iteration: %w", err)
+	}
+
+	return projects, nil
+}
+
 // GetByGithubID retrieves a single GitHub repository by its unique GitHub ID.
 func (r *GithubProjectRepository) GetByGithubID(ctx context.Context, githubID int64) (*domain.GithubProject, error) {
 	pool := r.client.Pool()

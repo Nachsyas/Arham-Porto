@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/nachsyas/arham-porto/apps/api/internal/delivery/http/dto"
+	"github.com/nachsyas/arham-porto/apps/api/internal/domain"
 	"github.com/nachsyas/arham-porto/apps/api/internal/github"
 	"github.com/nachsyas/arham-porto/apps/api/internal/repository/jsonfile"
 	"github.com/nachsyas/arham-porto/apps/api/internal/usecase"
@@ -30,8 +31,9 @@ type Handler struct {
 	journeyUC  usecase.JourneyUseCase
 	dbChecker  DBStatusChecker
 
-	// Sprint 1 GitHub Repository Sync dependencies
+	// Sprint 1 & Phase 2A GitHub Repository Sync & Explorer dependencies
 	githubSyncService GitHubSyncService
+	githubProjectRepo domain.GithubProjectRepository
 
 	// Phase 6 Ask Arham AI dependencies
 	askUC            usecase.AskUseCase
@@ -84,6 +86,11 @@ func (h *Handler) SetTrustProxyMode(mode string) {
 // SetGitHubSyncService configures the GitHub synchronization service.
 func (h *Handler) SetGitHubSyncService(svc GitHubSyncService) {
 	h.githubSyncService = svc
+}
+
+// SetGithubProjectRepository configures the GitHub repository storage reader.
+func (h *Handler) SetGithubProjectRepository(repo domain.GithubProjectRepository) {
+	h.githubProjectRepo = repo
 }
 
 // EnableAI configures the Ask Arham AI copilot dependencies.

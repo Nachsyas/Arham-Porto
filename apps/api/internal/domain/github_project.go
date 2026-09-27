@@ -31,5 +31,7 @@ type GithubProjectRepository interface {
 	Update(ctx context.Context, project *GithubProject) error
 	Upsert(ctx context.Context, project *GithubProject) (isCreated bool, err error)
 	List(ctx context.Context) ([]*GithubProject, error)
+	ListGithubProjects(ctx context.Context, page, limit int) ([]*GithubProject, error)
 	GetByGithubID(ctx context.Context, githubID int64) (*GithubProject, error)
 }
+
